@@ -1,0 +1,1 @@
+valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes /home/osboxes/git/newhc_/Release/./newhc_ 192.168.0.14 1221 /dev/ttyACM2 112233445511

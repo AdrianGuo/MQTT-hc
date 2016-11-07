@@ -1,0 +1,86 @@
+#include "ValueBool.hpp"
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueBool::ValueBool(
+    bool_t boValue
+) : Value (ValueType_Bool) {
+    m_boValue = boValue;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueBool::~ValueBool() {}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueBool::GetValue() const {
+    return m_boValue;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueBool::SetValue(
+    bool_t boValue
+) {
+    m_boValue = boValue;
+    SetChange();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueBool&
+ValueBool::operator= (
+    bool_t boValue
+) {
+    SetValue(boValue);
+    return *this;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueBool::operator== (
+    const bool_t boValue
+) const {
+    return m_boValue == boValue;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueBool::operator!= (
+    const bool_t boValue
+) const {
+    return m_boValue != boValue;
+}
