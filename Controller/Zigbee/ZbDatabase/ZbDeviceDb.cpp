@@ -95,140 +95,139 @@ ZbDeviceDb::IsInterested() {
  */
 void_t
 ZbDeviceDb::ReceiveInforFromDevice(
-    u8_t byAttributeDataType,
-    u8_p const pbyValue
+    DeviceProperties vResponseDP
 ){
     DEBUG2("Received information from device %d - RealType: %d.", DeviceID.GetValue(), RealType);
-    switch (RealType) {
-        case LUMI_DEVICE_SWITCH:
-        case LUMI_DEVICE_INPUT:
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State]) break;
-            State = (u8_t) *pbyValue;
-            ForwardDeviceInfoToOutside(this);
-            break;
-
-        case LUMI_DEVICE_DIMMER:
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State]) {
-                State = (u8_t) *pbyValue;
-            }
-            SendDimmersStateToOutside(this);
-
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_OnOff]) {
-                State = (u8_t) *pbyValue;
-            }
-            break;
-
-        case LUMI_DEVICE_FAN:
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State]) {
-                State = (u8_t) *pbyValue;
-            }
-            SendFansStateToOutside(this);
-
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_OnOff]) {
-                State = (u8_t) *pbyValue;
-            }
-            break;
-
-        case LUMI_DEVICE_CURTAIN:
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State]) {
-                State = (u8_t) *pbyValue;
-            }
-
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_OnOff]) {
-                State = (u8_t) *pbyValue;
-            }
-            break;
-
-        case LUMI_DEVICE_IR:
-            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State])
-                //respone from ???
-            break;
-
-        case LUMI_DEVICE_DOOR:
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
-                State = (u8_t) *pbyValue;
-            ForwardDeviceInfoToOutside(this);
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Power])
-                Action[DeviceInfo::DI_Power].DP_AttributeData = (u8_t) *pbyValue;
-            break;
-
-        case LUMI_DEVICE_PIR:
-        case LUMI_DEVICE_TEMPERATURE:
-        case LUMI_DEVICE_HUMIDITY:
-        case LUMI_DEVICE_ILLUMINANCE:
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
-                State = (u16_t) *pbyValue;
-            ForwardDeviceInfoToOutside(this);
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Power])
-                Action[DeviceInfo::DI_Power].DP_AttributeData = (u8_t) *pbyValue;
-            break;
-
-        case LUMI_DEVICE_RGB:
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
-                State = (u8_t) *pbyValue; //ON/OFF state
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_RemainingTime])
-                Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_Red])
-                Action[DeviceInfo::DI_RGB_Red].DP_AttributeData = (u8_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_Green])
-                Action[DeviceInfo::DI_RGB_Green].DP_AttributeData = (u8_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_Blue])
-                Action[DeviceInfo::DI_RGB_Blue].DP_AttributeData = (u8_t) *pbyValue;
-            SendRGBsStateToOutside(this);
-            break;
-
-        case LUMI_DEVICE_DAIKIN:
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
-                State = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Local_Temperature])
-                Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Cooling_Setpoint])
-                Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Heating_Setpoint])
-                Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Min_Heat_Limit])
-                Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Max_Heat_Limit])
-                Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Min_Cool_Limit])
-                Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Max_Cool_Limit])
-                Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_AttributeData = (u16_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Control_Seq_Operation])
-                Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_AttributeData = (u8_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_System_Mode])
-                Action[DeviceInfo::DI_Daikin_System_Mode].DP_AttributeData = (u8_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Fan_Mode])
-                Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_AttributeData = (u8_t) *pbyValue;
-
-            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Fan_Direction])
-                Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_AttributeData = (u8_t) *pbyValue;
-
-            break;
-
-        default:
-            break;
-    }
-
-    m_pLocker->Lock();
-    this->State = (int_t) *pbyValue;
-    m_pLocker->UnLock();
+//    switch (RealType) {
+//        case LUMI_DEVICE_SWITCH:
+//        case LUMI_DEVICE_INPUT:
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State]) break;
+//            State = (u8_t) *pbyValue;
+//            ForwardDeviceInfoToOutside(this);
+//            break;
+//
+//        case LUMI_DEVICE_DIMMER:
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State]) {
+//                State = (u8_t) *pbyValue;
+//            }
+//            SendDimmersStateToOutside(this);
+//
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_OnOff]) {
+//                State = (u8_t) *pbyValue;
+//            }
+//            break;
+//
+//        case LUMI_DEVICE_FAN:
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State]) {
+//                State = (u8_t) *pbyValue;
+//            }
+//            SendFansStateToOutside(this);
+//
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_OnOff]) {
+//                State = (u8_t) *pbyValue;
+//            }
+//            break;
+//
+//        case LUMI_DEVICE_CURTAIN:
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State]) {
+//                State = (u8_t) *pbyValue;
+//            }
+//
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_OnOff]) {
+//                State = (u8_t) *pbyValue;
+//            }
+//            break;
+//
+//        case LUMI_DEVICE_IR:
+//            if (Action[DeviceInfo::DI_Using] == Action[DeviceInfo::DI_State])
+//                //respone from ???
+//            break;
+//
+//        case LUMI_DEVICE_DOOR:
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
+//                State = (u8_t) *pbyValue;
+//            ForwardDeviceInfoToOutside(this);
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Power])
+//                Action[DeviceInfo::DI_Power].DP_AttributeData = (u8_t) *pbyValue;
+//            break;
+//
+//        case LUMI_DEVICE_PIR:
+//        case LUMI_DEVICE_TEMPERATURE:
+//        case LUMI_DEVICE_HUMIDITY:
+//        case LUMI_DEVICE_ILLUMINANCE:
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
+//                State = (u16_t) *pbyValue;
+//            ForwardDeviceInfoToOutside(this);
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Power])
+//                Action[DeviceInfo::DI_Power].DP_AttributeData = (u8_t) *pbyValue;
+//            break;
+//
+//        case LUMI_DEVICE_RGB:
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
+//                State = (u8_t) *pbyValue; //ON/OFF state
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_RemainingTime])
+//                Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_Red])
+//                Action[DeviceInfo::DI_RGB_Red].DP_AttributeData = (u8_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_Green])
+//                Action[DeviceInfo::DI_RGB_Green].DP_AttributeData = (u8_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_RGB_Blue])
+//                Action[DeviceInfo::DI_RGB_Blue].DP_AttributeData = (u8_t) *pbyValue;
+//            SendRGBsStateToOutside(this);
+//            break;
+//
+//        case LUMI_DEVICE_DAIKIN:
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_State])
+//                State = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Local_Temperature])
+//                Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Cooling_Setpoint])
+//                Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Heating_Setpoint])
+//                Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Min_Heat_Limit])
+//                Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Max_Heat_Limit])
+//                Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Min_Cool_Limit])
+//                Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Max_Cool_Limit])
+//                Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_AttributeData = (u16_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Control_Seq_Operation])
+//                Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_AttributeData = (u8_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_System_Mode])
+//                Action[DeviceInfo::DI_Daikin_System_Mode].DP_AttributeData = (u8_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Fan_Mode])
+//                Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_AttributeData = (u8_t) *pbyValue;
+//
+//            if (Action[DeviceInfo::DI_Using] != Action[DeviceInfo::DI_Daikin_Fan_Direction])
+//                Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_AttributeData = (u8_t) *pbyValue;
+//
+//            break;
+//
+//        default:
+//            break;
+//    }
+//
+//    m_pLocker->Lock();
+//    this->State = (int_t) *pbyValue;
+//    m_pLocker->UnLock();
 
 //    ZbSocketCmd::_instance->ReportDevicesState(1, pDevice);
 }
@@ -485,8 +484,15 @@ ZbDeviceDb::SyncDeviceAction(
  * @retval None
  */
 bool_t
-ZbDeviceDb::SyncDeviceAction(DeviceInfo &devinfo) {
-    return TRUE;
+ZbDeviceDb::SyncDeviceAction(DeviceProperty &devPro) {
+    for(Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
+        if(it->second == devPro) {
+//            devPro.DP_AttributeDataType =
+
+            return TRUE;
+        }
+    }
+    return FALSE;
 //    if(RealType == LUMI_DEVICE_DAIKIN) {
 //        for(int_t i = (DeviceInfo::DI_Using + 1); i < (DeviceInfo::DI_Daikin_Fan_Direction + 1); i++) {
 //            if(Action[DeviceInfo::DI_Using] == Action[(DeviceInfo) i]) {

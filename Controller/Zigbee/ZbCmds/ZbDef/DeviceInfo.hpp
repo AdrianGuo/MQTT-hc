@@ -51,6 +51,7 @@ typedef struct {
     u8_t  DP_AttributeDataSize; //byte unit
     int_t DP_AttributeData; //notice data type (4 bytes)!!!
     std::string DP_ActionName;
+    std::string DP_TempStorage;
 } DeviceProperty;
 
 typedef Map<DeviceInfo,DeviceProperty> Action_t;

@@ -25,7 +25,8 @@ public:
 
     void_t ProcRecvMessage(void_p);
 
-    void_t ReadAttributeRequest(Device_t, u8_t, ...);
+    void_t ReadAttributeRequest(Device_t, Vector<DeviceInfo>);
+    void_t ReadAttributeRequest(Device_t, DeviceInfo);
     void_t ReadAttributeResponse(u8_p);
 
     void_t WriteAttributeRequest(Device_t, DeviceInfo, void_p);

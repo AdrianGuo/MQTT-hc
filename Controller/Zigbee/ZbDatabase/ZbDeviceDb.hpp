@@ -12,6 +12,8 @@
 #include "Locker.hpp"
 #include "Map.hpp"
 
+typedef Vector<DeviceProperty>     DeviceProperties;
+
 class ZbDeviceDb {
 public:
     ZbDeviceDb();
@@ -35,12 +37,12 @@ public:
     Action_t Action;
     int_t& State;
 
-    void_t ReceiveInforFromDevice(u8_t byAttributeDataType, u8_p const pbyValue);
+    void_t ReceiveInforFromDevice(DeviceProperties);
     void_t GenerateDeviceInfo();
     void_t EnvAttached();
     bool_t IsInterested();
 
-    bool_t SyncDeviceAction(DeviceInfo&);
+    bool_t SyncDeviceAction(DeviceProperty&);
     bool_t OtherBrandsDevices();
     static u8_t GetAttributeDataSize(u8_t, u8_p*);
 

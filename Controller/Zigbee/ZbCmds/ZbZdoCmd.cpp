@@ -237,65 +237,67 @@ ZbZdoCmd::NodeDescriptionResponse(
     u8_p pbyBuffer,
     u32_t idwLen
 ){
-//    pbyBuffer       += 2; //Ignore Cmd Payload Length
-//    u8_t byStatus   = *pbyBuffer++;
-//    u16_t wNwk      = BigWord(&pbyBuffer);
-//    u8_t byLeng     = *pbyBuffer++;
-//    switch (byStatus) {
-//    case ZDO_STATUS_SUCCESS: {
-//        if (byLeng < 5) {
-//            DEBUG1("NONFORMAT RSP!");
-//            break;
-//        }
-//        u8_t byEndpoint = *pbyBuffer++;
-//        pbyBuffer       += 2; //Application profile identifier
-//        u16_t wType     = BigWord(&pbyBuffer); //Application device identifier
-//        Device_t device  = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-//        if (device.Modify() == NULL) { break; }
-//        device.Modify()->Type = (int_t) wType;
-//        ZbDriver::s_pZbModel->Add(device);
-//        ZbDriver::s_pZbModel->UpdateChanges();
-//
-//        //Only request model & manufacturer info to one of same type devices (send when get the last endpoint).
-//        if(m_mapEPInfor[wNwk].byEPCount == 0) {
-//            m_mapEPInfor[wNwk].mapType[++m_mapEPInfor[wNwk].byTypeCount] = wType;
-////            DEBUG2("Update Type: %d, %d at %d.", wType, m_mapEPInfor[wNwk].mapType[m_mapEPInfor[wNwk].byTypeCount], m_mapEPInfor[wNwk].byEPCount);
-//        } else {
-//            bool_t boCheck = TRUE;
-//            for(u8_t i = 1; i <= m_mapEPInfor[wNwk].byEPCount; i++) {
-//                if(m_mapEPInfor[wNwk].mapType[i] == wType) { boCheck = FALSE; break; }
-//            }
-//            if(boCheck == TRUE) {
-//                m_mapEPInfor[wNwk].mapType[++m_mapEPInfor[wNwk].byTypeCount] = wType;
-////                DEBUG2("Update Type: %d, %d at %d.", wType, m_mapEPInfor[wNwk].mapType[m_mapEPInfor[wNwk].byTypeCount], m_mapEPInfor[wNwk].byEPCount);
-//            }
-//        }
-//
-//        m_mapEPInfor[wNwk].byEPCount++;
-//        if (m_mapEPInfor[wNwk].byEPCount == m_mapEPInfor[wNwk].byTotalEP) {
-//            for(int_t i = 1; i <= m_mapEPInfor[wNwk].byTypeCount; i++) {
-//                Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(m_mapEPInfor[wNwk].mapType[i]);
-//                if(device.Modify() == NULL) continue;
-//                if(device.Modify()->IsInterested() == TRUE) {
-//                    DEBUG2("Send req at count %d th for type %d.", m_mapEPInfor[wNwk].byEPCount, m_mapEPInfor[wNwk].mapType[i]);
-//                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(device, 2, DeviceInfo::DI_Model, DeviceInfo::DI_Manufacturer);
-////                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(device, 1, DeviceInfo::DI_Manufacturer);
-//                }
-//            }
-//        }
-//
-//
-//    }
-//        break;
-//    case ZDO_STATUS_INVALID_EP:
-//    case ZDO_STATUS_NOT_ACTIVE:
-//    case ZDO_STATUS_NO_DESCRIPTOR:
-//    case ZDO_STATUS_INV_REQUESTTYPE:
-//    case ZDO_STATUS_DEVICE_NOT_FOUND:
-//    default:
-//        DEBUG1("INVALID EP|NOT ACTIVE|NO DESCRIPTOR|INV REQUESTTYPE|DEVICE NOT FOUND!");
-//        break;
-//    }
+    pbyBuffer       += 2; //Ignore Cmd Payload Length
+    u8_t byStatus   = *pbyBuffer++;
+    u16_t wNwk      = BigWord(&pbyBuffer);
+    u8_t byLeng     = *pbyBuffer++;
+    switch (byStatus) {
+    case ZDO_STATUS_SUCCESS: {
+        if (byLeng < 5) {
+            DEBUG1("NONFORMAT RSP!");
+            break;
+        }
+        u8_t byEndpoint = *pbyBuffer++;
+        pbyBuffer       += 2; //Application profile identifier
+        u16_t wType     = BigWord(&pbyBuffer); //Application device identifier
+        Device_t device  = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
+        if (device.Modify() == NULL) { break; }
+        device.Modify()->Type = (int_t) wType;
+        ZbDriver::s_pZbModel->Add(device);
+        ZbDriver::s_pZbModel->UpdateChanges();
+
+        //Only request model & manufacturer info to one of same type devices (send when get the last endpoint).
+        if(m_mapEPInfor[wNwk].byEPCount == 0) {
+            m_mapEPInfor[wNwk].mapType[++m_mapEPInfor[wNwk].byTypeCount] = wType;
+//            DEBUG2("Update Type: %d, %d at %d.", wType, m_mapEPInfor[wNwk].mapType[m_mapEPInfor[wNwk].byTypeCount], m_mapEPInfor[wNwk].byEPCount);
+        } else {
+            bool_t boCheck = TRUE;
+            for(u8_t i = 1; i <= m_mapEPInfor[wNwk].byEPCount; i++) {
+                if(m_mapEPInfor[wNwk].mapType[i] == wType) { boCheck = FALSE; break; }
+            }
+            if(boCheck == TRUE) {
+                m_mapEPInfor[wNwk].mapType[++m_mapEPInfor[wNwk].byTypeCount] = wType;
+//                DEBUG2("Update Type: %d, %d at %d.", wType, m_mapEPInfor[wNwk].mapType[m_mapEPInfor[wNwk].byTypeCount], m_mapEPInfor[wNwk].byEPCount);
+            }
+        }
+
+        m_mapEPInfor[wNwk].byEPCount++;
+        if (m_mapEPInfor[wNwk].byEPCount == m_mapEPInfor[wNwk].byTotalEP) {
+            for(int_t i = 1; i <= m_mapEPInfor[wNwk].byTypeCount; i++) {
+                Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(m_mapEPInfor[wNwk].mapType[i]);
+                if(device.Modify() == NULL) continue;
+                if(device.Modify()->IsInterested() == TRUE) {
+                    DEBUG2("Send req at count %d th for type %d.", m_mapEPInfor[wNwk].byEPCount, m_mapEPInfor[wNwk].mapType[i]);
+                    Vector<DeviceInfo> vDI;
+                    vDI.push_back(DeviceInfo::DI_Model);
+                    vDI.push_back(DeviceInfo::DI_Manufacturer);
+                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(device, vDI);
+                }
+            }
+        }
+
+
+    }
+        break;
+    case ZDO_STATUS_INVALID_EP:
+    case ZDO_STATUS_NOT_ACTIVE:
+    case ZDO_STATUS_NO_DESCRIPTOR:
+    case ZDO_STATUS_INV_REQUESTTYPE:
+    case ZDO_STATUS_DEVICE_NOT_FOUND:
+    default:
+        DEBUG1("INVALID EP|NOT ACTIVE|NO DESCRIPTOR|INV REQUESTTYPE|DEVICE NOT FOUND!");
+        break;
+    }
 }
 
 /**
