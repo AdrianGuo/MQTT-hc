@@ -30,7 +30,7 @@ public:
     void_t NwkInfoReq();
     void_t NwkInfoRsp(ZbPacket_p);
 
-    void_t JoinNwkAllow(ZbMessage_p);
+    void_t JoinNwkAllow(ZbPacket_p);
     void_t JoinNwkInfoReq();
     bool_t JoinNwkInfoRsp(ZbPacket_p);
 

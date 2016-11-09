@@ -37,6 +37,7 @@ ZbMessage::SetCmdID(
     u8_t byCmdID
 ){
     m_byCmdID = byCmdID;
+    ZbPacket::SetCmdID(m_byCmdID);
 }
 
 u8_t
@@ -108,6 +109,10 @@ ZbMessage::Classify(
 
     case ZbMessage::Command::RmvDevice:
         m_byCmdID = ZDO_CMD_REQ;
+        break;
+
+    case ZbMessage::Command::SetDevice:
+        m_byCmdID = ZCL_GLOBAL_CMD_REQ;
         break;
 
     default:

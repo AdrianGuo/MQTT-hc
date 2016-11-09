@@ -51,16 +51,16 @@ private:
 
     void_t RegisterHandler(String strJsonCommand, HandlerZbCmdFunctor_t funcTor);
     void_t ProcessHandler(JsonCommand_p pJsonCommand);
-    void_t RegisterProc(ZbMessage::Command ZbCommand, ProcZbCmdFunctor_t funcTor);
-    void_t ProcessProc(ZbMessage_p pZbMessage);
+    void_t RegisterProcess(ZbMessage::Command ZbCommand, ProcZbCmdFunctor_t funcTor);
+    void_t ProcessProcess(ZbMessage_p pZbMessage);
 
-    void_t HandlerZbCmdAdd(JsonCommand_p pJsonCommand);
-    void_t HandlerZbCmdDel(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdDevSet(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdAdd(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdDel(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdSet(JsonCommand_p pJsonCommand);
 
-    void_t ProcZbCmdSendAdd(ZbMessage_p pZbMessage);
-    void_t ProcZbCmdSendDel(ZbMessage_p pZbMessage);
-    void_t ProcCmdSendDevSet(ZbMessage_p pZbMessage);
+    void_t ProcCmdAdd(ZbMessage_p pZbMessage);
+    void_t ProcCmdDel(ZbMessage_p pZbMessage);
+    void_t ProcCmdSet(ZbMessage_p pZbMessage);
 
     void_t RegisterJsonMessageInform();
 public:

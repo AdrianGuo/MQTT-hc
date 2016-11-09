@@ -25,11 +25,11 @@ public:
 
     void_t ProcRecvMessage(void_p);
 
-    void_t ReadAttributeRequest(Device_t, DeviceInfo);
-    void_t ReadAttributeResponse(Device_t, u8_p);
+    void_t ReadAttributeRequest(Device_t, u8_t, ...);
+    void_t ReadAttributeResponse(u8_p);
 
     void_t WriteAttributeRequest(Device_t, DeviceInfo, void_p);
-    void_t WriteAttributeResponse(Device_t, u8_p);
+    void_t WriteAttributeResponse(u8_p);
 };
 
 typedef ZbZclGlobalCmd ZbZclGlobalCmd_t;

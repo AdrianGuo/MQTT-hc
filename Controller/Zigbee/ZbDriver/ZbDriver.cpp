@@ -12,6 +12,7 @@
 #include <zcl_lumi.hpp>
 #include <ZbSocketCmd.hpp>
 #include <ZbDeviceDb.hpp>
+#include <JsonZbSet.hpp>
 
 #include <ZbDriver.hpp>
 
@@ -90,6 +91,19 @@ ZbDriver::ProcSendMessage(
             ZbZdoCmd::s_pInstance->LeaveRequest(pZbMessage, (*it));
         }
     }
+
+    case ZbMessage::Command::SetDevice: {
+        JsonZbSet_p pJsonZbSet = (JsonZbSet_p) pZbMessage->GetJsonMessageObject();
+        Vector<ZbSet_t> vZbSet = pJsonZbSet->Return();
+        for(int_t i = 0; i < vZbSet.size(); i++) {
+            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Enpoint=?").Bind(vZbSet[i].devid).Bind(vZbSet[i].order);
+            if(device.Modify() == NULL) { continue; }
+
+        }
+
+    }
+        break;
+
         break;
 
     default:
@@ -150,85 +164,6 @@ void_t ZbDriver::ZbDriverRecvFunctor(ZbCtrllerFunctor_p pZbCtrllerFunctor) {
     if (pZbCtrllerFunctor != NULL)
         m_pZbCtrllerFunctor = pZbCtrllerFunctor;
 }
-
-//void_t ZbDriver::GetInitialState() {
-//    for (Devices::const_iterator it = ZbDevices.begin(); it != ZbDevices.end();
-//            it++) {
-//        ZbZCLGlobCmd::s_pInstance->ReadAttributeRequest(*it, (*it)->ClusterID,
-//                (*it)->AttributeID);
-//    }
-//}
-
-//void_t ZbDriver::HandleZbAdd(ZbMsg_p pZbMsg, ZbPacket_p pZbPacket) {
-//    u8_t time;
-//    Json::Value& json = pZbMsg->GetJsonObject();
-//    const_char_p act = json["act"].asCString();
-//    if (strcmp(act, "0") == 0)
-//        time = 0xFE;
-//    else
-//        time = 0x00;
-//    ZbBasicCmd::s_pInstance->JoinNwkAllow(pZbPacket, time);
-//}
-//
-//void_t ZbDriver::HandleDevSet(ZbMsg_p pZbMsg, ZbPacket_p pZbPacket) {
-//    Json::Value& json = pZbMsg->GetJsonObject();
-//    const Json::Value& devs = json["dev"];
-//
-//    for (Json::ValueConstIterator it = devs.begin(); it != devs.end(); ++it) {
-//        const Json::Value& dev = *it;
-//        int_t devID = atoi(dev["devID"].asCString());
-//        int_t val = atoi(dev["val"].asCString());
-//
-//        Devices pDevices =
-//                pZbModel->Find<ZbDeviceDb>().Where("DeviceID=?").Bind(devID);
-//        if (pDevices.size() == 1) {
-//            Devices::const_iterator iter = pDevices.begin();
-//            ZbZCLCmd::s_pInstance->SetDevice(pZbPacket, *iter, (u8_t) val);
-//        }
-//    }
-//}
-//
-//void_t ZbDriver::HandleZbReset(ZbMsg_p pZbMsg, ZbPacket_p pZbPacket) {
-//    ZbDeviceManager_p pDevices = ZbDriver::s_pInstance->ZbDevices;
-//    ZbControllerManager_p pControllers = ZbDriver::s_pInstance->ZbControllers;
-//
-//    while (pDevices->GetCountRecords() > 0) {
-//        ZbPacket_p pTemp = new ZbPacket(pZbMsg->GetSeqMsg(), pZbMsg->GetCmdID(),
-//                pZbMsg->Length());
-//        ZbZDOCmd::s_pInstance->LeaveRequest(pTemp, pDevices->GetDeviceByIndex(0));
-//        delete pTemp;
-//    }
-//
-//    while (pControllers->GetCountRecords() > 0) {
-//        pControllers->DeleteRecord(pControllers->GetControllerByIndex(0));
-//    }
-//
-//    ZbSocketCmd::s_pInstance->Reset(0);
-//    ZbBasicCmd::s_pInstance->NwkInit();
-//
-//    pDevices = NULL;
-//    delete pDevices;
-//    pControllers = NULL;
-//    delete pControllers;
-//}
-//
-//void_t ZbDriver::HandleZbDel(ZbMsg_p pZbMsg, ZbPacket_p pZbPacket) {
-//    Json::Value& json = pZbMsg->GetJsonObject();
-//    const_char_p act = json["act"].asCString();
-//
-//    if (strcmp(act, "0") == 0)
-//        _act = true;
-//    else if (strcmp(act, "1") == 0)
-//        _act = false;
-//
-//    ZbDeviceManager_p pDevices = ZbDriver::s_pInstance->ZbDevices;
-//    while (pDevices->GetCountRecords() > 0 && _act) {
-//        ZbZDOCmd::s_pInstance->LeaveRequest(pZbPacket,
-//                pDevices->GetDeviceByIndex(0));
-//    }
-//    pDevices = NULL;
-//    delete pDevices;
-//}
 
 /**
  * @func

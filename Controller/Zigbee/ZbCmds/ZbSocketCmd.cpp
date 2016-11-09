@@ -11,10 +11,9 @@
 #include <JsonZbLstAdd.hpp>
 #include <JsonZbLstDel.hpp>
 #include <JsonDevRep.hpp>
+#include <JsonRGBEnaRes.hpp>
+#include <JsonRGBStt.hpp>
 #include <JsonZbResetRes.hpp>
-#include <JsonRGBRes.hpp>
-#include <JsonRGBEnableRes.hpp>
-
 #include <ZbSocketCmd.hpp>
 
 ZbSocketCmd* ZbSocketCmd::s_pInstance = NULL;
@@ -32,8 +31,8 @@ ZbSocketCmd::ZbSocketCmd() {
     m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbLstDel>(JsonZbLstDel::GetStrCmd());
     m_pJsonRecvZigbeeSession->MapJsonMessage<JsonDevRep>(JsonDevRep::GetStrCmd());
     m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbResetRes>(JsonZbResetRes::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonRGBRes>(JsonRGBRes::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonRGBEnableRes>(JsonRGBEnableRes::GetStrCmd());
+    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonRGBStt>(JsonRGBStt::GetStrCmd());
+    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonRGBEnaRes>(JsonRGBEnaRes::GetStrCmd());
 }
 
 /**
@@ -140,9 +139,9 @@ ZbSocketCmd::SendResetRes(
  */
 void_t
 ZbSocketCmd::SendRGBRes(
-    ZbDeviceDb_p device
+    Device_t device
 ){
-    JsonMessagePtr<JsonRGBRes> jsonRGBRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonRGBRes>();
+    JsonMessagePtr<JsonRGBStt> jsonRGBRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonRGBStt>();
     JsonCommand_p pJsonCommand = jsonRGBRes->CreateJsonCommand(device);
 
     SendJsonMessage(EvAction::None, pJsonCommand);
@@ -156,11 +155,12 @@ ZbSocketCmd::SendRGBRes(
  * @retval None
  */
 void_t
-ZbSocketCmd::SendRGBEnableRes(
+ZbSocketCmd::SendRGBEnaRes(
+    int_t devid,
     u8_t byValue
 ) {
-    JsonMessagePtr<JsonRGBEnableRes> jsonRGBEnableRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonRGBEnableRes>();
-    JsonCommand_p pJsonCommand = jsonRGBEnableRes->CreateJsonCommand(byValue);
+    JsonMessagePtr<JsonRGBEnaRes> jsonRGBEnableRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonRGBEnaRes>();
+    JsonCommand_p pJsonCommand = jsonRGBEnableRes->CreateJsonCommand(devid, byValue);
 
     SendJsonMessage(EvAction::None, pJsonCommand);
 }

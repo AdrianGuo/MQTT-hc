@@ -5,14 +5,13 @@
  *      Author: taho
  */
 
-#include <ZbBasicCmd.hpp>
-#include <ZbBasicCmd.hpp>
 #include <ZbDriver.hpp>
 #include <ZbSerialAPI.hpp>
 #include <debug.hpp>
 #include <zcl_lumi.hpp>
 #include <ZbHelper.hpp>
 
+#include <ZbBasicCmd.hpp>
 
 ZbBasicCmd* ZbBasicCmd::s_pInstance = NULL;
 
@@ -80,9 +79,9 @@ ZbBasicCmd::NwkInfoRsp(
 
 void_t
 ZbBasicCmd::JoinNwkAllow(
-    ZbMessage_p pZbMessage
+    ZbPacket_p pZbPacket
 ){
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket((ZbPacket_p) pZbMessage);
+    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
 }
 
 void_t

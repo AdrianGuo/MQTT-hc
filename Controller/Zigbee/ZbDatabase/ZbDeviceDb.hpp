@@ -33,15 +33,14 @@ public:
 
     u8_t RealType;
     Action_t Action;
-    int_t& State = Action[DeviceInfo::DI_State].DP_AttributeData;
+    int_t& State;
 
     void_t ReceiveInforFromDevice(u8_t byAttributeDataType, u8_p const pbyValue);
     void_t GenerateDeviceInfo();
-    void_t SyncTypeGroup();
     void_t EnvAttached();
     bool_t IsInterested();
 
-    bool_t SyncDeviceAction();
+    bool_t SyncDeviceAction(DeviceInfo&);
     bool_t OtherBrandsDevices();
     static u8_t GetAttributeDataSize(u8_t, u8_p*);
 

@@ -27,7 +27,7 @@ public:
     JsonZbLstAdd() {}
     virtual ~JsonZbLstAdd() {}
     JsonCommand_p CreateJsonCommand(Devices_t devices);
-    static String GetStrCmd() { return "zb=lstAdd"; }
+    static String GetStrCmd() { return "zb=lstadd"; }
 };
 
 typedef JsonZbLstAdd  JsonZbLstAdd_t;
@@ -43,13 +43,14 @@ inline JsonCommand_p
 JsonZbLstAdd::CreateJsonCommand(
     Devices_t devices
 ) {
-    JsonCommand_p pJsonCommand = new JsonCommand("zb", "lstAdd");
+    JsonCommand_p pJsonCommand = new JsonCommand("zb", "lstadd");
     Json::Value jsonValue;
     for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Json::Value dev;
         dev["devid"] = std::to_string((*it)->DeviceID.GetValue());
         dev["type"] = std::to_string((*it)->RealType);
         dev["ord"] = std::to_string((*it)->Endpoint.GetValue());
+        dev["mac"] = (*it)->MAC.GetValue().element;
         jsonValue["dev"].append(dev);
     }
 

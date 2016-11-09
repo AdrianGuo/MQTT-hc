@@ -28,9 +28,9 @@ ZbDeviceDb::ZbDeviceDb() :
     Endpoint        (0,  "Endpoint"),
     Type            (0,  "Type"),
     ParentID        (0,  "ParentID"),
-    ControllerID    (0,  "ControllerID") {
-
-//    State       =   Action[DeviceInfo::DI_State].DP_AttributeData;
+    ControllerID    (0,  "ControllerID"),
+    State           (Action[DeviceInfo::DI_State].DP_AttributeData)
+{
     RealType    =   0;
     m_pLocker   =   new Locker();
 
@@ -98,7 +98,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
     u8_t byAttributeDataType,
     u8_p const pbyValue
 ){
-    DEBUG1("Received information from device.")
+    DEBUG2("Received information from device %d - RealType: %d.", DeviceID.GetValue(), RealType);
     switch (RealType) {
         case LUMI_DEVICE_SWITCH:
         case LUMI_DEVICE_INPUT:
@@ -263,56 +263,68 @@ ZbDeviceDb::EnvAttached() {
  */
 void_t
 ZbDeviceDb::GenerateDeviceInfo() {
-//    DEBUG2("________Model________: %s", ((String ) Model).c_str());
 
-    if ((Model == String("LM-SZ1")) || (Model == String("LM-SZ2")) || (Model == String("LM-SZ3")) || (Model == String("LM-SZ4")) || (Model == String("LM-SZ10"))){
+
+    size_t lastIndex = Model.GetValue().find_last_not_of("0123456789");
+    String prefixModel = Model.GetValue().substr(0, lastIndex + 1);
+
+        DEBUG2("________Model________: %s", prefixModel.c_str());
+
+    if (prefixModel == String("LM-SZ")){
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_ON_OFF, ATTRID_ON_OFF);
+
         RealType = LUMI_DEVICE_SWITCH;
-    } else if ((Model == String("LM-DZ1")) || (Model == String("LM-DZ2")) ) {
+    } else if (prefixModel == String("LM-DZ")) {
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DeviceInfo::DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
+
         RealType = LUMI_DEVICE_DIMMER;
-    } else if (Model == String("LM-FZ1")) {
+    } else if (prefixModel == String("LM-FZ")) {
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DeviceInfo::DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
+
         RealType = LUMI_DEVICE_FAN;
-    } else if ((Model == String("LM-BZ1")) || (Model == String("LM-BZ2"))) {
+    } else if (prefixModel == String("LM-BZ")) {
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DeviceInfo::DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
+
         RealType = LUMI_DEVICE_CURTAIN;
-    } else if (Model == String("LM-IR")) {
+    } else if (prefixModel == String("LM-IR")) {
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_LUMI_IR,             ATTRID_LUMI_IR);
         SyncDeviceAction(DeviceInfo::DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
+
         RealType = LUMI_DEVICE_IR;
-    } else if (Model == String("LM-PIR")) {
+    } else if (prefixModel == String("LM-PIR")) {
         if (Type == ZCL_HA_DEVICEID_IAS_ZONE) {
             SyncDeviceAction(DeviceInfo::DI_State,   ZCL_CLUSTER_ID_SS_IAS_ZONE,         ATTRID_SS_IAS_ZONE_STATUS);
             SyncDeviceAction(DeviceInfo::DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,       ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
+
             RealType = LUMI_DEVICE_PIR;
         } else {
             EnvAttached();
         }
-    } else if (Model == String("LM-DOOR")) {
+    } else if (prefixModel == String("LM-DOOR")) {
         if (Type == ZCL_HA_DEVICEID_DOOR_LOCK) {
             SyncDeviceAction(DeviceInfo::DI_State,   ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG, ATTRID_CLOSURES_DOOR_STATE);
             SyncDeviceAction(DeviceInfo::DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,       ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
+
             RealType = LUMI_DEVICE_DOOR;
         } else {
             EnvAttached();
         }
-    } else if (Model == String("LM-ENVR")) {
+    } else if (prefixModel == String("LM-ENVR")) {
         EnvAttached();
-    } else if (Model == String("LM-RGB")) {
+    } else if (prefixModel == String("LM-RGB")) {
         SyncDeviceAction(DeviceInfo::DI_State,                           ZCL_CLUSTER_ID_GEN_ON_OFF,              ATTRID_ON_OFF);
         SyncDeviceAction(DeviceInfo::DI_RGB_RemainingTime,               ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_REMAINING_TIME);
         SyncDeviceAction(DeviceInfo::DI_RGB_Red,                         ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_R_INTENSITY);
         SyncDeviceAction(DeviceInfo::DI_RGB_Green,                       ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_G_INTENSITY);
         SyncDeviceAction(DeviceInfo::DI_RGB_Blue,                        ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_B_INTENSITY);
         RealType = LUMI_DEVICE_RGB;
-    } else if(Model == String("LM-INPUT")) {
+    } else if(prefixModel == String("LM-INPUT")) {
         SyncDeviceAction(DeviceInfo::DI_State,                           ZCL_CLUSTER_ID_GEN_BINARY_INPUT,        ATTRID_BINARY_INPUT_PRESENT_VALUE);
         RealType = LUMI_DEVICE_INPUT;
-    } else if (Model == String("LM-DKZ")) {
+    } else if (prefixModel == String("LM-DKZ")) {
         SyncDeviceAction(DeviceInfo::DI_State,                           ZCL_CLUSTER_ID_GEN_ON_OFF,              ATTRID_ON_OFF);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Local_Temperature,        ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_LOCAL_TEMPERATURE);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Cooling_Setpoint,         ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_OCCUPIED_COOLING_SETPOINT);
@@ -325,6 +337,20 @@ ZbDeviceDb::GenerateDeviceInfo() {
         SyncDeviceAction(DeviceInfo::DI_Daikin_System_Mode,              ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_SYSTEM_MODE);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Fan_Mode,                 ZCL_CLUSTER_ID_HAVC_FAN_CONTROL,        ATTRID_HVAC_FAN_CTRL_FAN_MODE);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Fan_Direction,            ZCL_CLUSTER_ID_HAVC_FAN_CONTROL,        ATTRID_HVAC_FAN_CTRL_FAN_DIRECTION);
+
+        Action[DeviceInfo::DI_State].DP_ActionName                          = std::string("state");
+        Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_ActionName       = std::string("localtemp");
+        Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_ActionName        = std::string("coolingset");
+        Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_ActionName        = std::string("heatingset");
+        Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_ActionName          = std::string("minheat");
+        Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_ActionName          = std::string("maxheat");
+        Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_ActionName          = std::string("mincool");
+        Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_ActionName          = std::string("maxcool");
+        Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_ActionName   = std::string("ctrloper");
+        Action[DeviceInfo::DI_Daikin_System_Mode].DP_ActionName             = std::string("sysmod");
+        Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_ActionName                = std::string("fanmod");
+        Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_ActionName           = std::string("fandiect");
+
         RealType = LUMI_DEVICE_DAIKIN;
     } else {
         RealType = 0; //Other brands!!!
@@ -459,8 +485,17 @@ ZbDeviceDb::SyncDeviceAction(
  * @retval None
  */
 bool_t
-ZbDeviceDb::SyncDeviceAction() {
-    return SyncDeviceAction(DeviceInfo::DI_Using, Action[DeviceInfo::DI_Using].DP_ClusterID, Action[DeviceInfo::DI_Using].DP_AttributeID);
+ZbDeviceDb::SyncDeviceAction(DeviceInfo &devinfo) {
+    return TRUE;
+//    if(RealType == LUMI_DEVICE_DAIKIN) {
+//        for(int_t i = (DeviceInfo::DI_Using + 1); i < (DeviceInfo::DI_Daikin_Fan_Direction + 1); i++) {
+//            if(Action[DeviceInfo::DI_Using] == Action[(DeviceInfo) i]) {
+//                Action[DeviceInfo::DI_Using].DP_ActionName = Action[(DeviceInfo) i].DP_ActionName;
+//                break;
+//            }
+//        }
+//    }
+//    return SyncDeviceAction(devinfo, Action[devinfo].DP_ClusterID, Action[devinfo].DP_AttributeID);
 }
 
 /**

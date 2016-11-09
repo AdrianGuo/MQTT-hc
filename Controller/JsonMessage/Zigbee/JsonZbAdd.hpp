@@ -13,30 +13,29 @@
  *
  ******************************************************************************/
 
-#ifndef CONTROLLER_JSONMESSAGE_JSONZBDEL_HPP_
-#define CONTROLLER_JSONMESSAGE_JSONZBDEL_HPP_
+#ifndef CONTROLLER_JSONMESSAGE_JSONZBADD_HPP_
+#define CONTROLLER_JSONMESSAGE_JSONZBADD_HPP_
 
 #include "typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"
 
-class JsonZbDel {
+class JsonZbAdd {
 private:
     int_t m_iAct;
     virtual bool_t ParseJsonValue(Json::Value& jsonValue);
 public:
-    JsonZbDel() : m_iAct(-1) {}
-    virtual ~JsonZbDel() {}
+    JsonZbAdd() : m_iAct(-1) {}
+    virtual ~JsonZbAdd() {}
 
-    virtual bool_t ParseJsonCommand(JsonCommand_p pJsonCommand);
-
-    static String GetStrCmd() { return "zb=del"; }
-    int_t Act() const { return m_iAct; }
+    virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
+    static String GetStrCmd() { return "zb=add"; }
+    int_t Return() const { return m_iAct; }
 };
 
-typedef JsonZbDel  JsonZbDel_t;
-typedef JsonZbDel* JsonZbDel_p;
+typedef JsonZbAdd  JsonZbAdd_t;
+typedef JsonZbAdd* JsonZbAdd_p;
 
 /**
  * @func
@@ -45,7 +44,7 @@ typedef JsonZbDel* JsonZbDel_p;
  * @retval None
  */
 inline bool_t
-JsonZbDel::ParseJsonCommand(
+JsonZbAdd::ParseJsonCommand(
     JsonCommand_p pJsonComand
 ) {
     return ParseJsonValue(pJsonComand->GetJsonOjbect());
@@ -58,12 +57,14 @@ JsonZbDel::ParseJsonCommand(
  * @retval None
  */
 inline bool_t
-JsonZbDel::ParseJsonValue(
+JsonZbAdd::ParseJsonValue(
     Json::Value& jsonValue
 ) {
     if (!jsonValue.isMember("act")) { return FALSE; }
-    m_iAct = atoi(jsonValue["act"].asCString());
+    int_t temp = atoi(jsonValue["act"].asCString());
+    if ((temp < 0) || (temp > 1)) { return FALSE; }
+    m_iAct = temp;
     return TRUE;
 }
 
-#endif /* CONTROLLER_JSONMESSAGE_JSONZBDEL_HPP_ */
+#endif /* CONTROLLER_JSONMESSAGE_JSONZBADD_HPP_ */

@@ -14,16 +14,16 @@
 #include "JsonCommand.hpp"
 #include "ZbModelDb.hpp"
 
-class JsonRGBRes {
+class JsonRGBStt {
 public:
-    JsonRGBRes() {}
-    virtual ~JsonRGBRes() {}
+    JsonRGBStt() {}
+    virtual ~JsonRGBStt() {}
     JsonCommand_p CreateJsonCommand(ZbDeviceDb_p device);
     static String GetStrCmd() { return "rgb=res"; }
 };
 
-typedef JsonRGBRes  JsonRGBRes_t;
-typedef JsonRGBRes* JsonRGBRes_p;
+typedef JsonRGBStt  JsonRGBRes_t;
+typedef JsonRGBStt* JsonRGBRes_p;
 
 /**
  * @func
@@ -32,7 +32,7 @@ typedef JsonRGBRes* JsonRGBRes_p;
  * @retval None
  */
 inline JsonCommand_p
-JsonRGBRes::CreateJsonCommand(
+JsonRGBStt::CreateJsonCommand(
     ZbDeviceDb_p device
 ) {
     JsonCommand_p pJsonCommand = new JsonCommand("rgb", "res");

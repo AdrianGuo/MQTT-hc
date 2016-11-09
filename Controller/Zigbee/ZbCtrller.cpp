@@ -13,7 +13,7 @@
 
 #include "JsonZbAdd.hpp"
 #include "JsonZbDel.hpp"
-#include "JsonDevSet.hpp"
+#include "JsonZbSet.hpp"
 
 #include "ZbCtrller.hpp"
 
@@ -135,19 +135,17 @@ void_t
 ZbCtrller::RegisterJsonMessageInform() {
     m_valueJsonChecker.Register(JsonZbAdd::GetStrCmd());
     m_valueJsonChecker.Register(JsonZbDel::GetStrCmd());
-    m_valueJsonChecker.Register(JsonDevSet::GetStrCmd());
 
     m_pJsonZigbeeSession->MapJsonMessage<JsonZbAdd>(JsonZbAdd::GetStrCmd());
     m_pJsonZigbeeSession->MapJsonMessage<JsonZbDel>(JsonZbDel::GetStrCmd());
-    m_pJsonZigbeeSession->MapJsonMessage<JsonDevSet>(JsonDevSet::GetStrCmd());
 
 
-    RegisterHandler(JsonZbAdd::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerZbCmdAdd));
-    RegisterHandler(JsonZbDel::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerZbCmdDel));
+    RegisterHandler(JsonZbAdd::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdAdd));
+    RegisterHandler(JsonZbDel::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdDel));
 //    RegisterHandler(JsonDevSet::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdDevSet));
 
-    RegisterProc(ZbMessage::Command::AddDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcZbCmdSendAdd));
-    RegisterProc(ZbMessage::Command::RmvDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcZbCmdSendDel));
+    RegisterProcess(ZbMessage::Command::AddDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdAdd));
+    RegisterProcess(ZbMessage::Command::RmvDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdDel));
 //    RegisterProc(ZbMessage::Command::SetDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdSendDevSet));
 }
 
@@ -209,7 +207,7 @@ ZbCtrller::ProcessHandler(
  * @retval None
  */
 void_t
-ZbCtrller::RegisterProc(
+ZbCtrller::RegisterProcess(
     ZbMessage::Command ZbCommand,
     ProcZbCmdFunctor_t funcTor
 ) {
@@ -223,7 +221,7 @@ ZbCtrller::RegisterProc(
  * @retval None
  */
 void_t
-ZbCtrller::ProcessProc(
+ZbCtrller::ProcessProcess(
     ZbMessage_p pZbMessage
 ) {
     ZbMessage::Command ZbCommand = pZbMessage->GetZbCommad();
@@ -282,7 +280,7 @@ ZbCtrller::ZbCtrlllerThreadProc(
         m_pZbCtrllerLocker->UnLock();
 
         if (pZbMessage != NULL)
-            ProcessProc(pZbMessage);
+            ProcessProcess(pZbMessage);
 
         pZbMessage = NULL;
         delete pZbMessage;
@@ -299,7 +297,7 @@ ZbCtrller::ZbCtrlllerThreadProc(
  * @retval None
  */
 void_t
-ZbCtrller::HandlerZbCmdAdd(
+ZbCtrller::HandlerCmdAdd(
     JsonCommand_p pJsonCommand
 ) {
     JsonMessageMap<JsonZbAdd>* jsonZbAdd = m_pJsonZigbeeSession->GetJsonMapping<JsonZbAdd>();
@@ -323,7 +321,7 @@ ZbCtrller::HandlerZbCmdAdd(
  * @retval None
  */
 void_t
-ZbCtrller::HandlerZbCmdDel(
+ZbCtrller::HandlerCmdDel(
     JsonCommand_p pJsonCommand
 ) {
     JsonMessageMap<JsonZbDel>* jsonZbDel = m_pJsonZigbeeSession->GetJsonMapping<JsonZbDel>();
@@ -347,7 +345,30 @@ ZbCtrller::HandlerZbCmdDel(
  * @retval None
  */
 void_t
-ZbCtrller::ProcZbCmdSendAdd(
+ZbCtrller::HandlerCmdSet(
+    JsonCommand_p pJsonCommand
+) {
+    JsonMessageMap<JsonZbSet>* jsonZbSet = m_pJsonZigbeeSession->GetJsonMapping<JsonZbSet>();
+    JsonZbSet_p pJsonZbSet = jsonZbSet->Object();
+    pJsonZbSet->ParseJsonCommand(pJsonCommand);
+
+    ZbMessage_p pZbMessage = new ZbMessage(pJsonZbSet,
+            ZbMessage::Command::SetDevice);
+
+    m_pZbCtrllerLocker->Lock();
+    m_queSendZbMsg.push(pZbMessage);
+    m_pZbCtrllerLocker->UnLock();
+
+    delete pJsonCommand;
+}
+/**
+ * @func   None
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbCtrller::ProcCmdAdd(
     ZbMessage_p pZbMessage
 ) {
     if (pZbMessage == NULL) { return; }
@@ -356,9 +377,9 @@ ZbCtrller::ProcZbCmdSendAdd(
         JsonZbAdd_p pJsonZbAdd = (JsonZbAdd_p) pZbMessage->GetJsonMessageObject();
 
         u8_t byTime = 0x00;
-        if(pJsonZbAdd->Act() == 0) {
+        if(pJsonZbAdd->Return() == 0) {
             byTime = 0xFE;
-        } else if(pJsonZbAdd->Act() == 1) {
+        } else if(pJsonZbAdd->Return() == 1) {
             byTime = 0x00;
         }
 
@@ -374,25 +395,32 @@ ZbCtrller::ProcZbCmdSendAdd(
  * @retval None
  */
 void_t
-ZbCtrller::ProcZbCmdSendDel(
+ZbCtrller::ProcCmdDel(
     ZbMessage_p pZbMessage
 ) {
     if (pZbMessage == NULL) { return; }
 
     if (pZbMessage->GetZbCommad() == ZbMessage::Command::RmvDevice) {
-        JsonZbAdd_p pJsonZbDel = (JsonZbAdd_p) pZbMessage->GetJsonMessageObject();
-
-
-//        if(pJsonZbDel->Act() == 0) {
-//
-//        } else if(pJsonZbDel->Act() == 1) {
-//
-//        }
-
         m_pZbDriver->ProcSendMessage(pZbMessage);
     }
 }
 
+/**
+ * @func   None
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbCtrller::ProcCmdSet(
+    ZbMessage_p pZbMessage
+) {
+    if (pZbMessage == NULL) { return; }
+
+    if (pZbMessage->GetZbCommad() == ZbMessage::Command::SetDevice) {
+        m_pZbDriver->ProcSendMessage(pZbMessage);
+    }
+}
 
 /**
  * @func   None
