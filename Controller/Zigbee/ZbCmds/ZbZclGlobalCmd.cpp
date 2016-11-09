@@ -189,21 +189,26 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         temp.DP_AttributeDataType = byAttributeDataType;
 
         //DEBUG
-
+        bool isString = false;
         u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
         if((byAttributeDataType == 0x41) || (byAttributeDataType == 0x42)) {
             byLength -= 1;
+            isString = true;
         } else if((byAttributeDataType == 0x43) || (byAttributeDataType == 0x44)) {
             byLength -= 2;
+            isString = true;
         }
         temp.DP_AttributeDataSize = byAttributeDataTypeSize;
 
-        u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
+        char* pbyAttributeData = new char[byAttributeDataTypeSize + 1];
         bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
         memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
 
         byLength -= byAttributeDataTypeSize;
 
+        if(!isString) {
+            temp.DP_AttributeData =  (int_t) *pbyAttributeData;
+        }
         temp.DP_TempStorage = std::string((const char*) pbyAttributeData);
         vResponseDP.push_back(temp);
         temp = {};
@@ -217,8 +222,8 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
 //    for(int_t i = 0; i < (int_t) vResponseDP.size(); i++) {
 //        DEBUG2("DP_AttributeID: %d", vResponseDP[i].DP_AttributeID);
-//        DEBUG2("DP_TempStorage: %s", vResponseDP[i].DP_TempStorage.c_str());
-//
+//        DEBUG2("DP_AttributeData: %d", vResponseDP[i].DP_AttributeData);
+//        DEBUG2("DP_TempStorage: %d", atoi(vResponseDP[i].DP_TempStorage.c_str()));
 //    }
 
     if(wClusterID == ZCL_CLUSTER_ID_GEN_BASIC) {
@@ -241,12 +246,21 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                     tempDevice.Modify()->GenerateDeviceInfo();
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
-//                    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
                     ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
                 }
+                ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }
         }
     } else {
+        for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
+            for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
+                if(vResponseDP[i] == it->second) {
+                    vResponseDP[i].DP_DIName = it->first;
+                    break;
+                }
+            }
+        }
+
         device.Modify()->ReceiveInforFromDevice(vResponseDP);
     }
 

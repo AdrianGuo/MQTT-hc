@@ -43,10 +43,9 @@ void_t ConvertOutsideData(
  * @retval None
  */
 void_t
-ForwardDeviceInfoToOutside(
+ForwardStateToOutside(
     const ZbDeviceDb_p device
 ) {
-//    DEBUG2("State: %d, %d.", device->State, device->Action[DeviceInfo::DI_State].DP_AttributeData);
     ZbSocketCmd::GetInstance()->SendDevRep(device->DeviceID.GetValue(), device->State);
 }
 
@@ -57,7 +56,7 @@ ForwardDeviceInfoToOutside(
  * @retval None
  */
 void_t
-SendDimmersStateToOutside(
+ForwardDimmerStateToOutside(
     const ZbDeviceDb_p device
 ) {
     int_t iLevel = device->State;
@@ -78,7 +77,7 @@ SendDimmersStateToOutside(
  * @retval None
  */
 void_t
-SendFansStateToOutside(
+ForwardFanStateToOutside(
     const ZbDeviceDb_p device
 ) {
     ZbSocketCmd::GetInstance()->SendDevRep(device->DeviceID.GetValue(), (device->State)/3);
@@ -91,12 +90,11 @@ SendFansStateToOutside(
  * @retval None
  */
 void_t
-SendRGBsStateToOutside(
+ForwardSensorStateToOutside(
     const ZbDeviceDb_p device
 ) {
-    ZbSocketCmd::GetInstance()->SendRGBRes(DbPtr<ZbDeviceDb>(device));
+    ZbSocketCmd::GetInstance()->SendDevRep(device->DeviceID.GetValue(), (device->State)/3);
 }
-#endif /* ZBDEVICECONTROL_HPP_ */
 
 /**
  * @func
@@ -104,3 +102,54 @@ SendRGBsStateToOutside(
  * @param  None
  * @retval None
  */
+void_t
+ForwardRGBStateToOutside(
+    const ZbDeviceDb_p device
+) {
+    ZbSocketCmd::GetInstance()->SendRGBRes(DbPtr<ZbDeviceDb>(device));
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ForwardRGBTimeToOutside(
+    const ZbDeviceDb_p device
+) {
+    ZbSocketCmd::GetInstance()->SendRGBRes(DbPtr<ZbDeviceDb>(device));
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ForwardRGBToOutside(
+    const ZbDeviceDb_p device
+) {
+    ZbSocketCmd::GetInstance()->SendRGBRes(DbPtr<ZbDeviceDb>(device));
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ForwardDaikinStateToOutside(
+    const ZbDeviceDb_p device
+) {
+    ZbSocketCmd::GetInstance()->SendRGBRes(DbPtr<ZbDeviceDb>(device));
+}
+
+
+
+
+#endif /* ZBDEVICECONTROL_HPP_ */
+

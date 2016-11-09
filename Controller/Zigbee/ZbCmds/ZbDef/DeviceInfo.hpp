@@ -50,7 +50,8 @@ typedef struct {
     u8_t  DP_AttributeDataType;
     u8_t  DP_AttributeDataSize; //byte unit
     int_t DP_AttributeData; //notice data type (4 bytes)!!!
-    std::string DP_ActionName;
+    DeviceInfo  DP_DIName;
+    std::string DP_DIStringName; //for json message.
     std::string DP_TempStorage;
 } DeviceProperty;
 

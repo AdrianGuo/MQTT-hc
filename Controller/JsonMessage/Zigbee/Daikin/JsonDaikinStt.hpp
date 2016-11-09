@@ -38,7 +38,7 @@ JsonDaikinStt::CreateJsonCommand(
     JsonCommand_p pJsonCommand = new JsonCommand("daikin", "stt");
     Json::Value jsonValue, jsonInfo;
     jsonValue["devid"] = device->DeviceID.GetValue();
-    jsonInfo[device.Modify()->Action[DeviceInfo::DI_Using].DP_ActionName] = std::to_string(device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeData);
+    jsonInfo[device.Modify()->Action[DeviceInfo::DI_Using].DP_DIStringName] = std::to_string(device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeData);
     jsonValue["info"].append(jsonInfo);
     pJsonCommand->SetJsonObject(jsonValue);
     return pJsonCommand;

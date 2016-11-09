@@ -36,6 +36,7 @@ public:
     u8_t RealType;
     Action_t Action;
     int_t& State;
+    u8_t byMsgCount;
 
     void_t ReceiveInforFromDevice(DeviceProperties);
     void_t GenerateDeviceInfo();
