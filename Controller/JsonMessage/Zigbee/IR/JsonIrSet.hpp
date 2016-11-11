@@ -13,17 +13,23 @@
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"
 
+typedef struct {
+    int_t devid;
+    int_t ord;
+    int_t irid;
+}IrSet_t;
+
 class JsonIrSet {
 private:
-    int_t m_iIrID;
+    IrSet_t m_IrSet;
     virtual bool_t ParseJsonValue(Json::Value& jsonValue);
 public:
-    JsonIrSet() : m_iIrID(0) {}
+    JsonIrSet() {}
     virtual ~JsonIrSet() {}
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
     static String GetStrCmd() { return "ir=set"; }
-    int_t Set() const { return m_iIrID; }
+    IrSet_t Return() const { return m_IrSet; }
 };
 
 typedef JsonIrSet  JsonIrSet_t;
@@ -52,8 +58,13 @@ inline bool_t
 JsonIrSet::ParseJsonValue(
     Json::Value& jsonValue
 ) {
-    if (!jsonValue.isMember("irid")) { return FALSE; }
-    m_iIrID = atoi(jsonValue["irid"].asCString());
+    m_IrSet = {};
+    if (!jsonValue.isMember("devid") ||
+            !jsonValue.isMember("ord") ||
+            !jsonValue.isMember("irid")) { return FALSE; }
+    m_IrSet.devid = atoi(jsonValue["devid"].asCString());
+    m_IrSet.ord = atoi(jsonValue["ord"].asCString());
+    m_IrSet.irid = atoi(jsonValue["irid"].asCString());
     return TRUE;
 }
 

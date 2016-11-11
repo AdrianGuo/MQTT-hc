@@ -25,7 +25,7 @@ class JsonZbReset {
 public:
     JsonZbReset() {}
     virtual ~JsonZbReset() {}
-    static String GetStrCmd() { return "zb=reset"; }
+    static String GetStrCmd() { return "dev=reset"; }
 };
 
 typedef JsonZbReset  JsonZbReset_t;

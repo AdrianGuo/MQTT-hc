@@ -10,10 +10,9 @@
 #include <zcl_ha.hpp>
 #include <JsonZbLstAdd.hpp>
 #include <JsonZbLstDel.hpp>
-#include <JsonDevRep.hpp>
-#include <JsonRGBEnaRes.hpp>
-#include <JsonRGBStt.hpp>
+#include <JsonZbStt.hpp>
 #include <JsonZbResetRes.hpp>
+#include <JsonIrRes.hpp>
 #include <ZbSocketCmd.hpp>
 
 ZbSocketCmd* ZbSocketCmd::s_pInstance = NULL;
@@ -29,10 +28,9 @@ ZbSocketCmd::ZbSocketCmd() {
 
     m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbLstAdd>(JsonZbLstAdd::GetStrCmd());
     m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbLstDel>(JsonZbLstDel::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonDevRep>(JsonDevRep::GetStrCmd());
+    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbStt>(JsonZbStt::GetStrCmd());
     m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbResetRes>(JsonZbResetRes::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonRGBStt>(JsonRGBStt::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonRGBEnaRes>(JsonRGBEnaRes::GetStrCmd());
+    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonIrRes>(JsonIrRes::GetStrCmd());
 }
 
 /**
@@ -75,6 +73,7 @@ void_t
 ZbSocketCmd::SendLstAdd(
     Devices_t devices
 ) {
+//    DEBUG1("SendLstAdd");
     JsonMessagePtr<JsonZbLstAdd> jsonZbLstAdd = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonZbLstAdd>();
     JsonCommand_p pJsonCommand = jsonZbLstAdd->CreateJsonCommand(devices);
 
@@ -104,12 +103,12 @@ ZbSocketCmd::SendLstDel(
  * @retval None
  */
 void_t
-ZbSocketCmd::SendDevRep(
-    int_t deviceID,
-    int_t idwValue
+ZbSocketCmd::SendZbStt(
+    Device_t device,
+    Json::Value val
 ) {
-    JsonMessagePtr<JsonDevRep> jsonDevRep = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonDevRep>();
-    JsonCommand_p pJsonCommand = jsonDevRep->CreateJsonCommand(deviceID, idwValue);
+    JsonMessagePtr<JsonZbStt> jsonZbStt = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonZbStt>();
+    JsonCommand_p pJsonCommand = jsonZbStt->CreateJsonCommand(device, val);
 
     SendJsonMessage(EvAction::None, pJsonCommand);
 }
@@ -130,7 +129,6 @@ ZbSocketCmd::SendResetRes(
     SendJsonMessage(EvAction::None, pJsonCommand);
 }
 
-
 /**
  * @func
  * @brief  None
@@ -138,29 +136,14 @@ ZbSocketCmd::SendResetRes(
  * @retval None
  */
 void_t
-ZbSocketCmd::SendRGBRes(
-    Device_t device
-){
-    JsonMessagePtr<JsonRGBStt> jsonRGBRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonRGBStt>();
-    JsonCommand_p pJsonCommand = jsonRGBRes->CreateJsonCommand(device);
-
-    SendJsonMessage(EvAction::None, pJsonCommand);
-}
-
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbSocketCmd::SendRGBEnaRes(
-    int_t devid,
-    u8_t byValue
+ZbSocketCmd::SendIrRes(
+    Device_t device,
+    u8_t byRet,
+    int_t irID
 ) {
-    JsonMessagePtr<JsonRGBEnaRes> jsonRGBEnableRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonRGBEnaRes>();
-    JsonCommand_p pJsonCommand = jsonRGBEnableRes->CreateJsonCommand(devid, byValue);
+    JsonMessagePtr<JsonIrRes> jsonIrRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonIrRes>();
+    JsonCommand_p pJsonCommand = jsonIrRes->CreateJsonCommand(device->DeviceID.GetValue(), device->Endpoint.GetValue(), byRet, irID);
 
     SendJsonMessage(EvAction::None, pJsonCommand);
 }
+

@@ -26,7 +26,7 @@ private:
 public:
     JsonZbRestart() {}
     virtual ~JsonZbRestart() {}
-    static String GetStrCmd() { return "zb=restart"; }
+    static String GetStrCmd() { return "dev=restart"; }
 };
 
 typedef JsonZbRestart  JsonZbRestart_t;

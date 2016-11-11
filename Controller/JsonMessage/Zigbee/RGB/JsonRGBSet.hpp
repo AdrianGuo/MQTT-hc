@@ -67,17 +67,17 @@ JsonRGBSet::ParseJsonValue(
     if(pos1stCol == std::string::npos) {return FALSE;}
     m_RGBSet.red = atoi(temp.substr(0, pos1stCol).c_str());
 
-    std::string temp = temp.substr(pos1stCol, temp.size() - pos1stCol);
+    temp = temp.substr(pos1stCol, temp.size() - pos1stCol);
     int_t pos2ndCol = temp.find(":");
     if(pos2ndCol == std::string::npos) {return FALSE;}
     m_RGBSet.green = atoi(temp.substr(0, pos2ndCol).c_str());
 
-    std::string temp = temp.substr(pos2ndCol, temp.size() - pos2ndCol);
+    temp = temp.substr(pos2ndCol, temp.size() - pos2ndCol);
     int_t pos3rdCol = temp.find(":");
     if(pos3rdCol == std::string::npos) {return FALSE;}
     m_RGBSet.blue = atoi(temp.substr(0, pos3rdCol).c_str());
 
-    std::string temp = temp.substr(pos3rdCol, temp.size() - pos3rdCol);
+    temp = temp.substr(pos3rdCol, temp.size() - pos3rdCol);
     int_t pos4thCol = temp.find(":");
     if(pos4thCol == std::string::npos) {return FALSE;}
     m_RGBSet.time = (u8_t) atoi(temp.substr(0, pos4thCol).c_str());

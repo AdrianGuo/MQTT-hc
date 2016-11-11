@@ -15,7 +15,8 @@
 
 typedef struct {
     int_t devid;
-    bool_t act;
+    int_t ord;
+    u8_t act;
 }IrLearn_t;
 
 class JsonIrLearn {
@@ -23,7 +24,7 @@ private:
     IrLearn_t m_IrLearn;
     virtual bool_t ParseJsonValue(Json::Value& jsonValue);
 public:
-    JsonIrLearn() : m_IrLearn({ 0, -1}) {}
+    JsonIrLearn() {}
     virtual ~JsonIrLearn() {}
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
@@ -57,11 +58,13 @@ inline bool_t
 JsonIrLearn::ParseJsonValue(
     Json::Value& jsonValue
 ) {
-    if (!jsonValue.isMember("devid") || !jsonValue.isMember("act")) { return FALSE; }
-    int_t temp = atoi(jsonValue["act"].asCString());
+    m_IrLearn = {};
+    if (!jsonValue.isMember("devid") || !jsonValue.isMember("ord") || !jsonValue.isMember("act")) { return FALSE; }
+    u8_t temp = atoi(jsonValue["act"].asCString());
     if ((temp < 0) || (temp > 1)) { return FALSE; }
     m_IrLearn.act = temp;
     m_IrLearn.devid = atoi(jsonValue["devid"].asCString());
+    m_IrLearn.ord = atoi(jsonValue["ord"].asCString());
     return TRUE;
 }
 

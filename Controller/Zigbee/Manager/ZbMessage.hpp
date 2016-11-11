@@ -22,8 +22,12 @@ public:
         RmvDevice,
         StopRmv,
         SetDevice,
-        GetEnPoints,
-        GetCapability
+        GetDevice,
+        InfoReq,
+        ResetReq,
+        RestartReq,
+        IrLearn,
+        IrSet
     } Command;
 
 private:
@@ -37,7 +41,7 @@ private:
     bool_t  m_boIsEncrypted;
 
 public:
-    ZbMessage(void_p pJsonMessage,
+    ZbMessage(void_p pJsonMessage = NULL,
             Command zbCommand = Command::SendData);
 
     virtual ~ZbMessage();

@@ -11,13 +11,26 @@
 #include <zcl_ha.hpp>
 #include <zcl_lumi.hpp>
 #include <ZbHelper.hpp>
+
 #include <ZbZclCmd.hpp>
 
 ZbZclCmd* ZbZclCmd::s_pInstance = NULL;
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 ZbZclCmd::ZbZclCmd() {
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 ZbZclCmd_p
 ZbZclCmd::GetInstance(){
     if(s_pInstance == NULL)
@@ -28,6 +41,12 @@ ZbZclCmd::GetInstance(){
 ZbZclCmd::~ZbZclCmd() {
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 void_t
 ZbZclCmd::ProcRecvMessage(
     void_p pInBuffer
@@ -47,58 +66,73 @@ ZbZclCmd::ProcRecvMessage(
     }
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 void_t
 ZbZclCmd::SetDevice(
-        ZbMessage_p pZbMessage,
+        ZbPacket_p pZbPacket,
         Device_t device,
         u8_t byValue
 ){
-
     u16_t wNwk = (u16_t) device->Network.GetValue();
-    pZbMessage->Push(wNwk >> 8);
-    pZbMessage->Push(wNwk & 0xFF);
-    pZbMessage->Push((u8_t) device->Endpoint.GetValue());
-    pZbMessage->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID >> 8);
-    pZbMessage->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID & 0xFF);
+    pZbPacket->Push(wNwk >> 8);
+    pZbPacket->Push(wNwk & 0xFF);
+    pZbPacket->Push((u8_t) device->Endpoint.GetValue());
+    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID >> 8);
+    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID & 0xFF);
     switch (device->RealType) {
         case LUMI_DEVICE_SWITCH:
-            pZbMessage->Push(0x01);    //Payload's length
-            pZbMessage->Push(byValue);  //OFF = 0x00; ON = 0x00; TOGGLE = 0x02
+            pZbPacket->Push(0x01);    //Payload's length
+            pZbPacket->Push(byValue);  //SWITCH: OFF = 0x00; ON = 0x00; TOGGLE = 0x02
             break;
 
         case LUMI_DEVICE_DIMMER:
         case LUMI_DEVICE_CURTAIN:
-            pZbMessage->Push(0x04);    //Payload's length
-            pZbMessage->Push(0x00);    //Move to Level
-            if(byValue <= 55)
-                byValue *= 3;
-            else if(byValue > 55)
-                byValue = 165 + (byValue - 55) * 2;
-            else
-                byValue = 0;
-            pZbMessage->Push(byValue);   //Level 0-255
-            pZbMessage->Push(0xFF);   //Transition time
-            pZbMessage->Push(0xFF);
-            break;
-
         case LUMI_DEVICE_FAN:
-            pZbMessage->Push(0x04);    //Payload's length
-            pZbMessage->Push(0x00);    //Move to Level
-            if(byValue < 4)
-                byValue *= 63;
-            else if(byValue == 4)
-                byValue = 255;
-            else
-                byValue = 0;
-            pZbMessage->Push(byValue);   //Level 0-255
-            pZbMessage->Push(0xFF);   //Transition time
-            pZbMessage->Push(0xFF);
+            pZbPacket->Push(0x04);    //Payload's length
+            pZbPacket->Push(0x00);    //Move to Level
+            pZbPacket->Push(byValue);   //Level 0-255
+            pZbPacket->Push(0xFF);   //Transition time
+            pZbPacket->Push(0xFF);
             break;
 
         default:
-            return;
+            break;
     }
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket((ZbPacket_p) pZbMessage);
+    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
 }
 
-
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclCmd::SetIR(
+        ZbPacket_p pZbPacket,
+        Device_t device,
+        IrCommand irCommand,
+        u16_t irID
+){
+    u16_t wNwk = (u16_t) device->Network.GetValue();
+    pZbPacket->Push(wNwk >> 8);
+    pZbPacket->Push(wNwk & 0xFF);
+    pZbPacket->Push((u8_t) device->Endpoint.GetValue());
+    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID >> 8);
+    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID & 0xFF);
+    if((irCommand == IrCommand::IRCMD_Active) || (irCommand == IrCommand::IRCMD_Delete)) {
+        pZbPacket->Push(0x03);                //Payload's length
+        pZbPacket->Push((u8_t) irCommand);    //CMD ID
+        pZbPacket->Push(irID & 0xFF);    //Ir ID
+        pZbPacket->Push(irID >> 8);
+    } else {
+        pZbPacket->Push(0x01);                //Payload's length
+        pZbPacket->Push((u8_t) irCommand);    //CMD ID
+    }
+    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+}

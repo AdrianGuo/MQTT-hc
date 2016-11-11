@@ -24,6 +24,8 @@ typedef enum {
     DI_Power,
     //Dimmer, Curtain, Fan
     DI_OnOff,
+    //IR
+    DI_IR_Data,
     //RGB
     DI_RGB_RemainingTime,
     DI_RGB_Red,
@@ -50,10 +52,12 @@ typedef struct {
     u8_t  DP_AttributeDataType;
     u8_t  DP_AttributeDataSize; //byte unit
     int_t DP_AttributeData; //notice data type (4 bytes)!!!
+    bool_t DP_IsChanged;
     DeviceInfo  DP_DIName;
     std::string DP_DIStringName; //for json message.
     std::string DP_TempStorage;
 } DeviceProperty;
+
 
 typedef Map<DeviceInfo,DeviceProperty> Action_t;
 
@@ -76,8 +80,9 @@ typedef enum {
  IRCMD_Stop,
  IRCMD_Active,
  IRCMD_Delete,
- IRCMD_State
-} IRCommand;
+ IRCMD_State,
+ IRCMD_Response
+} IrCommand;
 
 //IR response value
 typedef enum {

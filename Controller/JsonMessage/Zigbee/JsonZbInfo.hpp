@@ -14,6 +14,7 @@
 #include "JsonCommand.hpp"
 
 class JsonZbInfo {
+public:
     JsonZbInfo() {}
     virtual ~JsonZbInfo() {}
     static String GetStrCmd() { return "zb=info"; }

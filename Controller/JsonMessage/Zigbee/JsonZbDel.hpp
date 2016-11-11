@@ -31,7 +31,7 @@ public:
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonCommand);
 
-    static String GetStrCmd() { return "zb=del"; }
+    static String GetStrCmd() { return "dev=del"; }
     int_t Return() const { return m_iAct; }
 };
 

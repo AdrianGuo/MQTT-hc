@@ -14,6 +14,8 @@
 #include "JsonCommand.hpp"
 
 typedef struct {
+    int_t devid;
+    int_t ord;
     int_t irid;
     bool_t act;
 }IrEna_t;
@@ -57,10 +59,16 @@ inline bool_t
 JsonIrEna::ParseJsonValue(
     Json::Value& jsonValue
 ) {
-    if (!jsonValue.isMember("irid") || !jsonValue.isMember("act")) { return FALSE; }
+    m_IrEna = {};
+    if (!jsonValue.isMember("devid") ||
+            !jsonValue.isMember("ord") ||
+            !jsonValue.isMember("irid") ||
+            !jsonValue.isMember("act")) { return FALSE; }
     int_t temp = atoi(jsonValue["act"].asCString());
     if ((temp < 0) || (temp > 1)) { return FALSE; }
     m_IrEna.act = temp;
+    m_IrEna.devid = atoi(jsonValue["devid"].asCString());
+    m_IrEna.ord = atoi(jsonValue["ord"].asCString());
     m_IrEna.irid = atoi(jsonValue["irid"].asCString());
     return TRUE;
 }

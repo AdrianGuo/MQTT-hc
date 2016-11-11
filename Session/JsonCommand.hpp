@@ -18,10 +18,10 @@ private:
 
 public:
     typedef enum {
-        NetWork     = 0x0000,
-        Database    = 0x0001,
-        Zwave       = 0x0002,
-        Zigbee      = 0x0004
+        NetWork     = 0x0001,
+        Database    = 0x0002,
+        Zwave       = 0x0004,
+        Zigbee      = 0x0008
     } Flag;
 
     const static u32_t SrcDefault = Flag::NetWork;

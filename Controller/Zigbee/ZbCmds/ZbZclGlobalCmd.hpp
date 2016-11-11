@@ -29,7 +29,8 @@ public:
     void_t ReadAttributeRequest(Device_t, DeviceInfo);
     void_t ReadAttributeResponse(u8_p);
 
-    void_t WriteAttributeRequest(Device_t, DeviceInfo, void_p);
+    void_t WriteAttributeRequest(Device_t, DeviceProperties);
+    void_t WriteAttributeRequest(Device_t, DeviceProperty);
     void_t WriteAttributeResponse(u8_p);
 };
 

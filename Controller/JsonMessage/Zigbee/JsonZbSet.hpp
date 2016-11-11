@@ -16,8 +16,8 @@
 
 typedef struct {
     int_t devid;
-    int_t order;
-    int_t value;
+    int_t ord;
+    Json::Value val;
 }ZbSet_t;
 
 class JsonZbSet {
@@ -29,7 +29,7 @@ public:
     virtual ~JsonZbSet() {}
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
-    static String GetStrCmd() { return "zb=set"; }
+    static String GetStrCmd() { return "dev=set"; }
     Vector<ZbSet_t> Return() const { return m_vZbSet; }
 };
 
@@ -69,8 +69,8 @@ JsonZbSet::ParseJsonValue(
                 !(*it).isMember("val")) { continue; }
             ZbSet_t device;
             device.devid = std::stoi((*it)["devid"].asCString());
-            device.order = std::stoi((*it)["ord"].asCString());
-            device.value = std::stoi((*it)["val"].asCString());
+            device.ord = std::stoi((*it)["ord"].asCString());
+            device.val = (*it)["val"];
             m_vZbSet.push_back(device);
         }
     } else if (!jsonValue.isMember("dev")) {
@@ -79,8 +79,8 @@ JsonZbSet::ParseJsonValue(
             !jsonValue.isMember("val")) { return FALSE; }
         ZbSet_t device;
         device.devid = std::stoi(jsonValue["devid"].asCString());
-        device.order = std::stoi(jsonValue["ord"].asCString());
-        device.value = std::stoi(jsonValue["val"].asCString());
+        device.ord = std::stoi(jsonValue["ord"].asCString());
+        device.val = jsonValue["val"];
         m_vZbSet.push_back(device);
     }
 

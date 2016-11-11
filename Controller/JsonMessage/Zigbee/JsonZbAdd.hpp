@@ -30,7 +30,7 @@ public:
     virtual ~JsonZbAdd() {}
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
-    static String GetStrCmd() { return "zb=add"; }
+    static String GetStrCmd() { return "dev=add"; }
     int_t Return() const { return m_iAct; }
 };
 

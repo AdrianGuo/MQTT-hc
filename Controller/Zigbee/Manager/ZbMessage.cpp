@@ -108,11 +108,14 @@ ZbMessage::Classify(
         break;
 
     case ZbMessage::Command::RmvDevice:
+    case ZbMessage::Command::ResetReq:
         m_byCmdID = ZDO_CMD_REQ;
         break;
 
     case ZbMessage::Command::SetDevice:
-        m_byCmdID = ZCL_GLOBAL_CMD_REQ;
+    case ZbMessage::Command::IrLearn:
+    case ZbMessage::Command::IrSet:
+        m_byCmdID = ZCL_CMD_REQ;
         break;
 
     default:

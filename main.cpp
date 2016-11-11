@@ -114,15 +114,6 @@ int main(int argc, char* argv[]) {
 
     pZbBasicCmd->NwkInfoReq();
 
-//    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-//    device.Modify()->GenerateDeviceInfo();
-//
-//    ZbZclGlobalCmd_p test = ZbZclGlobalCmd::GetInstance();
-//
-//    i16_t fig = 3000;
-//    if(device.Modify() != NULL)
-//        test->WriteAttributeRequest(device, DeviceInfo::Daikin_Cooling_Setpoint, &fig);
-
 
 
     while (TRUE) {

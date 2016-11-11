@@ -18,7 +18,7 @@ public:
     JsonZbResetRes() {}
     virtual ~JsonZbResetRes() {}
     JsonCommand_p CreateJsonCommand(u8_t byRet);
-    static String GetStrCmd() { return "zb=resetres"; }
+    static String GetStrCmd() { return "dev=resetres"; }
 };
 
 typedef JsonZbResetRes  JsonZbResetRes_t;
@@ -34,7 +34,7 @@ inline JsonCommand_p
 JsonZbResetRes::CreateJsonCommand(
     u8_t byRet
 ) {
-    JsonCommand_p pJsonCommand = new JsonCommand("zb", "resetres");
+    JsonCommand_p pJsonCommand = new JsonCommand("dev", "resetres");
 
     Json::Value jsonValue;
     jsonValue["ret"] = std::to_string(byRet);

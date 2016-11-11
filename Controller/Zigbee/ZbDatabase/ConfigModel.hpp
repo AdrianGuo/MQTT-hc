@@ -22,13 +22,13 @@ class ZbControllerDb;
 class ZbDeviceDb;
 
 template<>
-struct ConfigTable<ZbDeviceDb> : public ConfigDefault {
-    static  String InsteadIdField() { return String(); } // Use this if use [Id]
-};
-
-template<>
 struct ConfigTable<ZbControllerDb> : public ConfigDefault {
     static  String InsteadIdField() { return String(); } // Use this if use [Id]
 };
+
+//template<>
+//struct ConfigTable<ZbDeviceDb> : public ConfigDefault {
+//    static  String InsteadIdField() { return String(); } // Use this if use [Id]
+//};
 
 #endif /* !CONFIG_MODEL_HPP_ */

@@ -35,7 +35,8 @@
 #include "JsonZbLstDel.hpp"
 #include "JsonZwLstAdd.hpp"
 #include "JsonZwLstDel.hpp"
-
+#include "JsonZbStt.hpp"
+#include "JsonZbResetRes.hpp"
 #include "NetCtrller.hpp"
 
 /******************************************************************************/
@@ -213,6 +214,8 @@ NetCtrller::RegisterJsonMessageInform() {
     m_valueJsonChecker.Register(JsonZbLstAdd::GetStrCmd(), JsonCommand::Flag::Zigbee);
     m_valueJsonChecker.Register(JsonZbLstDel::GetStrCmd(), JsonCommand::Flag::Zigbee);
     m_valueJsonChecker.Register(JsonDevRep::GetStrCmd(), JsonCommand::Flag::Database);
+    m_valueJsonChecker.Register(JsonZbStt::GetStrCmd(), JsonCommand::Flag::Zigbee);
+    m_valueJsonChecker.Register(JsonZbResetRes::GetStrCmd(), JsonCommand::Flag::Zigbee);
 
     m_pJsonNetSession->MapJsonMessage<JsonAuthRes>(JsonAuthRes::GetStrCmd());
     m_pJsonNetSession->MapJsonMessage<JsonAuthReq>(JsonAuthReq::GetStrCmd());
@@ -223,7 +226,9 @@ NetCtrller::RegisterJsonMessageInform() {
     m_pJsonNetSession->MapJsonMessage<JsonZwLstDel>(JsonZwLstDel::GetStrCmd());
     m_pJsonNetSession->MapJsonMessage<JsonZbLstAdd>(JsonZbLstAdd::GetStrCmd());
     m_pJsonNetSession->MapJsonMessage<JsonZbLstDel>(JsonZbLstDel::GetStrCmd());
+    m_pJsonNetSession->MapJsonMessage<JsonZbResetRes>(JsonZbResetRes::GetStrCmd());
     m_pJsonNetSession->MapJsonMessage<JsonDevRep>(JsonDevRep::GetStrCmd());
+    m_pJsonNetSession->MapJsonMessage<JsonZbStt>(JsonZbStt::GetStrCmd());
 
     RegisterHandler(JsonAuthRes::GetStrCmd(),
             makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdAuthRes));
@@ -238,6 +243,10 @@ NetCtrller::RegisterJsonMessageInform() {
     RegisterHandler(JsonZbLstDel::GetStrCmd(),
             makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
     RegisterHandler(JsonDevRep::GetStrCmd(),
+            makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
+    RegisterHandler(JsonZbStt::GetStrCmd(),
+            makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
+    RegisterHandler(JsonZbResetRes::GetStrCmd(),
             makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
 
 }
@@ -284,13 +293,13 @@ NetCtrller::LoadCmdClass(
     JsonCommand_p pJsonCommand
 ) {
     bool_t boRetVal = FALSE;
-    if (pJsonCommand->GetDesFlag() && JsonCommand::Flag::Zwave != 0) {
-        if (m_valueJsonChecker.HasCommand(*pJsonCommand)) {
+    if (pJsonCommand->GetDesFlag() && JsonCommand::Flag::NetWork != 0) {
+//        if (m_valueJsonChecker.HasCommand(*pJsonCommand)) {
             m_pNetCtrllerLocker->Lock();
             m_queNetCtrllerJsonCommand.push(pJsonCommand);
             m_pNetCtrllerLocker->UnLock();
             boRetVal = TRUE;
-        }
+//        }
     }
     return boRetVal;
 }
@@ -335,7 +344,7 @@ NetCtrller::ProcessAuthenReq() {
 
     JsonMessagePtr<JsonAuthReq> jsonAuthReq = m_pJsonNetSession->GetJsonMapping<JsonAuthReq>();
     JsonCommand_p pJsonCommand = jsonAuthReq->CreateJsonCommand(m_strMacID);
-    if ((m_pSessionClient != NULL) && m_boAuthenticated) {
+    if (m_pSessionClient != NULL) {
         m_pSessionClient->JsCommandToPacket(pJsonCommand);
     } else {
         delete pJsonCommand;

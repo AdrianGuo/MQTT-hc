@@ -24,20 +24,20 @@
 
 typedef struct {
     int_t devid;
-    int_t order;
-}DeviceGet_t;
+    int_t ord;
+}ZbGet_t;
 
 class JsonZbGet {
 private:
-    Vector<DeviceGet_t> m_vDeviceGet;
+    Vector<ZbGet_t> m_vZbGet;
     virtual bool_t ParseJsonValue(Json::Value& jsonValue);
 public:
-    JsonZbGet() : m_vDeviceGet({0,0}) {}
+    JsonZbGet() {}
     virtual ~JsonZbGet() {}
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
-    static String GetStrCmd() { return "zb=get"; }
-    Vector<DeviceGet_t> Return() const { return m_vDeviceGet; }
+    static String GetStrCmd() { return "dev=get"; }
+    Vector<ZbGet_t> Return() const { return m_vZbGet; }
 };
 
 typedef JsonZbGet  JsonZbGet_t;
@@ -71,18 +71,18 @@ JsonZbGet::ParseJsonValue(
         for(Json::ValueConstIterator it = devs.begin(); it != devs.end(); ++it) {
             if (!(*it).isMember("devid") ||
                 !(*it).isMember("ord")) { continue; }
-            DeviceGet_t device;
+            ZbGet_t device;
             device.devid = std::stoi((*it)["devid"].asCString());
-            device.order = std::stoi((*it)["ord"].asCString());
-            m_vDeviceGet.push_back(device);
+            device.ord = std::stoi((*it)["ord"].asCString());
+            m_vZbGet.push_back(device);
         }
     } else if (!jsonValue.isMember("dev")){
         if (!jsonValue.isMember("devid") ||
             !jsonValue.isMember("ord")) { return FALSE; }
-        DeviceGet_t device;
+        ZbGet_t device;
         device.devid = std::stoi(jsonValue["devid"].asCString());
-        device.order = std::stoi(jsonValue["ord"].asCString());
-        m_vDeviceGet.push_back(device);
+        device.ord = std::stoi(jsonValue["ord"].asCString());
+        m_vZbGet.push_back(device);
     }
     return TRUE;
 }

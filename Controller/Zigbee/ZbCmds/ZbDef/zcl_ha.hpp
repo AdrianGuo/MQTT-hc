@@ -56,6 +56,7 @@
 #define ZCL_HA_DEVICEID_RANGE_EXTENDER                          0x0008
 #define ZCL_HA_DEVICEID_MAINS_POWER_OUTLET                      0x0009
 #define ZCL_HA_DEVICEID_DOOR_LOCK		                        0x000A
+#define ZCL_HA_DEVICEID_SIMPLE_INPUT                            0x000C
 #define ZCL_HA_DEVICEID_CONSUMPTION_AWARENESS_DEVICE            0x000D
 #define ZCL_HA_DEVICEID_HOME_GATEWAY                            0x0050
 #define ZCL_HA_DEVICEID_SMART_PLUG                              0x0051

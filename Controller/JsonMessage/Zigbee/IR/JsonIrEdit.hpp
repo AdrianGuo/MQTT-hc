@@ -14,6 +14,8 @@
 #include "JsonCommand.hpp"
 
 typedef struct {
+    int_t devid;
+    int_t ord;
     int_t irid;
     String name;
 }IrEdit_t;
@@ -23,7 +25,7 @@ private:
     IrEdit_t m_IrEdit;
     virtual bool_t ParseJsonValue(Json::Value& jsonValue);
 public:
-    JsonIrEdit() : m_IrEdit({ 0, ""}) {}
+    JsonIrEdit() {}
     virtual ~JsonIrEdit() {}
 
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonComand);
@@ -57,7 +59,13 @@ inline bool_t
 JsonIrEdit::ParseJsonValue(
     Json::Value& jsonValue
 ) {
-    if (!jsonValue.isMember("irid") || !jsonValue.isMember("name")) { return FALSE; }
+    m_IrEdit = {};
+    if (!jsonValue.isMember("devid") ||
+            !jsonValue.isMember("ord") ||
+            !jsonValue.isMember("irid") ||
+            !jsonValue.isMember("name")) { return FALSE; }
+    m_IrEdit.devid = atoi(jsonValue["devid"].asCString());
+    m_IrEdit.ord = atoi(jsonValue["ord"].asCString());
     m_IrEdit.irid = atoi(jsonValue["irid"].asCString());
     m_IrEdit.name = String(jsonValue["name"].asCString());
     return TRUE;

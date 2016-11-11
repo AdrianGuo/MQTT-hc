@@ -3,12 +3,6 @@
 #include "Functor.hpp"
 #include "SClient.hpp"
 
-#ifndef DEBUG_SCLIENT
-#define debug_sclient(x)
-#else /* DEBUG_SCLIENT */
-#define debug_sclient(x)                    DEBUG(x)
-#endif /* DEBUG_SCLIENT */
-
 #define SPACE                              (' ')
 #define ENDLN                              ('\n')
 
@@ -164,7 +158,7 @@ SClient::BufferToJsCmdClass(
         String strCommand = m_vecStringJsonCommand[i*3 + 1];
         String strJsonValue = m_vecStringJsonCommand[i*3 + 2];
 
-        DEBUG2("parse $%s=%s%s$end", strCmdClass.c_str(), strCommand.c_str(), strJsonValue.c_str());
+//        DEBUG2("parse $%s=%s%s$end", strCmdClass.c_str(), strCommand.c_str(), strJsonValue.c_str());
 
         JsonCommand_p pJsonCommand = new JsonCommand(strCmdClass, strCommand, strJsonValue);
 

@@ -32,11 +32,9 @@ public:
 
     void_t SendLstAdd(Devices_t);
     void_t SendLstDel(Devices_t);
-    void_t SendDevRep(int_t, int_t);
+    void_t SendZbStt(Device_t, Json::Value);
     void_t SendResetRes(u8_t);
-
-    void_t SendRGBRes(Device_t);
-    void_t SendRGBEnaRes(int_t, u8_t);
+    void_t SendIrRes(Device_t, u8_t, int_t irID = 0);
 };
 
 typedef ZbSocketCmd     ZbSocketCmd_t;

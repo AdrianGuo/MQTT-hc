@@ -17,7 +17,7 @@ class JsonIrRes {
 public:
     JsonIrRes() {}
     virtual ~JsonIrRes() {}
-    JsonCommand_p CreateJsonCommand(int_t idwIrID, u8_t byRet);
+    JsonCommand_p CreateJsonCommand(int_t devid, int_t ord, u8_t ret, int_t irid = 0);
     static String GetStrCmd() { return "ir=res"; }
 };
 
@@ -32,14 +32,18 @@ typedef JsonIrRes* JsonIrRes_p;
  */
 inline JsonCommand_p
 JsonIrRes::CreateJsonCommand(
-    int_t idwIrID,
-    u8_t byRet
+    int_t devid,
+    int_t ord,
+    u8_t ret,
+    int_t irid
 ) {
     JsonCommand_p pJsonCommand = new JsonCommand("ir", "res");
 
     Json::Value jsonValue;
-    jsonValue["irid"] = std::to_string(idwIrID);
-    jsonValue["ret"] = std::to_string(byRet);
+    jsonValue["devid"] = std::to_string(devid);
+    jsonValue["ord"] = std::to_string(ord);
+    jsonValue["ret"] = std::to_string(ret);
+    jsonValue["irid"] = std::to_string(irid);
     pJsonCommand->SetJsonObject(jsonValue);
 
     return pJsonCommand;

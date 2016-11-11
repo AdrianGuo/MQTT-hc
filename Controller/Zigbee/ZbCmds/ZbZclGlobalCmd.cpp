@@ -60,13 +60,6 @@ ZbZclGlobalCmd::ProcRecvMessage(
 ) {
     ZbPacket_p pZbPacket    = (ZbPacket_p) pInBuffer;
     u8_p pbyBuffer          = pZbPacket->GetBuffer();
-//    u16_t wNwk              = LittleWord(&pbyBuffer);
-//    u8_t byEndpoint         = *pbyBuffer++;
-//    u16_t wClusterID        = LittleWord(&pbyBuffer);
-
-//    Device_t device          = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-//    if(device.Modify() == NULL) { return; }
-//    device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID = wClusterID;
 
     u8_t byCmdID = *(pbyBuffer + 5);
 
@@ -97,36 +90,30 @@ ZbZclGlobalCmd::ReadAttributeRequest(
         Vector<DeviceInfo> vDI
 ){
     if (vDI.size() == 0) { return; }
-
     if(device.Modify()->IsInterested()) {
-        Vector<Vector<DeviceInfo>> vDIGroup;
+        Map<u16_t, Vector<DeviceInfo>> mapDIGroup;
 
-        for (int_t i = 0; i < (u8_t) vDI.size(); i++) {
-            Vector<DeviceInfo> vTempDI;
-            vTempDI.push_back(vDI[i]);
-            for (int_t j = (i + 1); j < (u8_t) vDI.size(); j++) {
-                if(device.Modify()->Action[vDI[j]].DP_ClusterID == device.Modify()->Action[vDI[i]].DP_ClusterID) {
-                    vTempDI.push_back(vDI[j]);
-                    vDI.erase(vDI.begin() + j);
-                }
-            }
-            vDIGroup.push_back(vTempDI);
+        for(u8_t i = 0; i < (u8_t) vDI.size(); i++) {
+            if(device.Modify()->Action.find(vDI[i]) == device.Modify()->Action.end()) { continue; }
+            mapDIGroup[device.Modify()->Action[vDI[i]].DP_ClusterID].push_back(vDI[i]);
         }
 
-        for (u8_t i = 0; i < (u8_t) vDIGroup.size(); i++) {
+        if(mapDIGroup.size() == 0) { return; }
+
+        for (Map<u16_t, Vector<DeviceInfo>>::const_iterator_t it = mapDIGroup.begin(); it != mapDIGroup.end(); it++) {
             u16_t wNwkAdd = (u16_t) device->Network.GetValue();
-            ZbPacket_p pZbPacket = new ZbPacket(9);
+            ZbPacket_p pZbPacket = new ZbPacket(7 + 0x02 * it->second.size());
             pZbPacket->SetCmdID(ZCL_GLOBAL_CMD_REQ);
             pZbPacket->Push(wNwkAdd >> 8);
             pZbPacket->Push(wNwkAdd & 0xFF);
             pZbPacket->Push((u8_t) device->Endpoint.GetValue());
-            pZbPacket->Push(device.Modify()->Action[vDIGroup[i][0]].DP_ClusterID >> 8);
-            pZbPacket->Push(device.Modify()->Action[vDIGroup[i][0]].DP_ClusterID & 0xFF);
+            pZbPacket->Push(device.Modify()->Action[(it->second)[0]].DP_ClusterID >> 8);
+            pZbPacket->Push(device.Modify()->Action[(it->second)[0]].DP_ClusterID & 0xFF);
             pZbPacket->Push(ZCL_CMD_READ);
-            pZbPacket->Push(0x02 * vDIGroup[i].size()); //Payload's length
-            for (u8_t j = 0; j < (u8_t) vDIGroup[i].size(); j++) {
-                pZbPacket->Push(device.Modify()->Action[vDIGroup[i][j]].DP_AttributeID & 0xFF);
-                pZbPacket->Push(device.Modify()->Action[vDIGroup[i][j]].DP_AttributeID >> 8);
+            pZbPacket->Push(0x02 * (it->second).size()); //Payload's length
+            for (u8_t j = 0; j < (u8_t) (it->second).size(); j++) {
+                pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID & 0xFF);
+                pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID >> 8);
             }
            ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
            delete pZbPacket;
@@ -167,8 +154,13 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     u8_t byLength = *pbyBuffer++; //Payload's length
 
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-    if(device.Modify() == NULL) { return; }
+    if(device.Modify() == NULL) {
+        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk); //Prevent Spamming!!!
+        return;
+    }
+
     DeviceProperties vResponseDP;
+    Vector<u8_p>* pvData = new Vector<u8_p>();
 
     while (byLength > 0) {
         u16_t wAttributeID  =  BigWord(&pbyBuffer);
@@ -200,9 +192,13 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         }
         temp.DP_AttributeDataSize = byAttributeDataTypeSize;
 
-        char* pbyAttributeData = new char[byAttributeDataTypeSize + 1];
+        u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
         bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
         memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
+
+        u8_p ptemp = NULL;
+        ptemp = pbyAttributeData;
+        (*pvData).push_back(ptemp);
 
         byLength -= byAttributeDataTypeSize;
 
@@ -211,8 +207,10 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         }
         temp.DP_TempStorage = std::string((const char*) pbyAttributeData);
         vResponseDP.push_back(temp);
+
         temp = {};
-        delete pbyAttributeData;
+//        delete pbyAttributeData;
+
 
         if(byLength > 0) {
             pbyBuffer += byAttributeDataTypeSize;
@@ -221,7 +219,10 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     }
 
 //    for(int_t i = 0; i < (int_t) vResponseDP.size(); i++) {
+//        DEBUG2("DP_ClusterID: %d", vResponseDP[i].DP_ClusterID);
 //        DEBUG2("DP_AttributeID: %d", vResponseDP[i].DP_AttributeID);
+//        DEBUG2("DP_AttributeDataType: %d", vResponseDP[i].DP_AttributeDataType);
+//        DEBUG2("DP_AttributeDataSize: %d", vResponseDP[i].DP_AttributeDataSize);
 //        DEBUG2("DP_AttributeData: %d", vResponseDP[i].DP_AttributeData);
 //        DEBUG2("DP_TempStorage: %d", atoi(vResponseDP[i].DP_TempStorage.c_str()));
 //    }
@@ -237,20 +238,20 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
                 }
-            }
-
-            if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
+            } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
                     tempDevice.Modify()->Model = String(vResponseDP[i].DP_TempStorage.c_str());
                     tempDevice.Modify()->GenerateDeviceInfo();
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
-                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
+//                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }
+            delete (*pvData)[i];
         }
+        delete pvData;
     } else {
         for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
             for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
@@ -261,7 +262,8 @@ ZbZclGlobalCmd::ReadAttributeResponse(
             }
         }
 
-        device.Modify()->ReceiveInforFromDevice(vResponseDP);
+        device.Modify()->ReceiveInforFromDevice(vResponseDP, pvData);
+
     }
 
 }
@@ -275,33 +277,60 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 void_t
 ZbZclGlobalCmd::WriteAttributeRequest(
         Device_t device,
-        DeviceInfo deviceInfo,
-        void_p pAttributeData //Must pass a reference
+        DeviceProperties vDP
 ) {
-    if(pAttributeData == NULL) { return; }
-    if(device->Action.find(deviceInfo) == device->Action.end()) { return; }
-    if(device->RealType > 0) {
+
+    if (vDP.size() == 0) { return; }
+
+    Map<u16_t, DeviceProperties> mapDPGroup;
+    for(u8_t i = 0; i < (u8_t) vDP.size(); i++) {
+        if(device.Modify()->Action.find(vDP[i].DP_DIName) == device.Modify()->Action.end()) { continue; }
+        mapDPGroup[vDP[i].DP_ClusterID].push_back(vDP[i]);
+    }
+
+    for (Map<u16_t, DeviceProperties>::const_iterator_t it = mapDPGroup.begin(); it != mapDPGroup.end(); it++) {
         u16_t wNwkAdd = (u16_t) device->Network.GetValue();
-        ZbPacket_p pZbPacket = new ZbPacket(10 + device.Modify()->Action[deviceInfo].DP_AttributeDataSize);
+        int_t iDataSize = 0;
+        for (u8_t j = 0; j < (it->second).size(); j++) {
+            iDataSize += device.Modify()->Action[(it->second[j]).DP_DIName].DP_AttributeDataSize;
+        }
+        ZbPacket_p pZbPacket = new ZbPacket(7 + 3*(it->second).size() + iDataSize);
         pZbPacket->SetCmdID(ZCL_GLOBAL_CMD_REQ);
         pZbPacket->Push(wNwkAdd >> 8);
         pZbPacket->Push(wNwkAdd & 0xFF);
         pZbPacket->Push((u8_t) device->Endpoint.GetValue());
-        pZbPacket->Push(device.Modify()->Action[deviceInfo].DP_ClusterID >> 8);
-        pZbPacket->Push(device.Modify()->Action[deviceInfo].DP_ClusterID & 0xFF);
+        pZbPacket->Push((it->second)[0].DP_ClusterID >> 8);
+        pZbPacket->Push((it->second)[0].DP_ClusterID & 0xFF);
         pZbPacket->Push(ZCL_CMD_WRITE);
-        pZbPacket->Push(0x03 + device.Modify()->Action[deviceInfo].DP_AttributeDataSize); //Payload's length
-        pZbPacket->Push(device.Modify()->Action[deviceInfo].DP_AttributeID & 0xFF);
-        pZbPacket->Push(device.Modify()->Action[deviceInfo].DP_AttributeID >> 8);
-        pZbPacket->Push(device.Modify()->Action[deviceInfo].DP_AttributeDataType);
-        //Push Attribute Data
-        for (int_t i = 0; i< device.Modify()->Action[deviceInfo].DP_AttributeDataSize; i++) {
-            pZbPacket->Push(((u8_p) pAttributeData)[i]);
+        pZbPacket->Push(3*(it->second).size() + iDataSize); //Payload's length
+        for (u8_t j = 0; j < (u8_t) (it->second).size(); j++) {
+            pZbPacket->Push(device.Modify()->Action[(it->second)[j].DP_DIName].DP_AttributeID & 0xFF);
+            pZbPacket->Push(device.Modify()->Action[(it->second)[j].DP_DIName].DP_AttributeID >> 8);
+            pZbPacket->Push(device.Modify()->Action[(it->second)[j].DP_DIName].DP_AttributeDataType);
+            for(u8_t k = 0; k < device.Modify()->Action[(it->second)[j].DP_DIName].DP_AttributeDataSize; k++) {
+                pZbPacket->Push((it->second)[j].DP_AttributeData >> (8*k));
+            }
         }
 
         ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
         delete pZbPacket;
     }
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::WriteAttributeRequest(
+        Device_t device,
+        DeviceProperty devProperty
+){
+    DeviceProperties vDP;
+    vDP.push_back(devProperty);
+    WriteAttributeRequest(device, vDP);
 }
 
 /**

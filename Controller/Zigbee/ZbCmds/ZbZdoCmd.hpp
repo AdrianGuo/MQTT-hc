@@ -43,10 +43,10 @@ public:
     void_t NodeDescriptionRequest(Device_t);
     void_t NodeDescriptionResponse(u8_p, u32_t);
 
-    void_t LeaveRequest(ZbPacket_p, Device_t);
+    void_t LeaveRequest(u16_t);
     void_t LeaveResponse(u16_t, u8_p, u32_t);
 
-    const DeviceLogic_p GetDeviceLogic();
+    DeviceLogic_t GetDeviceLogic();
 };
 
 typedef ZbZdoCmd ZbZdoCmd_t;

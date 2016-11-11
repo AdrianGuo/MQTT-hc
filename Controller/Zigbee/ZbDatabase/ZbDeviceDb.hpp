@@ -38,12 +38,11 @@ public:
     int_t& State;
     u8_t byMsgCount;
 
-    void_t ReceiveInforFromDevice(DeviceProperties);
+    void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>*);
     void_t GenerateDeviceInfo();
     void_t EnvAttached();
     bool_t IsInterested();
 
-    bool_t SyncDeviceAction(DeviceProperty&);
     bool_t OtherBrandsDevices();
     static u8_t GetAttributeDataSize(u8_t, u8_p*);
 
@@ -62,7 +61,7 @@ inline void_t
 ZbDeviceDb::Table(
     A& action
 ) {
-    Id(action, DeviceID);
+    Column(action, DeviceID);
     Column(action, Network);
     Column(action, MAC);
     Column(action, Model);

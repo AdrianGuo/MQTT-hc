@@ -57,10 +57,22 @@ private:
     void_t HandlerCmdAdd(JsonCommand_p pJsonCommand);
     void_t HandlerCmdDel(JsonCommand_p pJsonCommand);
     void_t HandlerCmdSet(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdGet(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdInfo(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdReset(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdRestart(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdIrLearn(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdIrSet(JsonCommand_p pJsonCommand);
 
     void_t ProcCmdAdd(ZbMessage_p pZbMessage);
     void_t ProcCmdDel(ZbMessage_p pZbMessage);
     void_t ProcCmdSet(ZbMessage_p pZbMessage);
+    void_t ProcCmdGet(ZbMessage_p pZbMessage);
+    void_t ProcCmdReset(ZbMessage_p pZbMessage);
+    void_t ProcCmdRestart(ZbMessage_p pZbMessage);
+    void_t ProcCmdInfo(ZbMessage_p pZbMessage);
+    void_t ProcCmdIrLearn(ZbMessage_p pZbMessage);
+    void_t ProcCmdIrSet(ZbMessage_p pZbMessage);
 
     void_t RegisterJsonMessageInform();
 public:
