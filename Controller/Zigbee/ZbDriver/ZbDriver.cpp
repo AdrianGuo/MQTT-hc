@@ -16,6 +16,9 @@
 #include <JsonZbGet.hpp>
 #include <JsonIrLearn.hpp>
 #include <JsonIrSet.hpp>
+#include <JsonIrDel.hpp>
+#include <JsonIrEna.hpp>
+#include <JsonManualRemove.hpp>
 #include <ZbConvertValueTo.hpp>
 #include <DeviceInfo.hpp>
 
@@ -109,6 +112,13 @@ ZbDriver::ProcSendMessage(
         }
             break;
 
+        case ZbMessage::Command::ManualRmv: {
+            JsonManualRemove_p pJsonManualRemove = (JsonManualRemove_p) pZbMessage->GetJsonMessageObject();
+            int_t nwk = pJsonManualRemove->Return();
+            ZbZdoCmd::GetInstance()->LeaveRequest((u16_t) nwk);
+        }
+            break;
+
         case ZbMessage::Command::SetDevice: {
             JsonZbSet_p pJsonZbSet = (JsonZbSet_p) pZbMessage->GetJsonMessageObject();
             Vector<ZbSet_t> vZbSet = pJsonZbSet->Return();
@@ -140,7 +150,11 @@ ZbDriver::ProcSendMessage(
                         break;
 
                     case LUMI_DEVICE_RGB:
-                        ForwardSetValueToRGB(pZbMessage, device, vZbSet[i].val);
+                        ForwardSetValueToRGB(device, vZbSet[i].val);
+                        break;
+
+                    case LUMI_DEVICE_DAIKIN:
+                        ForwardSetValueToDaikin(device, vZbSet[i].val);
                         break;
 
                     default:
@@ -212,10 +226,47 @@ ZbDriver::ProcSendMessage(
             IrSet_t sIrSet = pJsonIrSet->Return();
             Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrSet.devid).Bind(sIrSet.ord);
             if(device.Modify() == NULL) { break; }
-            ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, sIrSet.irid);
+
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Model=?").Bind(sIrSet.irid).Bind(String("IR-CMD"));
+            if(ircmd.Modify() != NULL) {
+                if(ircmd->Type.GetValue() == 1)
+                    ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, sIrSet.irid);
+                else
+                    ZbSocketCmd::GetInstance()->SendIrRes(device, 5, sIrSet.irid);
+
+            } else {
+                ZbSocketCmd::GetInstance()->SendIrRes(device, 5, sIrSet.irid);
+            }
         }
             break;
 
+        case ZbMessage::Command::IrDel: {
+            JsonIrDel_p pJsonIrDel = (JsonIrDel_p) pZbMessage->GetJsonMessageObject();
+            IrDel_t sIrDel = pJsonIrDel->Return();
+            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrDel.devid).Bind(sIrDel.ord);
+            if(device.Modify() == NULL) { break; }
+            ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Delete);
+        }
+            break;
+
+        case ZbMessage::Command::IrEna: {
+            JsonIrEna_p pJsonIrEna = (JsonIrEna_p) pZbMessage->GetJsonMessageObject();
+            IrEna_t sIrEna = pJsonIrEna->Return();
+            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrEna.devid).Bind(sIrEna.ord);
+            if(device.Modify() == NULL) { break; }
+
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Model=?").Bind(sIrEna.irid).Bind(String("IR-CMD"));
+            if(ircmd.Modify() != NULL) {
+                ircmd.Modify()->Type = 0;
+                s_pZbModel->Add(ircmd);
+                s_pZbModel->UpdateChanges();
+            } else {
+                ZbSocketCmd::GetInstance()->SendIrRes(device, 5, sIrEna.irid);
+            }
+        }
+            break;
+
+        case ZbMessage::Command::SendData:
         default:
             break;
     }
@@ -327,13 +378,17 @@ ZbDriver::Close() {
  */
 void_t
 ZbDriver::InitDriver() {
-    Devices_t devices = s_pZbModel->Find<ZbDeviceDb>().Where("ParentID=?").Bind(0);
+    Controllers_t controllers = s_pZbModel->Find<ZbControllerDb>();
+    Devices_t devices = s_pZbModel->Find<ZbDeviceDb>();
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Device_t temp = (*it);
-        temp.Modify()->GenerateDeviceInfo();
-        if(temp->RealType > 0) {
-            ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(temp, DeviceInfo::DI_State);
+        if(temp->Model.GetValue() != String("IR-CMD")) {
+            if(temp->RealType > 0) {
+                ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(temp, DeviceInfo::DI_State);
+                //Info req from server???
+            }
         }
+        temp.Modify()->GenerateDeviceInfo();
     }
 
 }

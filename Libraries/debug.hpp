@@ -8,14 +8,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <typedefs.h>
+#include <string.h>
 
-#define DEBUG1(x)               std::cout << "DEBUG1: " << std::setw(40) << __FILE__ \
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
+#define DEBUG1(x)               std::cout << "DEBUG1: " << std::setw(15) << __FILENAME__ \
                                           << ":" << std::setw(4) << __LINE__ \
-                                          << ":" << std::setw(25) << __FUNCTION__ \
-                                          << ":" << std::setw(12) << (uint_t) pthread_self() \
-                                          << ":" << x << std::endl;
+                                          << ": " << x << std::endl;
 
-#define DEBUG2(x, args ...)     printf("DEBUG2: %40s:%4d:%25s:%12u:" x "\n", \
-                                        __FILE__, __LINE__, __FUNCTION__, (uint_t) pthread_self(), ##args)
+#define DEBUG2(x, args ...)     printf("DEBUG2: %15s:%4d: " x "\n", \
+                                        __FILENAME__, __LINE__, ##args)
 
 #endif /* !DEBUG_HPP_ */

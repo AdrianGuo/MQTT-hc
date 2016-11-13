@@ -104,7 +104,7 @@ ZbZdoCmd::DeviceAnnounce(
     m_mapTemps[wNwk]   = MAC;
     ActiveEndpointRequest(wNwk);
     // ZB Device Type (router, end device - sleepable)!!!
-    DEBUG2("Device %d joined.", wNwk);
+    DEBUG2("Device %d announce.", wNwk);
 }
 
 /**
@@ -117,6 +117,7 @@ void_t
 ZbZdoCmd::ActiveEndpointRequest(
         u16_t wNwk
 ) {
+    DEBUG2("ActiveEndpointRequest device %d .", wNwk);
     ZbPacket_p pZbPacket = new ZbPacket(8);
     pZbPacket->SetCmdID(ZDO_CMD_REQ);
     pZbPacket->Push(wNwk >> 8);
@@ -326,6 +327,7 @@ ZbZdoCmd::LeaveRequest(
     pZbPacket->Push(byMAC, 8);
     pZbPacket->Push(0b00000011);
     ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    delete pZbPacket;
 
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     if(devices.size() > 0) {

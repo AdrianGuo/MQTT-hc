@@ -30,7 +30,7 @@
 
 // Closures Clusters
 #define ZCL_CLUSTER_ID_CLOSURES_SHADE_CONFIG                 0x0100
-#define ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG                  0x0100
+#define ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG                  0x0101
 
 // HVAC Clusters
 #define ZCL_CLUSTER_ID_HVAC_PUMP_CONFIG_CONTROL              0x0200

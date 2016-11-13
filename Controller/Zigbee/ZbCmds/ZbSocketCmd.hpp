@@ -35,6 +35,7 @@ public:
     void_t SendZbStt(Device_t, Json::Value);
     void_t SendResetRes(u8_t);
     void_t SendIrRes(Device_t, u8_t, int_t irID = 0);
+    void_t SendIrRes(int_t, int_t, u8_t, int_t irID = 0);
 };
 
 typedef ZbSocketCmd     ZbSocketCmd_t;

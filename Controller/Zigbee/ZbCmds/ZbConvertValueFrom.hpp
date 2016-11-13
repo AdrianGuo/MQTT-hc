@@ -12,6 +12,7 @@
 #include <debug.hpp>
 #include <ZbSocketCmd.hpp>
 #include <ZbModelDb.hpp>
+#include <ZbDriver.hpp>
 #include <json.h>
 
 
@@ -46,7 +47,7 @@ ForwardStateToOutside(
  * @retval None
  */
 void_t
-ForwardDimmerStateToOutside(
+ForwardDimmerOrCurtainStateToOutside(
     const ZbDeviceDb_p device
 ) {
     int_t iLevel = device->State;
@@ -97,7 +98,12 @@ ForwardSensorStateToOutside(
 ) {
     Json::Value val;
     val["level"] = std::to_string(device->State);
-    val["power"] = std::to_string(device->Action[DI_Power].DP_AttributeData);
+    if(device->Endpoint.GetValue() != 1) {
+        Device_t masterDevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint =?").Bind(device->Network.GetValue()).Bind(1);
+        val["power"] = std::to_string(masterDevice.Modify()->Action[DI_Power].DP_AttributeData);
+    } else {
+        val["power"] = std::to_string(device->Action[DI_Power].DP_AttributeData);
+    }
     ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
@@ -158,38 +164,51 @@ ForwardIrState(
 ){
     switch (device->State) {
         case 0x00:
+            DEBUG1("________IR: Idle________");
+            break;
+
         case 0x01:
+            DEBUG1("________IR: Learning________");
+            break;
+
         case 0x02:
+            DEBUG1("________IR: Timeouted________");
+            break;
+
+        case 0x04:
+            DEBUG1("________IR: Full Mem________");
             break;
 
         case 0x03: {
             ZbDeviceDb_p tmpIr = new ZbDeviceDb();
             tmpIr->DeviceID = device->Action[DeviceInfo::DI_State].DP_AttributeData;
-            tmpIr->Type = 1001;
+            tmpIr->Type = 1; //Enable
+            tmpIr->Model = String("IR-CMD");
             tmpIr->Device = DbPtr<ZbDeviceDb>(device);
+            ZbDriver::s_pZbModel->Add(tmpIr);
+            ZbDriver::s_pZbModel->UpdateChanges();
             ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeData);
         }
             break;
 
-        case 0x04:
-
-            break;
-
         case 0x05:
-
-            break;
-
-        case 0x06:
-
+        case 0x06: {
+            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeData);
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Model=?").Bind(device->Action[DeviceInfo::DI_State].DP_AttributeData).Bind(String("IR-CMD"));
+            if(ircmd.Modify() != NULL) {
+                ircmd.Remove();
+                ZbDriver::s_pZbModel->UpdateChanges();
+            }
+        }
             break;
 
         case 0x07:
-
+            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 6, device->Action[DeviceInfo::DI_State].DP_AttributeData);
             break;
 
 
         case 0x08:
-
+            DEBUG1("________IR: Overloaded________");
             break;
 
         default:

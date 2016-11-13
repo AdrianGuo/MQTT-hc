@@ -27,7 +27,10 @@ public:
         ResetReq,
         RestartReq,
         IrLearn,
-        IrSet
+        IrSet,
+        IrDel,
+        IrEna,
+        ManualRmv
     } Command;
 
 private:

@@ -147,3 +147,21 @@ ZbSocketCmd::SendIrRes(
     SendJsonMessage(EvAction::None, pJsonCommand);
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbSocketCmd::SendIrRes(
+    int_t devid,
+    int_t ord,
+    u8_t byRet,
+    int_t irID
+) {
+    JsonMessagePtr<JsonIrRes> jsonIrRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonIrRes>();
+    JsonCommand_p pJsonCommand = jsonIrRes->CreateJsonCommand(devid, ord, byRet, irID);
+
+    SendJsonMessage(EvAction::None, pJsonCommand);
+}

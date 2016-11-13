@@ -11,6 +11,8 @@
 #include <zcl_ss.hpp>
 #include <zcl_lumi.hpp>
 #include <ZbConvertValueFrom.hpp>
+#include <ZbHelper.hpp>
+
 #include <ZbDeviceDb.hpp>
 /**
  * @func
@@ -66,24 +68,24 @@ ZbDeviceDb::GetTableName() {
 bool_t
 ZbDeviceDb::IsInterested() {
     bool_t boRet = FALSE;
-    switch (Type) {
-    case ZCL_HA_DEVICEID_ON_OFF_LIGHT:
-    case ZCL_HA_DEVICEID_DIMMABLE_LIGHT:
-    case ZCL_HA_DEVICEID_LIGHT_SENSOR:
-    case ZCL_HA_DEVICEID_TEMPERATURE_SENSOR:
-    case ZCL_HA_DEVICEID_THERMOSTAT:
-    case ZCL_HA_DEVICEID_IAS_ZONE:
-    case ZCL_HA_DEVICEID_COLORED_DIMMABLE_LIGHT:
-    case ZCL_HA_DEVICEID_HEATING_COOLING_UNIT:
-    case ZCL_HA_DEVICEID_DOOR_LOCK:
-    case ZCL_HA_DEVICEID_SIMPLE_INPUT:
-    case ZCL_LUMI_DEVICEID_IR:
-        boRet = TRUE;
-        break;
+    switch (Type.GetValue()) {
+        case ZCL_HA_DEVICEID_ON_OFF_LIGHT:
+        case ZCL_HA_DEVICEID_DIMMABLE_LIGHT:
+        case ZCL_HA_DEVICEID_LIGHT_SENSOR:
+        case ZCL_HA_DEVICEID_TEMPERATURE_SENSOR:
+        case ZCL_HA_DEVICEID_THERMOSTAT:
+        case ZCL_HA_DEVICEID_IAS_ZONE:
+        case ZCL_HA_DEVICEID_COLORED_DIMMABLE_LIGHT:
+        case ZCL_HA_DEVICEID_HEATING_COOLING_UNIT:
+        case ZCL_HA_DEVICEID_DOOR_LOCK:
+        case ZCL_HA_DEVICEID_SIMPLE_INPUT:
+        case ZCL_LUMI_DEVICEID_IR:
+            boRet = TRUE;
+            break;
 
-    default:
-        boRet = FALSE;
-        break;
+        default:
+            boRet = FALSE;
+            break;
     }
 
     return boRet;
@@ -101,74 +103,72 @@ ZbDeviceDb::ReceiveInforFromDevice(
     Vector<u8_p>* pvData
 ){
     u8_t byLimit = vResponseDP.size();
-    DEBUG2("Received information from device %d - RealType: %d.", DeviceID.GetValue(), RealType);
+//    DEBUG2("Received information from device %d - RealType: %d.", DeviceID.GetValue(), RealType);
+
     switch (RealType) {
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         case LUMI_DEVICE_SWITCH:
-        case LUMI_DEVICE_INPUT:
+        case LUMI_DEVICE_INPUT: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = vResponseDP[i].DP_AttributeData;
+                    State = *(*pvData)[i];
                     ForwardStateToOutside(this);
                 }
                 delete (*pvData)[i];
             }
-            delete pvData;
-            break;
+        }
 
+            break;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         case LUMI_DEVICE_DIMMER:
         case LUMI_DEVICE_CURTAIN:
+        case LUMI_DEVICE_FAN: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = vResponseDP[i].DP_AttributeData;
+                    State = *(*pvData)[i];
                     byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_OnOff) {
-                    Action[DeviceInfo::DI_OnOff].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_OnOff].DP_AttributeData = *(*pvData)[i];
                     byMsgCount++;
                 }
                 delete (*pvData)[i];
             }
-            if(byMsgCount >= 2) { byMsgCount = 0; ForwardDimmerStateToOutside(this); }
-            delete pvData;
-            break;
+            if(byMsgCount >= 2) {
+                byMsgCount = 0;
+                if(RealType == LUMI_DEVICE_FAN) ForwardFanStateToOutside(this);
+                else ForwardDimmerOrCurtainStateToOutside(this);
 
-        case LUMI_DEVICE_FAN:
-            for(u8_t i = 0; i < byLimit; i++) {
-                if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = vResponseDP[i].DP_AttributeData;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_OnOff) {
-                    Action[DeviceInfo::DI_OnOff].DP_AttributeData = vResponseDP[i].DP_AttributeData;
-                    byMsgCount++;
-                }
-                delete (*pvData)[i];
             }
-            if (byMsgCount >= 2) { byMsgCount = 0; ForwardFanStateToOutside(this); }
-            delete pvData;
+        }
             break;
-
-
-        case LUMI_DEVICE_IR:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        case LUMI_DEVICE_IR: {
             for(u8_t i = 0; i < byLimit; i++) {
-                u8_p pAttributeData = (*pvData)[i];
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_IR_Data) {
-                    State = *pAttributeData++;
-                    Action[DeviceInfo::DI_State].DP_AttributeData = (*pAttributeData++);
-                    Action[DeviceInfo::DI_State].DP_AttributeData |= (*pAttributeData) << 8;
-                    ForwardIrState(this);
+                    u8_p pbyData = (*pvData)[i];
+                    State = *pbyData;
+                    ++pbyData;
+                    Action[DeviceInfo::DI_State].DP_AttributeID = LittleWord(&pbyData);
+//                    DEBUG2("IR:___%02X___%04X___", State, Action[DeviceInfo::DI_State].DP_AttributeID);
+                    pbyData = NULL;
                 }
                 delete (*pvData)[i];
             }
-            delete pvData;
+        }
             break;
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_PIR:
         case LUMI_DEVICE_TEMPERATURE:
         case LUMI_DEVICE_HUMIDITY:
-        case LUMI_DEVICE_ILLUMINANCE:
+        case LUMI_DEVICE_ILLUMINANCE: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = vResponseDP[i].DP_AttributeData;
+                    if (RealType == LUMI_DEVICE_PIR) State = LittleWord(&(*pvData)[i]);
+                    else if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) (*pvData)[i]);
+                    else if((RealType == LUMI_DEVICE_TEMPERATURE) || (RealType == LUMI_DEVICE_ILLUMINANCE))
+                        State = *((u16_p) (*pvData)[i]);
+                    else State = *(*pvData)[i];
                     byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Power) {
                     Action[DeviceInfo::DI_Power].DP_AttributeData = vResponseDP[i].DP_AttributeData;
@@ -176,85 +176,100 @@ ZbDeviceDb::ReceiveInforFromDevice(
                 }
                 delete (*pvData)[i];
             }
-//            if(byMsgCount >= 2) { byMsgCount = 0; ForwardSensorStateToOutside(this); }
-            ForwardSensorStateToOutside(this);
-            delete pvData;
+            if(Type.GetValue() != 1) { byMsgCount = 0; ForwardSensorStateToOutside(this); }
+            else if(byMsgCount >= 2) { byMsgCount = 0; ForwardSensorStateToOutside(this); }
+        }
             break;
-
-
-        case LUMI_DEVICE_RGB:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        case LUMI_DEVICE_RGB: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = vResponseDP[i].DP_AttributeData;
+                    State = *(*pvData)[i];
                     ForwardRGBStateToOutside(this);
                 } else if(vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_RemainingTime) {
-                    Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = *((u16_p) (*pvData)[i]);
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_Red) {
-                    Action[DeviceInfo::DI_RGB_Red].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_RGB_Red].DP_AttributeData = *(*pvData)[i];
                     byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_Green) {
-                    Action[DeviceInfo::DI_RGB_Green].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_RGB_Green].DP_AttributeData = *(*pvData)[i];
                     byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_Blue) {
-                    Action[DeviceInfo::DI_RGB_Blue].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_RGB_Blue].DP_AttributeData = *(*pvData)[i];
                     byMsgCount++;
                 }
                 delete (*pvData)[i];
             }
             if(byMsgCount >= 3) { byMsgCount = 0; ForwardRGBStateToOutside(this); }
-            delete pvData;
+        }
             break;
-
-        case LUMI_DEVICE_DAIKIN:
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        case LUMI_DEVICE_DAIKIN: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = vResponseDP[i].DP_AttributeData;
+                    State = *(*pvData)[i];
                     Action[DeviceInfo::DI_State].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Local_Temperature) {
-                    Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Cooling_Setpoint) {
-                    Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Heating_Setpoint) {
-                    Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Min_Heat_Limit) {
-                    Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Max_Heat_Limit) {
-                    Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Min_Cool_Limit){
-                    Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Max_Cool_Limit) {
-                    Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
                     Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Control_Seq_Operation) {
-                    Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_AttributeData = *(*pvData)[i];
                     Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_System_Mode) {
-                    Action[DeviceInfo::DI_Daikin_System_Mode].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_System_Mode].DP_AttributeData = *(*pvData)[i];
                     Action[DeviceInfo::DI_Daikin_System_Mode].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Fan_Mode) {
-                    Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_AttributeData = *(*pvData)[i];
                     Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Fan_Direction) {
-                    Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_AttributeData = *(*pvData)[i];
                     Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_IsChanged = TRUE;
+                    byMsgCount++;
                 }
                 delete (*pvData)[i];
             }
-            ForwardDaikinStateToOutside(this);
-            delete pvData;
+            if (byMsgCount >= byLimit) { byMsgCount = 0; ForwardDaikinStateToOutside(this); }
+        }
             break;
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         default:
-            ForwardForErrorProcessing(this);
-            delete pvData;
+            //ForwardForErrorProcessing(this);
+            for(u8_t i = 0; i < byLimit; i++) {
+                delete (*pvData)[i];
+            }
             break;
     }
+
+    delete pvData;
 }
 
 
@@ -266,7 +281,9 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
 void_t
 ZbDeviceDb::EnvAttached() {
-    SyncDeviceAction(DeviceInfo::DI_Power,       ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
+    if(Type.GetValue() == 1) {
+        SyncDeviceAction(DeviceInfo::DI_Power,       ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
+    }
     if (Type == ZCL_HA_DEVICEID_TEMPERATURE_SENSOR) {
         SyncDeviceAction(DeviceInfo::DI_State,   ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_TEMPERATURE;
@@ -291,8 +308,6 @@ ZbDeviceDb::GenerateDeviceInfo() {
 
     size_t lastIndex = Model.GetValue().find_last_not_of("0123456789");
     String prefixModel = Model.GetValue().substr(0, lastIndex + 1);
-
-    DEBUG2("________Model________: %s", prefixModel.c_str());
 
     if (prefixModel == String("LM-SZ")){
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
@@ -331,10 +346,9 @@ ZbDeviceDb::GenerateDeviceInfo() {
             EnvAttached();
         }
     } else if (prefixModel == String("LM-DOOR")) {
-        SyncDeviceAction(DeviceInfo::DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,       ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
         if (Type == ZCL_HA_DEVICEID_DOOR_LOCK) {
             SyncDeviceAction(DeviceInfo::DI_State,   ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG, ATTRID_CLOSURES_DOOR_STATE);
-
+            SyncDeviceAction(DeviceInfo::DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,        ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
             RealType = LUMI_DEVICE_DOOR;
         } else {
             EnvAttached();
@@ -360,11 +374,13 @@ ZbDeviceDb::GenerateDeviceInfo() {
         SyncDeviceAction(DeviceInfo::DI_Daikin_Max_Heat_Limit,           ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_MAX_HEAT_SETPOINT_LIMIT);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Min_Cool_Limit,           ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_MIN_COOL_SETPOINT_LIMIT);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Max_Cool_Limit,           ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_MAX_COOL_SETPOINT_LIMIT);
-        SyncDeviceAction(DeviceInfo::DI_Daikin_Control_Seq_Operation,    ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_CTRL_SEQ_OF_OPER);
+//        SyncDeviceAction(DeviceInfo::DI_Daikin_Control_Seq_Operation,    ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_CTRL_SEQ_OF_OPER);
         SyncDeviceAction(DeviceInfo::DI_Daikin_System_Mode,              ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_SYSTEM_MODE);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Fan_Mode,                 ZCL_CLUSTER_ID_HAVC_FAN_CONTROL,        ATTRID_HVAC_FAN_CTRL_FAN_MODE);
         SyncDeviceAction(DeviceInfo::DI_Daikin_Fan_Direction,            ZCL_CLUSTER_ID_HAVC_FAN_CONTROL,        ATTRID_HVAC_FAN_CTRL_FAN_DIRECTION);
 
+        Action[DeviceInfo::DI_Model].DP_DIStringName                          = std::string("model");
+        Action[DeviceInfo::DI_Manufacturer].DP_DIStringName                   = std::string("manufacturer");
         Action[DeviceInfo::DI_State].DP_DIStringName                          = std::string("state");
         Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_DIStringName       = std::string("localtemp");
         Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_DIStringName        = std::string("coolingset");
@@ -373,15 +389,21 @@ ZbDeviceDb::GenerateDeviceInfo() {
         Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_DIStringName          = std::string("maxheat");
         Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_DIStringName          = std::string("mincool");
         Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_DIStringName          = std::string("maxcool");
-        Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_DIStringName   = std::string("ctrloper");
+//        Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_DIStringName   = std::string("ctrloper");
         Action[DeviceInfo::DI_Daikin_System_Mode].DP_DIStringName             = std::string("sysmod");
         Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_DIStringName                = std::string("fanmod");
         Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandiect");
 
         RealType = LUMI_DEVICE_DAIKIN;
+    } else if (prefixModel == String("IR-CMD")) {
+        RealType = 99;
     } else {
         RealType = 0; //Other brands!!!
         OtherBrandsDevices();
+    }
+
+    for(Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
+        Action[it->first].DP_DIName = it->first;
     }
 }
 

@@ -9,7 +9,7 @@
 #define DEVICEINFO_HPP_
 
 #include <typedefs.h>
-
+using namespace std;
 /******************************************/
 /***              General               ***/
 /******************************************/
@@ -47,15 +47,14 @@ typedef enum {
 
 //Details for action
 typedef struct {
-    u16_t DP_ClusterID;
-    u16_t DP_AttributeID;
-    u8_t  DP_AttributeDataType;
-    u8_t  DP_AttributeDataSize; //byte unit
-    int_t DP_AttributeData; //notice data type (4 bytes)!!!
-    bool_t DP_IsChanged;
+    u16_t       DP_ClusterID;
+    u16_t       DP_AttributeID;
+    u8_t        DP_AttributeDataType;
+    u8_t        DP_AttributeDataSize; //byte unit
+    int_t       DP_AttributeData; //notice data type (4 bytes)!!!
+    bool_t      DP_IsChanged;
     DeviceInfo  DP_DIName;
-    std::string DP_DIStringName; //for json message.
-    std::string DP_TempStorage;
+    string      DP_DIStringName; //for json message.
 } DeviceProperty;
 
 

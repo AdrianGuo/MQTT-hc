@@ -137,7 +137,6 @@ ForwardSetValueToFan (
  */
 void_t
 ForwardSetValueToRGB (
-    ZbMessage_p pZbMessage,
     Device_t    device,
     Json::Value jsonVal
 ) {
@@ -191,7 +190,44 @@ ForwardSetValueToRGB (
     ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, vDP);
 }
 
-
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ForwardSetValueToDaikin (
+    Device_t    device,
+    Json::Value jsonVal
+) {
+    DeviceProperties vDP;
+    Json::Value::Members keys = jsonVal.getMemberNames();
+    for(Json::Value::Members::const_iterator it = keys.begin(); it != keys.end(); it++) {
+        for(Action_t::const_iterator_t it2 = device.Modify()->Action.begin(); it2 != device.Modify()->Action.end(); it2++) {
+            if(it2->second.DP_DIStringName == (std::string) (*it)) {
+                DeviceProperty temp;
+                temp.DP_ClusterID = it2->second.DP_ClusterID;
+                temp.DP_AttributeID = it2->second.DP_ClusterID;
+                if(it2->second.DP_DIStringName == std::string("state")) {
+                    if(jsonVal[(std::string) (*it)] == std::string("on")) {
+                        temp.DP_AttributeData = 1;
+                    } else {
+                        temp.DP_AttributeData = 0;
+                    }
+                } else {
+                    temp.DP_AttributeData = atoi((jsonVal[(std::string) (*it)]).asCString());
+                }
+                temp.DP_DIName = it2->second.DP_DIName;
+                temp.DP_DIStringName = it2->second.DP_DIStringName;
+                vDP.push_back(temp);
+                temp = {};
+                break;
+            }
+        }
+    }
+    ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, vDP);
+}
 
 /**
  * @func
@@ -216,6 +252,7 @@ void_t
 ForwardGetRequestsToDevice(
     Device_t    device
 ) {
+    DEBUG1("9999999999999999999999999999");
     Vector<DeviceInfo> vDI;
     for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
         vDI.push_back(it->first);

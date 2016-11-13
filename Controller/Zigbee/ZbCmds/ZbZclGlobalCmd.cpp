@@ -155,7 +155,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
     if(device.Modify() == NULL) {
-        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk); //Prevent Spamming!!!
+//        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk); //Prevent Spamming!!!
         return;
     }
 
@@ -181,15 +181,9 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         temp.DP_AttributeDataType = byAttributeDataType;
 
         //DEBUG
-        bool isString = false;
         u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
-        if((byAttributeDataType == 0x41) || (byAttributeDataType == 0x42)) {
-            byLength -= 1;
-            isString = true;
-        } else if((byAttributeDataType == 0x43) || (byAttributeDataType == 0x44)) {
-            byLength -= 2;
-            isString = true;
-        }
+        if((byAttributeDataType == 0x41) || (byAttributeDataType == 0x42)) byLength -= 1;
+        else if((byAttributeDataType == 0x43) || (byAttributeDataType == 0x44)) byLength -= 2;
         temp.DP_AttributeDataSize = byAttributeDataTypeSize;
 
         u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
@@ -199,19 +193,13 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         u8_p ptemp = NULL;
         ptemp = pbyAttributeData;
         (*pvData).push_back(ptemp);
+        pbyAttributeData = NULL;
 
         byLength -= byAttributeDataTypeSize;
 
-        if(!isString) {
-            temp.DP_AttributeData =  (int_t) *pbyAttributeData;
-        }
-        temp.DP_TempStorage = std::string((const char*) pbyAttributeData);
         vResponseDP.push_back(temp);
 
         temp = {};
-//        delete pbyAttributeData;
-
-
         if(byLength > 0) {
             pbyBuffer += byAttributeDataTypeSize;
         }
@@ -234,18 +222,21 @@ ZbZclGlobalCmd::ReadAttributeResponse(
             if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
-                    tempDevice.Modify()->Manufacturer = String(vResponseDP[i].DP_TempStorage.c_str());
+                    tempDevice.Modify()->Manufacturer = String((const char*) (*pvData)[i]);
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
                 }
             } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
+                String ModelName = String((const char*) (*pvData)[i]);
+                DEBUG2("Device %s has joined.", ModelName.c_str());
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
-                    tempDevice.Modify()->Model = String(vResponseDP[i].DP_TempStorage.c_str());
+                    tempDevice.Modify()->Model = ModelName;
                     tempDevice.Modify()->GenerateDeviceInfo();
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
-//                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
+                    //ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
+                    //like Info Req from server
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }

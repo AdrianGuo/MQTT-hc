@@ -42,7 +42,7 @@ JsonZbStt::CreateJsonCommand(
     dev["devid"] = std::to_string(device->DeviceID.GetValue());
     dev["ord"] = std::to_string(device->Endpoint.GetValue());
     dev["net"] = std::string("1");
-    dev["ord"] = std::to_string(device->RealType);
+    dev["type"] = std::to_string(device->RealType);
     dev["val"] = val;
     jsonValue["dev"].append(dev);
 

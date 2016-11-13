@@ -1,5 +1,5 @@
 /*
- * JsonirDel.hpp
+ * JsonIrDel.hpp
  *
  *  Created on: Nov 8, 2016
  *      Author: taho
@@ -14,6 +14,8 @@
 #include "JsonCommand.hpp"
 
 typedef struct {
+    int_t devid;
+    int_t ord;
     int_t irid;
     bool_t act;
 }IrDel_t;
@@ -57,10 +59,15 @@ inline bool_t
 JsonIrDel::ParseJsonValue(
     Json::Value& jsonValue
 ) {
-    if (!jsonValue.isMember("irid") || !jsonValue.isMember("act")) { return FALSE; }
+    if (!jsonValue.isMember("devid") ||
+            !jsonValue.isMember("ord") ||
+            !jsonValue.isMember("irid") ||
+            !jsonValue.isMember("act")) { return FALSE; }
     int_t temp = atoi(jsonValue["act"].asCString());
     if ((temp < 0) || (temp > 1)) { return FALSE; }
     m_IrDel.act = temp;
+    m_IrDel.devid = atoi(jsonValue["devid"].asCString());
+    m_IrDel.ord = atoi(jsonValue["ord"].asCString());
     m_IrDel.irid = atoi(jsonValue["irid"].asCString());
     return TRUE;
 }
