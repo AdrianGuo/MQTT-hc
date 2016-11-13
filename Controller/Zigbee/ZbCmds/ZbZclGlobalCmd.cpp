@@ -235,7 +235,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                     tempDevice.Modify()->GenerateDeviceInfo();
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
-                    //ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
+//                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
                     //like Info Req from server
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);

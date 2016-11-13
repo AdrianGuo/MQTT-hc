@@ -164,19 +164,19 @@ ForwardIrState(
 ){
     switch (device->State) {
         case 0x00:
-            DEBUG1("________IR: Idle________");
+            DEBUG1("________IR:Idle________");
             break;
 
         case 0x01:
-            DEBUG1("________IR: Learning________");
+            DEBUG1("________IR:Learning________");
             break;
 
         case 0x02:
-            DEBUG1("________IR: Timeouted________");
+            DEBUG1("________IR:Timeouted________");
             break;
 
         case 0x04:
-            DEBUG1("________IR: Full Mem________");
+            DEBUG1("________IR:FullMem________");
             break;
 
         case 0x03: {
@@ -208,7 +208,7 @@ ForwardIrState(
 
 
         case 0x08:
-            DEBUG1("________IR: Overloaded________");
+            DEBUG1("________IR:Overloaded________");
             break;
 
         default:

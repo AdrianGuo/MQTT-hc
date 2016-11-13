@@ -103,7 +103,6 @@ ZbDeviceDb::ReceiveInforFromDevice(
     Vector<u8_p>* pvData
 ){
     u8_t byLimit = vResponseDP.size();
-//    DEBUG2("Received information from device %d - RealType: %d.", DeviceID.GetValue(), RealType);
 
     switch (RealType) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +110,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_INPUT: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = *(*pvData)[i];
+                    Action[DeviceInfo::DI_State].DP_AttributeData = *(*pvData)[i];
                     ForwardStateToOutside(this);
                 }
                 delete (*pvData)[i];
@@ -124,20 +123,18 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_CURTAIN:
         case LUMI_DEVICE_FAN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = *(*pvData)[i];
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_OnOff) {
-                    Action[DeviceInfo::DI_OnOff].DP_AttributeData = *(*pvData)[i];
-                    byMsgCount++;
+                for(Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
+                    if (vResponseDP[i].DP_DIName == it->first) {
+                        Action[vResponseDP[i].DP_DIName].DP_AttributeData = *(*pvData)[i];
+                        byMsgCount++;
+                    }
                 }
                 delete (*pvData)[i];
             }
             if(byMsgCount >= 2) {
-                byMsgCount = 0;
                 if(RealType == LUMI_DEVICE_FAN) ForwardFanStateToOutside(this);
                 else ForwardDimmerOrCurtainStateToOutside(this);
-
+                byMsgCount = 0;
             }
         }
             break;
@@ -150,6 +147,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     ++pbyData;
                     Action[DeviceInfo::DI_State].DP_AttributeID = LittleWord(&pbyData);
 //                    DEBUG2("IR:___%02X___%04X___", State, Action[DeviceInfo::DI_State].DP_AttributeID);
+                    ForwardIrState(this);
                     pbyData = NULL;
                 }
                 delete (*pvData)[i];
@@ -171,7 +169,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     else State = *(*pvData)[i];
                     byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Power) {
-                    Action[DeviceInfo::DI_Power].DP_AttributeData = vResponseDP[i].DP_AttributeData;
+                    Action[DeviceInfo::DI_Power].DP_AttributeData = *(*pvData)[i];
                     byMsgCount++;
                 }
                 delete (*pvData)[i];
@@ -182,78 +180,42 @@ ZbDeviceDb::ReceiveInforFromDevice(
             break;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         case LUMI_DEVICE_RGB: {
-            for(u8_t i = 0; i < byLimit; i++) {
-                if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = *(*pvData)[i];
-                    ForwardRGBStateToOutside(this);
-                } else if(vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_RemainingTime) {
-                    Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = *((u16_p) (*pvData)[i]);
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_Red) {
-                    Action[DeviceInfo::DI_RGB_Red].DP_AttributeData = *(*pvData)[i];
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_Green) {
-                    Action[DeviceInfo::DI_RGB_Green].DP_AttributeData = *(*pvData)[i];
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_Blue) {
-                    Action[DeviceInfo::DI_RGB_Blue].DP_AttributeData = *(*pvData)[i];
-                    byMsgCount++;
+            for (u8_t i = 0; i < byLimit; i++) {
+                for (Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
+                    if (vResponseDP[i].DP_DIName == it->first) {
+                        if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_RemainingTime) {
+                            Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = *((u16_p) (*pvData)[i]);
+                        } else {
+                            Action[vResponseDP[i].DP_DIName].DP_AttributeData = *(*pvData)[i];
+                            byMsgCount++;
+                        }
+                    }
                 }
                 delete (*pvData)[i];
             }
-            if(byMsgCount >= 3) { byMsgCount = 0; ForwardRGBStateToOutside(this); }
+            if (byMsgCount >= 3) {
+                ForwardRGBStateToOutside(this);
+                byMsgCount = 0;
+            }
         }
             break;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         case LUMI_DEVICE_DAIKIN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    State = *(*pvData)[i];
-                    Action[DeviceInfo::DI_State].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Local_Temperature) {
-                    Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Local_Temperature].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Cooling_Setpoint) {
-                    Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Cooling_Setpoint].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Heating_Setpoint) {
-                    Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Heating_Setpoint].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Min_Heat_Limit) {
-                    Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Min_Heat_Limit].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Max_Heat_Limit) {
-                    Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Max_Heat_Limit].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Min_Cool_Limit){
-                    Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Min_Cool_Limit].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Max_Cool_Limit) {
-                    Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_AttributeData = *((i16_p) (*pvData)[i]);
-                    Action[DeviceInfo::DI_Daikin_Max_Cool_Limit].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Control_Seq_Operation) {
-                    Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_AttributeData = *(*pvData)[i];
-                    Action[DeviceInfo::DI_Daikin_Control_Seq_Operation].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_System_Mode) {
-                    Action[DeviceInfo::DI_Daikin_System_Mode].DP_AttributeData = *(*pvData)[i];
-                    Action[DeviceInfo::DI_Daikin_System_Mode].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Fan_Mode) {
-                    Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_AttributeData = *(*pvData)[i];
-                    Action[DeviceInfo::DI_Daikin_Fan_Mode].DP_IsChanged = TRUE;
-                    byMsgCount++;
-                } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Fan_Direction) {
-                    Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_AttributeData = *(*pvData)[i];
-                    Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_IsChanged = TRUE;
-                    byMsgCount++;
+                for (Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
+                    if (vResponseDP[i].DP_DIName == it->first) {
+                        if ((vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Control_Seq_Operation) ||
+                                (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_System_Mode) ||
+                                (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Fan_Mode) ||
+                                (vResponseDP[i].DP_DIName == DeviceInfo::DI_Daikin_Fan_Direction))
+                        {
+                            Action[vResponseDP[i].DP_DIName].DP_AttributeData = *(*pvData)[i];
+                        } else {
+                            Action[vResponseDP[i].DP_DIName].DP_AttributeData = *((i16_p) (*pvData)[i]);
+
+                        }
+                        byMsgCount++;
+                    }
                 }
                 delete (*pvData)[i];
             }
