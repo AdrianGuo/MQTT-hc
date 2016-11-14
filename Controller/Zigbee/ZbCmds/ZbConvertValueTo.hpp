@@ -252,7 +252,6 @@ void_t
 ForwardGetRequestsToDevice(
     Device_t    device
 ) {
-    DEBUG1("9999999999999999999999999999");
     Vector<DeviceInfo> vDI;
     for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
         vDI.push_back(it->first);

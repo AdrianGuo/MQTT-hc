@@ -9,6 +9,7 @@
 #define CONTROLLER_JSONMESSAGE_ZIGBEE_JSONZBSET_HPP_
 
 #include "typedefs.h"
+#include "debug.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

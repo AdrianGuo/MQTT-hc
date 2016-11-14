@@ -18,5 +18,10 @@
 
 #define DEBUG2(x, args ...)     printf("DEBUG2: %15s:%4d: " x "\n", \
                                         __FILENAME__, __LINE__, ##args)
-
+#ifdef MT7688
+namespace std {
+    std::string to_string(int i);
+    int stoi(std::string string);
+}
+#endif
 #endif /* !DEBUG_HPP_ */

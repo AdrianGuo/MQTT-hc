@@ -36,6 +36,8 @@
 #define ATTRID_LUMI_IR                                  0x0000
 
 //Devices
+#define UNKNOWN_DEVICE                                  (-1)
+#define OTHER_BRAND_DEVICE                              (0)
 #define LUMI_DEVICE_SWITCH                              (1)
 #define LUMI_DEVICE_DIMMER                              (2)
 #define LUMI_DEVICE_FAN                                 (3)

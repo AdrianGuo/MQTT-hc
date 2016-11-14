@@ -243,7 +243,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
 void_t
 ZbDeviceDb::EnvAttached() {
-    if(Type.GetValue() == 1) {
+    if(Endpoint.GetValue() == 1) {
         SyncDeviceAction(DeviceInfo::DI_Power,       ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
     }
     if (Type == ZCL_HA_DEVICEID_TEMPERATURE_SENSOR) {
@@ -266,11 +266,20 @@ ZbDeviceDb::EnvAttached() {
  */
 void_t
 ZbDeviceDb::GenerateDeviceInfo() {
-
-
     size_t lastIndex = Model.GetValue().find_last_not_of("0123456789");
     String prefixModel = Model.GetValue().substr(0, lastIndex + 1);
-
+    GenerateDeviceInfo(prefixModel);
+}
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbDeviceDb::GenerateDeviceInfo(
+        String prefixModel
+) {
     if (prefixModel == String("LM-SZ")){
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
@@ -360,8 +369,7 @@ ZbDeviceDb::GenerateDeviceInfo() {
     } else if (prefixModel == String("IR-CMD")) {
         RealType = 99;
     } else {
-        RealType = 0; //Other brands!!!
-        OtherBrandsDevices();
+        if(RealType == OTHER_BRAND_DEVICE) { OtherBrandsDevice(); }
     }
 
     for(Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
@@ -376,8 +384,56 @@ ZbDeviceDb::GenerateDeviceInfo() {
  * @retval None
  */
 bool_t
-ZbDeviceDb::OtherBrandsDevices() {
-    return TRUE;
+ZbDeviceDb::OtherBrandsDevice() {
+    DEBUG2("Device %s of %s at address %d.", Model.GetValue().c_str(), Manufacturer.GetValue().c_str(), Network.GetValue());
+    bool_t boRetVal = TRUE;
+    String prefixModel;
+    EPInfor_t deviceInfo = ZbZdoCmd::GetInstance()->GetDeviceLogic()[Network.GetValue()];
+    switch (Type.GetValue()) {
+        case ZCL_HA_DEVICEID_ON_OFF_LIGHT: {
+            bool_t boCheck = FALSE;
+            for(Map<u16_t, u16_t>::const_iterator_t it = deviceInfo.mapType.begin(); it != deviceInfo.mapType.end(); it++) {
+                if(it->second == ZCL_HA_DEVICEID_DIMMABLE_LIGHT) boCheck = TRUE;
+            }
+            if(boCheck) prefixModel = "LM-DZ"; //Curtain is OK. Fan???
+            else prefixModel = "LM-SZ";
+        }
+            break;
+
+        case ZCL_HA_DEVICEID_IAS_ZONE:
+            prefixModel = "LM-PIR";
+            break;
+
+        case ZCL_HA_DEVICEID_DOOR_LOCK:
+            prefixModel = "LM-DOOR";
+            break;
+
+        case ZCL_HA_DEVICEID_TEMPERATURE_SENSOR:
+        case ZCL_HA_DEVICEID_THERMOSTAT:
+        case ZCL_HA_DEVICEID_LIGHT_SENSOR:
+            EnvAttached();
+            break;
+
+        case ZCL_HA_DEVICEID_COLORED_DIMMABLE_LIGHT:
+            prefixModel = "RGB";
+            break;
+
+        case ZCL_HA_DEVICEID_SIMPLE_INPUT:
+            prefixModel = "LM-IPZ";
+            break;
+
+        case ZCL_HA_DEVICEID_HEATING_COOLING_UNIT:
+            prefixModel = "LM-DKZ";
+            break;
+
+        default:
+            prefixModel = "OTHER";
+            RealType = UNKNOWN_DEVICE;
+            boRetVal = FALSE;
+            break;
+    }
+    if(boRetVal) { GenerateDeviceInfo(prefixModel); }
+    return boRetVal;
 }
 
 /**
@@ -584,14 +640,14 @@ ZbDeviceDb::GetAttributeDataSize(
 
     if ((byRetVal == 0) && (byInBuffer != NULL)) {
         switch (byAttributeDataType) {
-            case 0x41: //Octet string, Character string
-            case 0x42:
+            case ZCL_DATATYPE_OCTET_STR: //Octet string, Character string
+            case ZCL_DATATYPE_CHAR_STR:
                 byRetVal = **byInBuffer;
                 ++*byInBuffer;
                 break;
 
-            case 0x43: //Long octet string, Long character string
-            case 0x44:
+            case ZCL_DATATYPE_LONG_OCTET_STR: //Long octet string, Long character string
+            case ZCL_DATATYPE_LONG_CHAR_STR:
                 byRetVal = **byInBuffer | **(byInBuffer + 1) << 8;
                 *byInBuffer += 2;
                 break;

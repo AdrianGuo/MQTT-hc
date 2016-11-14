@@ -1,5 +1,6 @@
 #include <sys/time.h>
 #include <pthread.h>
+#include <errno.h>
 #include "debug.hpp"
 #include "Event.hpp"
 

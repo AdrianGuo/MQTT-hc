@@ -18,10 +18,10 @@ typedef struct {
     u8_t byEPCount;
     u8_t byTypeCount;
     Map<u16_t, u16_t> mapType;
-} enumEPInfor_t;
+} EPInfor_t;
 
-typedef Map<u16_t, enumEPInfor_t>   DeviceLogic_t;
-typedef Map<u16_t, enumEPInfor_t>*  DeviceLogic_p;
+typedef Map<u16_t, EPInfor_t>   DeviceLogic_t;
+typedef Map<u16_t, EPInfor_t>*  DeviceLogic_p;
 
 class ZbZdoCmd {
 private:

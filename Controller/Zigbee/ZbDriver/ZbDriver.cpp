@@ -141,14 +141,6 @@ ZbDriver::ProcSendMessage(
                         ForwardSetValueToFan(pZbMessage, device, vZbSet[i].val);
                         break;
 
-                    case LUMI_DEVICE_DOOR:
-                    case LUMI_DEVICE_PIR:
-                    case LUMI_DEVICE_TEMPERATURE:
-                    case LUMI_DEVICE_HUMIDITY:
-                    case LUMI_DEVICE_ILLUMINANCE:
-                        // Read-Only devices
-                        break;
-
                     case LUMI_DEVICE_RGB:
                         ForwardSetValueToRGB(device, vZbSet[i].val);
                         break;
@@ -157,6 +149,12 @@ ZbDriver::ProcSendMessage(
                         ForwardSetValueToDaikin(device, vZbSet[i].val);
                         break;
 
+                    case LUMI_DEVICE_DOOR:
+                    case LUMI_DEVICE_PIR:
+                    case LUMI_DEVICE_TEMPERATURE:
+                    case LUMI_DEVICE_HUMIDITY:
+                    case LUMI_DEVICE_ILLUMINANCE:
+                        // Read-Only devices
                     default:
                         break;
                 }
@@ -227,7 +225,7 @@ ZbDriver::ProcSendMessage(
             Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrSet.devid).Bind(sIrSet.ord);
             if(device.Modify() == NULL) { break; }
 
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Model=?").Bind(sIrSet.irid).Bind(String("IR-CMD"));
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").Bind(sIrSet.irid).Bind(sIrSet.devid);
             if(ircmd.Modify() != NULL) {
                 if(ircmd->Type.GetValue() == 1)
                     ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, sIrSet.irid);
@@ -255,9 +253,13 @@ ZbDriver::ProcSendMessage(
             Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrEna.devid).Bind(sIrEna.ord);
             if(device.Modify() == NULL) { break; }
 
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Model=?").Bind(sIrEna.irid).Bind(String("IR-CMD"));
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").Bind(sIrEna.irid).Bind(sIrEna.devid);
             if(ircmd.Modify() != NULL) {
-                ircmd.Modify()->Type = 0;
+                if(sIrEna.act == 0) {
+                    ircmd.Modify()->Endpoint = 1;
+                } else {
+                    ircmd.Modify()->Endpoint = 0;
+                }
                 s_pZbModel->Add(ircmd);
                 s_pZbModel->UpdateChanges();
             } else {

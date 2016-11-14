@@ -30,10 +30,10 @@ public:
     ValueIntDb_t ControllerID;
 
     DbPtr<ZbControllerDb> Controller;
-    DbPtr<ZbDeviceDb> Device;
-    Collection<DbPtr<ZbDeviceDb>> Devices;
+    DbPtr<ZbDeviceDb> ParentDevice;
+    Collection<DbPtr<ZbDeviceDb>> IrCmd;
 
-    u8_t RealType;
+    int_t RealType;
     Action_t Action;
     int_t& State;
     u8_t byMsgCount;
@@ -43,7 +43,7 @@ public:
     void_t EnvAttached();
     bool_t IsInterested();
 
-    bool_t OtherBrandsDevices();
+    bool_t OtherBrandsDevice();
     static u8_t GetAttributeDataSize(u8_t, u8_p*);
 
     static String GetTableName();
@@ -54,6 +54,7 @@ private:
 
     bool_t SyncDeviceAction(DeviceInfo, u16_t, u16_t);
     void_t GenerateAttributeDataSize(DeviceInfo);
+    void_t GenerateDeviceInfo(String);
 };
 
 template<class A>
@@ -68,9 +69,9 @@ ZbDeviceDb::Table(
     Column(action, Manufacturer);
     Column(action, Endpoint);
     Column(action, Type);
-    Belong(action, Device, ParentID);
+    Belong(action, ParentDevice, ParentID);
     Belong(action, Controller, ControllerID);
-    HasMany(action, Devices);
+    HasMany(action, IrCmd);
 }
 
 typedef ZbDeviceDb  ZbDeviceDb_t;

@@ -180,21 +180,37 @@ ForwardIrState(
             break;
 
         case 0x03: {
-            ZbDeviceDb_p tmpIr = new ZbDeviceDb();
-            tmpIr->DeviceID = device->Action[DeviceInfo::DI_State].DP_AttributeData;
-            tmpIr->Type = 1; //Enable
-            tmpIr->Model = String("IR-CMD");
-            tmpIr->Device = DbPtr<ZbDeviceDb>(device);
-            ZbDriver::s_pZbModel->Add(tmpIr);
-            ZbDriver::s_pZbModel->UpdateChanges();
-            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeData);
+            DEBUG2("Add new IrCmd %04X,", device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            Device_t pdevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
+                    Bind(device->Network.GetValue()).Bind(device->Endpoint.GetValue());
+            if(pdevice.Modify() == NULL) { return; }
+
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").
+                    Bind(device->Action[DeviceInfo::DI_State].DP_AttributeID).Bind(device->DeviceID.GetValue());
+            if(ircmd.Modify() == NULL) {
+                    ZbDeviceDb_p pZbDevice = new ZbDeviceDb();
+                    pZbDevice->DeviceID  = device->Action[DeviceInfo::DI_State].DP_AttributeID;
+                    pZbDevice->Model = String("IR-CMD");
+                    pZbDevice->Endpoint = 1;
+                    pZbDevice->ParentDevice = pdevice;
+                    ZbDriver::s_pZbModel->Add(pZbDevice);
+                    ZbDriver::s_pZbModel->UpdateChanges();
+            } else {
+                ircmd.Modify()->Endpoint = 1;
+                ircmd.Modify()->Model = String("IR-CMD");
+                ZbDriver::s_pZbModel->Add(ircmd);
+                ZbDriver::s_pZbModel->UpdateChanges();
+            }
+
+            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeID);
         }
             break;
 
         case 0x05:
         case 0x06: {
-            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeData);
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Model=?").Bind(device->Action[DeviceInfo::DI_State].DP_AttributeData).Bind(String("IR-CMD"));
+            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").
+                    Bind(device->Action[DeviceInfo::DI_State].DP_AttributeID).Bind(device->DeviceID.GetValue());
             if(ircmd.Modify() != NULL) {
                 ircmd.Remove();
                 ZbDriver::s_pZbModel->UpdateChanges();
@@ -203,7 +219,7 @@ ForwardIrState(
             break;
 
         case 0x07:
-            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 6, device->Action[DeviceInfo::DI_State].DP_AttributeData);
+            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 6, device->Action[DeviceInfo::DI_State].DP_AttributeID);
             break;
 
 
