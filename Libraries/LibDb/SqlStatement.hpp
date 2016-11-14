@@ -19,6 +19,7 @@
 #include "typedefs.h"
 #include "String.hpp"
 #include "ValueIntDb.hpp"
+#include "ValueStrDb.hpp"
 
 class SqlStatement {
 public:
@@ -37,6 +38,7 @@ public:
     virtual int_t bind(int_t column) = 0;
 
     virtual int_t bind(int_t column, ValueIntDb value) = 0;
+    virtual int_t bind(int_t column, ValueStrDb value) = 0;
 
     virtual int_t bind(const_char_p name, i8_t  value) = 0;
     virtual int_t bind(const_char_p name, i16_t value) = 0;

@@ -9,7 +9,7 @@
  */
 ValueArray::ValueArray(
     u8_t byLength
-) : Value (ValueType_Array) {
+) : Value (type_array) {
     if (byLength != 0) {
         m_byCount   = 0;
         m_byLength  = byLength;

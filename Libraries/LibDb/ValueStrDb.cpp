@@ -24,7 +24,7 @@
 ValueStrDb::ValueStrDb(
     String strValue,
     String strColumnName
-) : ValueDb (strColumnName, ValueType_String),
+) : ValueDb (strColumnName, Value::Type_t::type_string),
     m_strValue (strValue) {
 }
 
@@ -95,6 +95,23 @@ ValueStrDb::operator= (
     SetChange();
 
     return *this;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueStrDb&
+ValueStrDb::operator= (
+   const_char_p rhs
+) {
+    m_strValue = rhs;
+    SetChange();
+
+    return *this;
+
 }
 
 /**

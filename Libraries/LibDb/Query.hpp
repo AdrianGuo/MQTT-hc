@@ -27,7 +27,9 @@
 /******************************************************************************/
 struct Param {
     virtual ~Param() {}
-    virtual void_t BindValue(SqlStatement_p pSqlStatement, int_t iCloumn) = 0;
+    virtual void_t BindValue(
+        SqlStatement_p pSqlStatement,
+        int_t iCloumn) = 0;
 };
 
 typedef struct Param  Param_t;
@@ -39,8 +41,11 @@ struct VParam : public Param {
     virtual ~VParam() {}
     V GetValue() { return m_value; }
     void_t SetValue(V value) { m_value = value; }
-    virtual void_t BindValue(SqlStatement_p pSqlStatement, int_t iCloumn) {
-        pSqlStatement->bind(iCloumn, m_value);
+    virtual void_t BindValue(
+        SqlStatement_p pSqlStatement,
+        int_t iCloumn
+    ) {
+        pSqlStatement->bind(iCloumn++, m_value);
     }
 
 private:
@@ -244,10 +249,10 @@ Query<R>::Where(
 ) {
     if (!strWhere.empty()) {
         if (!m_strWhere.empty()) {
-            m_strWhere += " AND";
+            m_strWhere += " AND ";
         }
 
-        m_strWhere += "(" + strWhere + ")";
+        m_strWhere += strWhere;
     }
     return *this;
 }

@@ -8,7 +8,7 @@
  */
 ValueDword::ValueDword(
     u32_t dwValue
-) : Value (ValueType_Dword) {
+) : Value (type_word) {
     m_dwValue = dwValue;
 }
 

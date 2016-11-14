@@ -9,7 +9,7 @@
 ValueIntDb::ValueIntDb(
     int_t  iValue,
     String strColumnName
-) : ValueDb (strColumnName, ValueType_Integer),
+) : ValueDb (strColumnName, Value::Type_t::type_interger),
     m_iValue (iValue) {
 }
 
@@ -78,7 +78,51 @@ ValueIntDb::operator= (
 ) {
     m_iValue = iValue;
     SetChange();
+    return *this;
+}
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueIntDb&
+ValueIntDb::operator= (
+    u8_t byValue
+) {
+    m_iValue = (int_t) byValue;
+    SetChange();
+    return *this;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueIntDb&
+ValueIntDb::operator= (
+    u16_t wValue
+) {
+    m_iValue = (int_t) wValue;
+    SetChange();
+    return *this;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueIntDb&
+ValueIntDb::operator= (
+    u32_t dwValue
+) {
+    m_iValue = (int_t) dwValue;
+    SetChange();
     return *this;
 }
 

@@ -2,9 +2,9 @@
 #define VALUE_WORD_HPP_
 
 #include "typedefs.h"
-#include "ValueBase.hpp"
+#include "Value.hpp"
 
-class ValueWord : public ValueBase {
+class ValueWord : public Value {
 private:
     u16_t m_wValue;
 public:

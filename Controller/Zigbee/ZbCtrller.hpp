@@ -61,10 +61,6 @@ private:
     void_t HandlerCmdInfo(JsonCommand_p pJsonCommand);
     void_t HandlerCmdReset(JsonCommand_p pJsonCommand);
     void_t HandlerCmdRestart(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdIrLearn(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdIrSet(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdIrDel(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdIrEna(JsonCommand_p pJsonCommand);
 
     void_t HandlerCmdManualRemove(JsonCommand_p pJsonCommand);
 
@@ -75,10 +71,6 @@ private:
     void_t ProcCmdReset(ZbMessage_p pZbMessage);
     void_t ProcCmdRestart(ZbMessage_p pZbMessage);
     void_t ProcCmdInfo(ZbMessage_p pZbMessage);
-    void_t ProcCmdIrLearn(ZbMessage_p pZbMessage);
-    void_t ProcCmdIrSet(ZbMessage_p pZbMessage);
-    void_t ProcCmdIrDel(ZbMessage_p pZbMessage);
-    void_t ProcCmdIrEna(ZbMessage_p pZbMessage);
 
     void_t ProcCmdManualRemove(ZbMessage_p pZbMessage);
 

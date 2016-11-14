@@ -8,7 +8,7 @@
  */
 ValueInt::ValueInt(
     int_t iValue
-) : Value (ValueType_Integer) {
+) : Value (type_interger) {
      m_iValue = iValue;
 }
 

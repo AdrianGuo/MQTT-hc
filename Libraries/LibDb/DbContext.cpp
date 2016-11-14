@@ -133,7 +133,7 @@ DbContext::GetColumns(
     if (pMapTable == NULL) { return; }
 
     if (pMapTable->InsteadIdName != String()) {
-        ValueDb value (pMapTable->InsteadIdName, ValueType_Integer);
+        ValueDb value (pMapTable->InsteadIdName, Value::Type_t::type_interger);
         value.SetNaturalId();
         result.push_back(value);
     }
@@ -332,6 +332,12 @@ DbContext::InitStatements(
     strSql.clear();
     boFirstColumn = TRUE;
     strSql = "SELECT ";
+
+    if (pMapTable->InsteadIdName != String()) {
+        strSql += " \"" + pMapTable->InsteadIdName + "\"";
+        boFirstColumn = FALSE;
+    }
+
     for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
         if (!boFirstColumn) { strSql += ", "; }
         strSql += "\"" + pMapTable->Columns[i].GetColumnName() + "\"";

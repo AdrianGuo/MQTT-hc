@@ -109,6 +109,8 @@ public:
     const C* operator->() const;
     const C& operator*()  const;
 
+    const C* get() const;
+
     DbPtr<C>& operator= (const DbPtr<C>& other);
 
     bool_t operator== (const DbPtr<C>& other) const;

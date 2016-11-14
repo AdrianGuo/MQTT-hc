@@ -38,7 +38,7 @@ public:
     operator u32_t() const { return m_dwValue; }
 };
 
-typedef ValueDword ValueDword_t;
+typedef ValueDword  ValueDword_t;
 typedef ValueDword* ValueDword_p;
 
 #endif /* !VALUE_WORD_HPP_ */

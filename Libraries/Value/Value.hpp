@@ -3,52 +3,40 @@
 
 #include "typedefs.h"
 
-typedef enum ValueType {
-    ValueType_None = 0,     // Stanadadr Type
-    ValueType_Bool,
-    ValueType_Byte,
-    ValueType_Decimal,
-    ValueType_Integer,
-    ValueType_Word,
-    ValueType_Dword,
-    ValueType_String,
-    ValueType_Array,
-    ValueType_ZwType,       // Zwave Type
-    ValueType_ZwDriver,
-    ValueType_ZwNode,
-    ValueType_ZwAppFunc,
-    ValueType_ZwBasic,
-    ValueType_ZwCtrller,
-    ValueType_ZwFirmware,
-    ValueType_ZwNvm,
-    ValueType_ZwPower,
-    ValueType_ZwTransport,
-    ValueType_Count
-} ValueType_t;
-
 class Value {
+public:
+    typedef enum {
+        type_none = 0,     // Stanadadr Type
+        type_bool,
+        type_byte,
+        type_decimal,
+        type_interger,
+        type_word,
+        type_dword,
+        type_string,
+        type_array,
+        type_switch,
+        type_dimmer,
+        type_rgb
+    } Type_t;
 private:
-    ValueType_t m_valueType;
+    Type_t m_valueType;
     bool_t m_boChanged;
 public:
-    Value(ValueType_t valueType = ValueType_None) : m_boChanged (FALSE) {
+    Value(Type_t valueType = type_none) : m_boChanged (FALSE) {
         m_valueType = valueType;
     }
     virtual ~Value() {}
 
-    virtual void_t SetType(ValueType_t valueType) { m_valueType = valueType; }
-    virtual ValueType_t GetType() const { return m_valueType; }
+    virtual void_t SetType(Type_t valueType) { m_valueType = valueType; }
+    virtual Type_t GetType() const { return m_valueType; }
 
     virtual void_t SetChange() { m_boChanged = TRUE; }
     virtual void_t ResetChange() { m_boChanged = FALSE; }
     virtual bool_t IsChanged() const { return m_boChanged; }
-    virtual void_t Process() { }
-
-private:
-
 };
 
-typedef Value Value_t;
+typedef Value  Value_t;
 typedef Value* Value_p;
 
 #endif  /* VALUE_HPP_ */

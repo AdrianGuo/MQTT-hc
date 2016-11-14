@@ -20,7 +20,7 @@
 #include "String.hpp"
 #include "ValueDb.hpp"
 
-class ValueStrDb : public ValueDb{
+class ValueStrDb : public ValueDb {
 private:
     String m_strValue;
 public:
@@ -31,9 +31,11 @@ public:
 
     String GetValue() const;
     void_t SetValue(String strValue);
+    virtual void_t SetValueDefault() { m_strValue = ""; }
 
     ValueStrDb& operator= (const ValueStrDb& rhs);
     ValueStrDb& operator= (const String strValue);
+    ValueStrDb& operator= (const_char_p rhs);
 
     bool_t operator== (const ValueStrDb& rhs) const;
     bool_t operator== (const String strValue) const;

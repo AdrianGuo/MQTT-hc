@@ -79,8 +79,7 @@ typedef enum {
  IRCMD_Stop,
  IRCMD_Active,
  IRCMD_Delete,
- IRCMD_State,
- IRCMD_Response
+ IRCMD_State
 } IrCommand;
 
 //IR response value

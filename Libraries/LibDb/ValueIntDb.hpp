@@ -16,15 +16,19 @@ class ValueIntDb : public ValueDb {
 private:
     int_t m_iValue;
 public:
-    ValueIntDb(int_t iValue = 0, String strColumnName = "");
+    ValueIntDb(int_t iValue = -1, String strColumnName = "");
 
     virtual ~ValueIntDb();
 
     int_t  GetValue() const;
     void_t SetValue(int_t iValue);
+    virtual void_t SetValueDefault() { m_iValue = -1; }
 
     ValueIntDb& operator= (const ValueIntDb& rhs);
     ValueIntDb& operator= (int_t iValue);
+    ValueIntDb& operator= (u8_t byValue);
+    ValueIntDb& operator= (u16_t wValue);
+    ValueIntDb& operator= (u32_t dwValue);
 
     bool_t operator== (const ValueIntDb& rhs) const;
     bool_t operator== (int_t iValue);

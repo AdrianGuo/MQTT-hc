@@ -88,7 +88,7 @@ void_t Belong(
     const String& strForeignName,
     u32_t dwFlag = ValueDb::OnDeleteCascade
 ) {
-    ValueDb value (strForeignName, ValueType_Integer);
+    ValueDb value (strForeignName,  Value::Type_t::type_interger);
     value.SetFlag(dwFlag | ValueDb::ForeignKey);
 
     action.ActDbPtr(dbPtr, value);
@@ -391,7 +391,8 @@ DbSaveAction::ActColumn(
 
     if (!value.IsBindNull()) {
         m_pStatement->bind(m_dwColumn++, value);
-    } else { // bind null
+    } else {
+        value.SetValueDefault();
         m_dwColumn++;
     }
 }
@@ -409,7 +410,6 @@ DbSaveAction::ActDbPtr(
     typename ConfigTable<C>::IdType& value
 ) {
     if (value.IsChanged()) { // Not Complete
-        value.ResetChange();
         value.ResetBindNull();
         dbPtr = m_pDbPtrBase->GetDbContext()->Load<C>(value);
     }
@@ -420,8 +420,10 @@ DbSaveAction::ActDbPtr(
         value = pPtrCore->GetId();
         m_pDbPtrBase->GetDbContext()->FlushObject(pPtrCore);
     } else {
+        value.SetBindNull();
         Column(*this, value);
     }
+    value.ResetChange();
 }
 
 /******************************************************************************/
@@ -551,7 +553,9 @@ inline void_t
 DbLoadAction::ActColumn(
     V& value
 ) {
-    m_pStatement->get(m_dwColumn++, value);
+    if (m_pStatement->get(m_dwColumn++, value)) {
+        value.ResetBindNull();
+    }
 }
 
 /**
@@ -567,8 +571,10 @@ DbLoadAction::ActDbPtr(
     typename ConfigTable<C>::IdType& value
 ) {
     Column(*this, value);
-    DbContext_p pDbContex = m_pDbPtrBase->GetDbContext();
-    dbPtr = pDbContex->Load<C>(value);
+    if (!value.IsBindNull()) {
+        DbContext_p pDbContex = m_pDbPtrBase->GetDbContext();
+        dbPtr = pDbContex->Load<C>(value);
+    }
 }
 
 /******************************************************************************/
@@ -633,15 +639,10 @@ inline void_t
 DbLoadObject<C>::Config(
     C& object
 ) {
-    m_dwColumn = 0;
-
-    if (m_pStatement == NULL) {
-        DbContext_p pDbContex = m_pDbPtrBase->GetDbContext();
-        m_pStatement = pDbContex->GetStatement<C>(DbContext::SELECTBYID);
-        // Need bind ID
-    }
-
+//    m_pStatement->reset();
     m_pStatement->execute();
+
+    m_dwColumn = 0;
     GetInsteadId();
     Scan(object, *this);
     m_dwColumn = 0;

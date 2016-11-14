@@ -9,7 +9,7 @@
 ValueString::ValueString(
     String  strValue,
     u8_t    byValueID
-) : Value (ValueType_String) {
+) : Value (type_string) {
     m_strValue = strValue;
     m_byValueID = byValueID;
 }

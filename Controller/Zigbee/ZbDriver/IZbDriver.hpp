@@ -18,7 +18,6 @@
 #include "Value.hpp"
 #include "ValueByte.hpp"
 #include "ValueBool.hpp"
-#include "ValueEvent.hpp"
 
 typedef enum {
     None = 0,

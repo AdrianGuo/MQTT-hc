@@ -129,6 +129,71 @@ ForwardSetValueToFan (
 }
 
 
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ForwardSetValueToIr (
+    ZbMessage_p pZbMessage,
+    Device_t    device,
+    Json::Value jsonVal
+) {
+    if(!jsonVal.isMember("act")) { return; }
+    u8_t byAct = atoi(jsonVal["act"].asCString());
+    bool_t isIrcmd = jsonVal.isMember("irid");
+    Device_t ircmd;
+    if(isIrcmd){
+        ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").
+            Bind(atoi(jsonVal["irid"].asCString())).Bind(atoi(jsonVal["devid"].asCString()));
+    }
+
+//    ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_State);
+//    while()
+
+    if(byAct == 0) { //Learn
+        ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Learn);
+    } else if (byAct == 1) { //Stop
+        ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Stop);
+    } else if (byAct == 2) { //Del
+        if(isIrcmd)
+            ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Delete, atoi(jsonVal["irid"].asCString()));
+    } else if ((byAct == 3) || (byAct == 4)) { //Enable || Disable
+        if(isIrcmd) {
+            Json::Value jsonRetVal;
+            if(ircmd.Modify() != NULL) {
+                jsonRetVal["state"] = std::to_string(0);
+                jsonRetVal["irid"] = jsonVal["irid"].asString();
+                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
+
+                if (byAct == 3) ircmd.Modify()->Endpoint = 1;
+                else if (byAct == 4) ircmd.Modify()->Endpoint = 0;
+                ZbDriver::s_pZbModel->Add(ircmd);
+                ZbDriver::s_pZbModel->UpdateChanges();
+            } else {
+                jsonRetVal["state"] = std::to_string(3);
+                jsonRetVal["irid"] = jsonVal["irid"].asString();
+                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
+            }
+        }
+    } else if (byAct == 5) { //Set
+        if(isIrcmd) {
+            if((ircmd.Modify() != NULL) && ((ircmd->Endpoint.GetValue() == 1))) {
+                ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, atoi(jsonVal["irid"].asCString()));
+            } else {
+                Json::Value jsonRetVal;
+                jsonRetVal["state"] = std::to_string(3);
+                jsonRetVal["irid"] = jsonVal["irid"].asString();
+                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
+            }
+        }
+    }
+}
+
+
 /**
  * @func
  * @brief  None

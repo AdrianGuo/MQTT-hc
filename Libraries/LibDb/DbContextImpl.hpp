@@ -16,6 +16,8 @@
 #ifndef DBCONTEXTIMPL_HPP_
 #define DBCONTEXTIMPL_HPP_
 
+#include <iostream>
+#include <type_traits>
 #include "DbPtr.hpp"
 #include "Query.hpp"
 #include "DbAction.hpp"
@@ -201,6 +203,7 @@ DbContext::Load(
     DbPtrCore<C>* pdbPtrCore = LoadId<C>(pSqlStatement, iColumn);
 
     if (pdbPtrCore != NULL) {
+        pdbPtrCore->SetTransaction(DbPtrBase::saved_in_transaction);
         return DbPtr<C>(pdbPtrCore);
     } else {
         return DbPtr<C>();
@@ -222,10 +225,10 @@ DbContext::Load(
     typename MapTable<C>::Registry_t::iterator_t it = pMapping->Registry.find(id);
 
     if (it == pMapping->Registry.end()) {
-        DbPtrCore<C>* dbPtrCore = new DbPtrCore<C>();
-        dbPtrCore->SetId(id);
-        pMapping->Registry[id] = dbPtrCore;
-        return DbPtr<C>(dbPtrCore);
+        SqlStatement_p pSqlStatement = GetStatement<C>(SELECTBYID);
+        pSqlStatement->bind(0, id);
+        DbPtr<C> dbPtr = Load<C>(pSqlStatement, 0);
+        return dbPtr;
     } else {
         return DbPtr<C>(it->second);
     }
@@ -273,12 +276,12 @@ DbContext::LoadId(
     SqlStatement_p pSqlStatement,
     int_t iColumn
 ) {
-    MapTable<C>* pMapping = GetMapping<C>();
+    MapTable<C>*  pMapping = GetMapping<C>();
     DbPtrCore<C>* pdbPtrCore = new DbPtrCore<C>(NULL, this);
     Load(*pdbPtrCore, pSqlStatement, iColumn); // Chu y
 
     typename MapTable<C>::Registry_t::iterator_t it =
-                                    pMapping->Registry.find(pdbPtrCore->GetId());
+    pMapping->Registry.find(pdbPtrCore->GetId());
 
     if (it == pMapping->Registry.end()) {
         pMapping->Registry[pdbPtrCore->GetId()] = pdbPtrCore;

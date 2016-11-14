@@ -14,10 +14,6 @@
 #include <ZbDeviceDb.hpp>
 #include <JsonZbSet.hpp>
 #include <JsonZbGet.hpp>
-#include <JsonIrLearn.hpp>
-#include <JsonIrSet.hpp>
-#include <JsonIrDel.hpp>
-#include <JsonIrEna.hpp>
 #include <JsonManualRemove.hpp>
 #include <ZbConvertValueTo.hpp>
 #include <DeviceInfo.hpp>
@@ -97,17 +93,17 @@ ZbDriver::ProcSendMessage(
         case ZbMessage::Command::ResetReq: {
             ZbSocketCmd::GetInstance()->SendResetRes(1);
             Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-            DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
-            if(mapDeviceNwk.size() > 0) {
-                for(DeviceLogic_t::iterator_t it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
-                    ZbZdoCmd::GetInstance()->LeaveRequest(it->first);
-                }
-            } else {
-                Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("ParentID=?").Bind(0);
+//            DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
+//            if(mapDeviceNwk.size() > 0) {
+//                for(DeviceLogic_t::iterator_t it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
+//                    ZbZdoCmd::GetInstance()->LeaveRequest(it->first);
+//                }
+//            } else {
+//                Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();//.Where("DeviceID !=?").Bind("IR-CMD");
                 for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     ZbZdoCmd::GetInstance()->LeaveRequest((*it)->Network.GetValue());
                 }
-            }
+//            }
 
         }
             break;
@@ -139,6 +135,10 @@ ZbDriver::ProcSendMessage(
 
                     case LUMI_DEVICE_FAN:
                         ForwardSetValueToFan(pZbMessage, device, vZbSet[i].val);
+                        break;
+
+                    case LUMI_DEVICE_IR:
+                        ForwardSetValueToIr(pZbMessage, device, vZbSet[i].val);
                         break;
 
                     case LUMI_DEVICE_RGB:
@@ -198,73 +198,6 @@ ZbDriver::ProcSendMessage(
                 }
             }
 
-        }
-            break;
-
-        case ZbMessage::Command::IrLearn: {
-            JsonIrLearn_p pJsonIrLearn = (JsonIrLearn_p) pZbMessage->GetJsonMessageObject();
-            IrLearn_t sIrLearn = pJsonIrLearn->Return();
-            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrLearn.devid).Bind(sIrLearn.ord);
-            if(device.Modify() == NULL) { break; }
-
-            if (sIrLearn.act == 0) {
-                if(device->State == IRValue::IR_Idle) {
-                    ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Learn);
-                } else {
-                    ZbSocketCmd::GetInstance()->SendIrRes(device, 8);
-                }
-            } else if(sIrLearn.act == 1) {
-                ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Stop);
-            }
-        }
-            break;
-
-        case ZbMessage::Command::IrSet: {
-            JsonIrSet_p pJsonIrSet = (JsonIrSet_p) pZbMessage->GetJsonMessageObject();
-            IrSet_t sIrSet = pJsonIrSet->Return();
-            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrSet.devid).Bind(sIrSet.ord);
-            if(device.Modify() == NULL) { break; }
-
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").Bind(sIrSet.irid).Bind(sIrSet.devid);
-            if(ircmd.Modify() != NULL) {
-                if(ircmd->Type.GetValue() == 1)
-                    ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, sIrSet.irid);
-                else
-                    ZbSocketCmd::GetInstance()->SendIrRes(device, 5, sIrSet.irid);
-
-            } else {
-                ZbSocketCmd::GetInstance()->SendIrRes(device, 5, sIrSet.irid);
-            }
-        }
-            break;
-
-        case ZbMessage::Command::IrDel: {
-            JsonIrDel_p pJsonIrDel = (JsonIrDel_p) pZbMessage->GetJsonMessageObject();
-            IrDel_t sIrDel = pJsonIrDel->Return();
-            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrDel.devid).Bind(sIrDel.ord);
-            if(device.Modify() == NULL) { break; }
-            ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Delete);
-        }
-            break;
-
-        case ZbMessage::Command::IrEna: {
-            JsonIrEna_p pJsonIrEna = (JsonIrEna_p) pZbMessage->GetJsonMessageObject();
-            IrEna_t sIrEna = pJsonIrEna->Return();
-            Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(sIrEna.devid).Bind(sIrEna.ord);
-            if(device.Modify() == NULL) { break; }
-
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").Bind(sIrEna.irid).Bind(sIrEna.devid);
-            if(ircmd.Modify() != NULL) {
-                if(sIrEna.act == 0) {
-                    ircmd.Modify()->Endpoint = 1;
-                } else {
-                    ircmd.Modify()->Endpoint = 0;
-                }
-                s_pZbModel->Add(ircmd);
-                s_pZbModel->UpdateChanges();
-            } else {
-                ZbSocketCmd::GetInstance()->SendIrRes(device, 5, sIrEna.irid);
-            }
         }
             break;
 
@@ -381,7 +314,7 @@ ZbDriver::Close() {
 void_t
 ZbDriver::InitDriver() {
     Controllers_t controllers = s_pZbModel->Find<ZbControllerDb>();
-    Devices_t devices = s_pZbModel->Find<ZbDeviceDb>();
+    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Device_t temp = (*it);
         if(temp->Model.GetValue() != String("IR-CMD")) {

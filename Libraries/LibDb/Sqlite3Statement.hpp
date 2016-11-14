@@ -42,6 +42,7 @@ public:
     virtual int_t bind(int_t column);
 
     virtual int_t bind(int_t column, ValueIntDb value);
+    virtual int_t bind(int_t column, ValueStrDb value);
 
     virtual int_t bind(const_char_p name, i8_t  value);
     virtual int_t bind(const_char_p name, i16_t value);

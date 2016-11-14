@@ -8,7 +8,7 @@
  */
 ValueBool::ValueBool(
     bool_t boValue
-) : Value (ValueType_Bool) {
+) : Value (type_bool) {
     m_boValue = boValue;
 }
 

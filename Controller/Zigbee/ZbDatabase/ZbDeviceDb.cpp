@@ -366,8 +366,6 @@ ZbDeviceDb::GenerateDeviceInfo(
         Action[DeviceInfo::DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandiect");
 
         RealType = LUMI_DEVICE_DAIKIN;
-    } else if (prefixModel == String("IR-CMD")) {
-        RealType = 99;
     } else {
         if(RealType == OTHER_BRAND_DEVICE) { OtherBrandsDevice(); }
     }

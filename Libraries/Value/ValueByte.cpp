@@ -8,7 +8,7 @@
  */
 ValueByte::ValueByte(
     u8_t byValue
-) : Value (ValueType_Byte) {
+) : Value (type_interger) {
     m_byValue = byValue;
 }
 

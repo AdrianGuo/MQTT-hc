@@ -48,7 +48,7 @@ public:
     } Constraint;
 
     ValueDb(const String strColumnName = "",
-            ValueType_t valueType = ValueType_None,
+            Value::Type_t valueType = Value::Type_t::type_none,
             const String strForeignKeyTable = "",
             const String strForiegnKeyName = "",
             u32_t dwFlags = BindNull);
@@ -66,6 +66,8 @@ public:
     void_t SetForeignKeyName(const String strForeignKeyNam) {
         m_strForeignKeyName = strForeignKeyNam;
     }
+
+    virtual void_t SetValueDefault() {}
 
     void_t SetFlag(u32_t dwFlags) { m_dwFlags |= dwFlags; }
 
@@ -121,7 +123,7 @@ public:
 inline
 ValueDb::ValueDb(
     const String strColumnName,
-    ValueType_t valueType,
+    Value::Type_t valueType,
     const String strForeignKeyTable,
     const String strForeignKeyName,
     u32_t dwFlags
@@ -131,11 +133,11 @@ ValueDb::ValueDb(
     m_strForeignKeyName (strForeignKeyName),
     m_dwFlags (dwFlags) {
 
-    if (valueType == ValueType_Integer) {
+    if (valueType == Value::Type_t::type_interger) {
         m_strSqlType = "INTEGER";
-    } else if (valueType == ValueType_String) {
+    } else if (valueType == Value::Type_t::type_string) {
         m_strSqlType = "TEXT";
-    } else if (valueType == ValueType_Decimal) {
+    } else if (valueType == Value::Type_t::type_decimal) {
         m_strSqlType = "REAL";
     }
 }

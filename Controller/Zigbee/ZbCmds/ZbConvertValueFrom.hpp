@@ -162,21 +162,26 @@ void_t
 ForwardIrState(
     ZbDeviceDb_p device
 ){
+    Json::Value jsonRetVal;
     switch (device->State) {
         case 0x00:
             DEBUG1("________IR:Idle________");
+            jsonRetVal["state"] = std::to_string(6);
             break;
 
         case 0x01:
             DEBUG1("________IR:Learning________");
+            jsonRetVal["state"] = std::to_string(1);
             break;
 
         case 0x02:
             DEBUG1("________IR:Timeouted________");
+            jsonRetVal["state"] = std::to_string(2);
             break;
 
         case 0x04:
             DEBUG1("________IR:FullMem________");
+            jsonRetVal["state"] = std::to_string(4);
             break;
 
         case 0x03: {
@@ -201,35 +206,40 @@ ForwardIrState(
                 ZbDriver::s_pZbModel->Add(ircmd);
                 ZbDriver::s_pZbModel->UpdateChanges();
             }
-
-            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            jsonRetVal["state"] = std::to_string(0);
+            jsonRetVal["irid"] = std::to_string(device->Action[DeviceInfo::DI_State].DP_AttributeID);
         }
             break;
 
         case 0x05:
         case 0x06: {
-            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 0, device->Action[DeviceInfo::DI_State].DP_AttributeID);
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").
-                    Bind(device->Action[DeviceInfo::DI_State].DP_AttributeID).Bind(device->DeviceID.GetValue());
-            if(ircmd.Modify() != NULL) {
-                ircmd.Remove();
-                ZbDriver::s_pZbModel->UpdateChanges();
+            jsonRetVal["state"] = std::to_string(0);
+            jsonRetVal["irid"] = std::to_string(device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            if(device->State == 0x06) {
+                Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").
+                        Bind(device->Action[DeviceInfo::DI_State].DP_AttributeID).Bind(device->DeviceID.GetValue());
+                if(ircmd.Modify() != NULL) {
+                    ircmd.Remove();
+                    ZbDriver::s_pZbModel->UpdateChanges();
+                }
             }
         }
             break;
 
         case 0x07:
-            ZbSocketCmd::GetInstance()->SendIrRes(DbPtr<ZbDeviceDb>(device), 6, device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            jsonRetVal["state"] = std::to_string(3);
             break;
 
 
         case 0x08:
             DEBUG1("________IR:Overloaded________");
+            jsonRetVal["state"] = std::to_string(5);
             break;
 
         default:
             break;
     }
+    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), jsonRetVal);
 }
 
 /**

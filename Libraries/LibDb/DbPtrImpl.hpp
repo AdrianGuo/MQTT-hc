@@ -226,6 +226,22 @@ DbPtr<C>::operator*() const {
  * @retval None
  */
 template<class C>
+inline const C*
+DbPtr<C>::get() const {
+    if (Object()) {
+        return Object()->Object();
+    } else {
+        return NULL;
+    }
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
 inline bool_t
 DbPtr<C>::operator== (
     const DbPtr<C>& other

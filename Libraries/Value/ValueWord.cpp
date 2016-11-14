@@ -8,7 +8,7 @@
  */
 ValueWord::ValueWord(
     u16_t wValue
-) {
+) : Value (type_word) {
     m_wValue = wValue;
 }
 
