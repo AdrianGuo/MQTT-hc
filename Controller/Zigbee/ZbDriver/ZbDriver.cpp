@@ -190,7 +190,7 @@ ZbDriver::ProcSendMessage(
                         break;
 
                     case LUMI_DEVICE_IR:
-
+                        ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_State);
                         break;
 
                     default:
@@ -317,13 +317,24 @@ ZbDriver::InitDriver() {
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Device_t temp = (*it);
-        if(temp->Model.GetValue() != String("IR-CMD")) {
-            if(temp->RealType > 0) {
-                ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(temp, DeviceInfo::DI_State);
-                //Info req from server???
-            }
-        }
+        if(temp.Modify()->IsInterested()) {
         temp.Modify()->GenerateDeviceInfo();
+        Json::Value jsonVal;
+        jsonVal["devid"] = std::to_string(temp->DeviceID.GetValue());
+        jsonVal["ord"] = std::to_string(temp->Endpoint.GetValue());
+        JsonCommand_p pJsonCommand = new JsonCommand();
+        pJsonCommand->SetCmdClass(String("dev"));
+        pJsonCommand->SetCommand(String("get"));
+        pJsonCommand->SetJsonObject(jsonVal);
+        JsonZbGet_p pJsonZbGet = new JsonZbGet();
+        pJsonZbGet->ParseJsonCommand(pJsonCommand);
+        ZbMessage_p pZbMessage = new ZbMessage(pJsonZbGet, ZbMessage::Command::GetDevice);
+        pZbMessage->SetCmdID(ZCL_CMD_REQ);
+        ProcSendMessage(pZbMessage);
+        pZbMessage = NULL;
+        delete pJsonCommand;
+        delete pJsonZbGet;
+        }
     }
 
 }

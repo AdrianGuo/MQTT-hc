@@ -4,7 +4,7 @@
  *  Created on: Nov 1, 2016
  *      Author: taho
  */
-#include <JsonIrDel.hpp>
+
 #include <stddef.h>
 #include "debug.hpp"
 #include "LThread.hpp"
@@ -17,10 +17,6 @@
 #include "JsonZbDel.hpp"
 #include "JsonZbSet.hpp"
 #include "JsonZbGet.hpp"
-#include "JsonIrLearn.hpp"
-#include "JsonIrSet.hpp"
-#include "JsonIrDel.hpp"
-#include "JsonIrEna.hpp"
 #include "JsonZbInfo.hpp"
 #include "JsonZbReset.hpp"
 #include "JsonZbRestart.hpp"

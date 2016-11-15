@@ -63,31 +63,15 @@ ForwardSetValueToDimmer (
         val = 0;
 
     if((val == 0 ) && (jsonVal["state"].asString() == std::string("on"))) {
-        val = 100;
+        val = 0xFF;
     } else if (jsonVal["state"].asString() == std::string("off")) {
         val = 0;
     } else if (jsonVal["state"].asString() == std::string("inc")) {
         val = device->State;
-
-        if (val <= 165)
-            val /= 3;
-        else if (val > 165)
-            val = 55 + (val - 165) / 2;
-        else
-            val = 0;
-
-        if(val < 100)  val++;
+        if(val < 253)  val += 3;
     } else if (jsonVal["state"].asString() == std::string("dec")) {
         val = device->State;
-
-        if (val <= 165)
-            val /= 3;
-        else if (val > 165)
-            val = 55 + (val - 165) / 2;
-        else
-            val = 0;
-
-        if(val > 0)  val--;
+        if(val > 2)  val -= 3;
     }
     ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
 }
@@ -109,21 +93,16 @@ ForwardSetValueToFan (
     if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
     u8_t val = atoi(jsonVal["level"].asCString());
 
-    if(val > 0 && val < 101) val = (val -1)/25 + 1;
-    else val = 0;
-
     if((val == 0 ) && (jsonVal["state"].asString() == std::string("on"))) {
-        val = 100;
+        val = 0xFF;
     } else if (jsonVal["state"].asString() == std::string("off")) {
         val = 0;
     } else if (jsonVal["state"].asString() == std::string("inc")) {
-        val = device->State;
-        val /= 63;
-        if(val < 4)  val--;
+        val = (device->State)/63;
+        if(val < 4)  val = (val + 1)*63;
     } else if (jsonVal["state"].asString() == std::string("dec")) {
-        val = device->State;
-        val /= 63;
-        if(val > 0)  val--;
+        val = (device->State)/63;
+        if(val > 0)  val = (val -1)*63;
     }
     ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
 }
@@ -147,10 +126,9 @@ ForwardSetValueToIr (
     bool_t isIrcmd = jsonVal.isMember("irid");
     Device_t ircmd;
     if(isIrcmd){
-        ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND ParentID=?").
-            Bind(atoi(jsonVal["irid"].asCString())).Bind(atoi(jsonVal["devid"].asCString()));
+        ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
+            Bind(atoi(jsonVal["irid"].asCString())).Bind(device->Network.GetValue());
     }
-
 //    ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_State);
 //    while()
 

@@ -12,6 +12,7 @@
 #include <zcl_general.hpp>
 #include <ZbHelper.hpp>
 #include <ZbSocketCmd.hpp>
+#include <JsonZbGet.hpp>
 
 #include <ZbZclGlobalCmd.hpp>
 
@@ -235,8 +236,24 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                     tempDevice.Modify()->GenerateDeviceInfo();
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
-//                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(tempDevice, DeviceInfo::DI_State);
-                    //like Info Req from server
+
+                    //Request State
+                    Json::Value jsonVal;
+                    jsonVal["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
+                    jsonVal["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
+                    JsonCommand_p pJsonCommand = new JsonCommand();
+                    pJsonCommand->SetCmdClass(String("dev"));
+                    pJsonCommand->SetCommand(String("get"));
+                    pJsonCommand->SetJsonObject(jsonVal);
+                    JsonZbGet_p pJsonZbGet = new JsonZbGet();
+                    pJsonZbGet->ParseJsonCommand(pJsonCommand);
+                    ZbMessage_p pZbMessage = new ZbMessage(pJsonZbGet, ZbMessage::Command::GetDevice);
+                    pZbMessage->SetCmdID(ZCL_CMD_REQ);
+                    ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
+                    pZbMessage = NULL;
+                    delete pJsonCommand;
+                    delete pJsonZbGet;
+
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }

@@ -35,7 +35,6 @@
 #include "JsonZbLstDel.hpp"
 #include "JsonZwLstAdd.hpp"
 #include "JsonZwLstDel.hpp"
-#include "JsonIrRes.hpp"
 #include "JsonZbStt.hpp"
 #include "JsonZbResetRes.hpp"
 #include "NetCtrller.hpp"
@@ -217,7 +216,6 @@ NetCtrller::RegisterJsonMessageInform() {
     m_valueJsonChecker.Register(JsonDevRep::GetStrCmd(), JsonCommand::Flag::Database);
     m_valueJsonChecker.Register(JsonZbStt::GetStrCmd(), JsonCommand::Flag::Zigbee);
     m_valueJsonChecker.Register(JsonZbResetRes::GetStrCmd(), JsonCommand::Flag::Zigbee);
-    m_valueJsonChecker.Register(JsonIrRes::GetStrCmd(), JsonCommand::Flag::Zigbee);
 
 
     m_pJsonNetSession->MapJsonMessage<JsonAuthRes>(JsonAuthRes::GetStrCmd());
@@ -232,7 +230,6 @@ NetCtrller::RegisterJsonMessageInform() {
     m_pJsonNetSession->MapJsonMessage<JsonZbResetRes>(JsonZbResetRes::GetStrCmd());
     m_pJsonNetSession->MapJsonMessage<JsonDevRep>(JsonDevRep::GetStrCmd());
     m_pJsonNetSession->MapJsonMessage<JsonZbStt>(JsonZbStt::GetStrCmd());
-    m_pJsonNetSession->MapJsonMessage<JsonIrRes>(JsonIrRes::GetStrCmd());
 
     RegisterHandler(JsonAuthRes::GetStrCmd(),
             makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdAuthRes));
@@ -251,8 +248,6 @@ NetCtrller::RegisterJsonMessageInform() {
     RegisterHandler(JsonZbStt::GetStrCmd(),
             makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
     RegisterHandler(JsonZbResetRes::GetStrCmd(),
-            makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
-    RegisterHandler(JsonIrRes::GetStrCmd(),
             makeFunctor((HandlerNetCmdFunctor_p) NULL, *this, &NetCtrller::HandlerNetCmdCommon));
 
 }

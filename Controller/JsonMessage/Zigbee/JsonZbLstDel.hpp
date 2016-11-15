@@ -35,6 +35,7 @@ JsonZbLstDel::CreateJsonCommand(
             Json::Value dev;
             dev["devid"] = std::to_string((*it)->DeviceID.GetValue());
             dev["ord"] = std::to_string((*it)->Endpoint.GetValue());
+            dev["net"] = std::string("1");
 
             jsonValue["dev"].append(dev);
         }

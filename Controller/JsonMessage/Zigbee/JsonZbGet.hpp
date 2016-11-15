@@ -66,6 +66,7 @@ inline bool_t
 JsonZbGet::ParseJsonValue(
     Json::Value& jsonValue
 ) {
+    m_vZbGet.clear();
     if (jsonValue.isMember("dev")) {
         const Json::Value& devs = jsonValue["dev"];
         for(Json::ValueConstIterator it = devs.begin(); it != devs.end(); ++it) {

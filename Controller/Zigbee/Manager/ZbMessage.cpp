@@ -113,8 +113,6 @@ ZbMessage::Classify(
         break;
 
     case ZbMessage::Command::SetDevice:
-    case ZbMessage::Command::IrLearn:
-    case ZbMessage::Command::IrSet:
         m_byCmdID = ZCL_CMD_REQ;
         break;
 

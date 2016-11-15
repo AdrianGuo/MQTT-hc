@@ -26,10 +26,6 @@ public:
         InfoReq,
         ResetReq,
         RestartReq,
-        IrLearn,
-        IrSet,
-        IrDel,
-        IrEna,
         ManualRmv
     } Command;
 

@@ -77,6 +77,7 @@ ZbDeviceDb::IsInterested() {
         case ZCL_HA_DEVICEID_IAS_ZONE:
         case ZCL_HA_DEVICEID_COLORED_DIMMABLE_LIGHT:
         case ZCL_HA_DEVICEID_HEATING_COOLING_UNIT:
+        case ZCL_HA_DEVICEID_SHADE:
         case ZCL_HA_DEVICEID_DOOR_LOCK:
         case ZCL_HA_DEVICEID_SIMPLE_INPUT:
         case ZCL_LUMI_DEVICEID_IR:
