@@ -108,15 +108,15 @@ int main(int argc, char* argv[]) {
     pZbController->IniZbCtrller();
 
     pNetController->InitProcess();
-    pSessionClient->Connect();
-    pSessionClient->Start();
+//    pSessionClient->Connect();
+//    pSessionClient->Start();
     pNetController->Start();
 
     pZbBasicCmd->NwkInfoReq();
 
     while (TRUE) {
         if (pHcController != NULL) { pHcController->Process(); }
-//        if (pSystemTimer != NULL) { pSystemTimer->Process(); }
+        if (pSystemTimer != NULL) { pSystemTimer->Process(); }
     }
 
     DesTroyObjects();

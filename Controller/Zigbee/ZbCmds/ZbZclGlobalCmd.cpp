@@ -161,7 +161,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     }
 
     DeviceProperties vResponseDP;
-    Vector<u8_p>* pvData = new Vector<u8_p>();
+    Vector<u8_p> vpData;
 
     while (byLength > 0) {
         u16_t wAttributeID  =  BigWord(&pbyBuffer);
@@ -191,10 +191,9 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
         memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
 
-        u8_p ptemp = NULL;
-        ptemp = pbyAttributeData;
-        (*pvData).push_back(ptemp);
+        vpData.push_back(pbyAttributeData);
         pbyAttributeData = NULL;
+        delete pbyAttributeData;
 
         byLength -= byAttributeDataTypeSize;
 
@@ -207,15 +206,6 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
     }
 
-//    for(int_t i = 0; i < (int_t) vResponseDP.size(); i++) {
-//        DEBUG2("DP_ClusterID: %d", vResponseDP[i].DP_ClusterID);
-//        DEBUG2("DP_AttributeID: %d", vResponseDP[i].DP_AttributeID);
-//        DEBUG2("DP_AttributeDataType: %d", vResponseDP[i].DP_AttributeDataType);
-//        DEBUG2("DP_AttributeDataSize: %d", vResponseDP[i].DP_AttributeDataSize);
-//        DEBUG2("DP_AttributeData: %d", vResponseDP[i].DP_AttributeData);
-//        DEBUG2("DP_TempStorage: %d", atoi(vResponseDP[i].DP_TempStorage.c_str()));
-//    }
-
     if(wClusterID == ZCL_CLUSTER_ID_GEN_BASIC) {
         Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(device->Type.GetValue());
         if(devices.size() == 0) { return; }
@@ -223,12 +213,12 @@ ZbZclGlobalCmd::ReadAttributeResponse(
             if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
-                    tempDevice.Modify()->Manufacturer = String((const char*) (*pvData)[i]);
+                    tempDevice.Modify()->Manufacturer = String((const char*) vpData[i]);
                     ZbDriver::s_pZbModel->Add(tempDevice);
                     ZbDriver::s_pZbModel->UpdateChanges();
                 }
             } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
-                String ModelName = String((const char*) (*pvData)[i]);
+                String ModelName = String((const char*) vpData[i]);
                 DEBUG2("Device %s has joined.", ModelName.c_str());
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
@@ -241,9 +231,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                     Json::Value jsonVal;
                     jsonVal["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
                     jsonVal["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
-                    JsonCommand_p pJsonCommand = new JsonCommand();
-                    pJsonCommand->SetCmdClass(String("dev"));
-                    pJsonCommand->SetCommand(String("get"));
+                    JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
                     pJsonCommand->SetJsonObject(jsonVal);
                     JsonZbGet_p pJsonZbGet = new JsonZbGet();
                     pJsonZbGet->ParseJsonCommand(pJsonCommand);
@@ -257,9 +245,9 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }
-            delete (*pvData)[i];
+            delete vpData[i];
         }
-        delete pvData;
+        vpData.clear();
     } else {
         for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
             for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
@@ -270,7 +258,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
             }
         }
 
-        device.Modify()->ReceiveInforFromDevice(vResponseDP, pvData);
+        device.Modify()->ReceiveInforFromDevice(vResponseDP, vpData);
 
     }
 

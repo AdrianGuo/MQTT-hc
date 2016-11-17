@@ -190,6 +190,7 @@ ZbDriver::ProcSendMessage(
                         break;
 
                     case LUMI_DEVICE_IR:
+                        pZbMessage->SetCmdID(ZCL_CMD_REQ);
                         ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_State);
                         break;
 
@@ -319,12 +320,11 @@ ZbDriver::InitDriver() {
         Device_t temp = (*it);
         if(temp.Modify()->IsInterested()) {
         temp.Modify()->GenerateDeviceInfo();
+
         Json::Value jsonVal;
         jsonVal["devid"] = std::to_string(temp->DeviceID.GetValue());
         jsonVal["ord"] = std::to_string(temp->Endpoint.GetValue());
-        JsonCommand_p pJsonCommand = new JsonCommand();
-        pJsonCommand->SetCmdClass(String("dev"));
-        pJsonCommand->SetCommand(String("get"));
+        JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
         pJsonCommand->SetJsonObject(jsonVal);
         JsonZbGet_p pJsonZbGet = new JsonZbGet();
         pJsonZbGet->ParseJsonCommand(pJsonCommand);

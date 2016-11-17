@@ -73,6 +73,7 @@ ForwardSetValueToDimmer (
         val = device->State;
         if(val > 2)  val -= 3;
     }
+    device.Modify()->Action[DeviceInfo::DI_State].DP_AttributeData = val;
     ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
 }
 
@@ -297,7 +298,9 @@ ForwardGetRequestsToDevice(
 ) {
     Vector<DeviceInfo> vDI;
     for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
-        vDI.push_back(it->first);
+        if((it->first != DeviceInfo::DI_Model) && (it->first != DeviceInfo::DI_Model)) {
+            vDI.push_back(it->first);
+        }
     }
     ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(device, vDI);
 }

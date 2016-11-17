@@ -38,7 +38,7 @@ public:
     int_t& State;
     u8_t byMsgCount;
 
-    void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>*);
+    void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();
     void_t EnvAttached();
     bool_t IsInterested();
