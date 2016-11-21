@@ -33,7 +33,8 @@
 
 #define ZCL_CLUSTER_ID_LUMI_IR                          0xFC15
 #define ZCL_LUMI_DEVICEID_IR                            0x0015
-#define ATTRID_LUMI_IR                                  0x0000
+#define ATTRID_LUMI_IRCMD                               0x0000
+#define ATTRID_LUMI_IRSTATE                             0x0001
 
 //Devices
 #define UNKNOWN_DEVICE                                  (-1)

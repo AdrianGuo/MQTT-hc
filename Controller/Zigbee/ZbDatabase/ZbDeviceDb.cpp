@@ -122,15 +122,15 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_CURTAIN:
         case LUMI_DEVICE_FAN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                for(Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
-                    if (vResponseDP[i].DP_DIName == it->first) {
-                        if(((Action[vResponseDP[i].DP_DIName].DP_AttributeData - *vpData[i]) > 2) ||
-                                ((Action[vResponseDP[i].DP_DIName].DP_AttributeData - *vpData[i]) < -2)) {
-                                    Action[vResponseDP[i].DP_DIName].DP_AttributeData = *vpData[i];
-                                }
-                        byMsgCount++;
-                    }
+                if(vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
+                    if(((Action[vResponseDP[i].DP_DIName].DP_AttributeData - *vpData[i]) > 2) ||
+                            ((Action[vResponseDP[i].DP_DIName].DP_AttributeData - *vpData[i]) < -2)) {
+                                Action[vResponseDP[i].DP_DIName].DP_AttributeData = *vpData[i];
+                            }
+                } else {
+                    Action[vResponseDP[i].DP_DIName].DP_AttributeData = *vpData[i];
                 }
+                byMsgCount++;
             }
             if(byMsgCount >= 2) {
                 if(RealType == LUMI_DEVICE_FAN) ForwardFanStateToOutside(this);
@@ -146,7 +146,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     u8_p pbyData = vpData[i];
                     State = *pbyData;
                     ++pbyData;
-                    Action[DeviceInfo::DI_State].DP_AttributeID = LittleWord(&pbyData);
+                    Action[DeviceInfo::DI_State].DP_AttributeID = LittleWord(&pbyData, false);
                     ForwardIrState(this);
                     pbyData = NULL;
                 }
@@ -161,9 +161,8 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_ILLUMINANCE: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if (vResponseDP[i].DP_DIName == DeviceInfo::DI_State) {
-                    if (RealType == LUMI_DEVICE_PIR) State = *((u16_p) vpData[i]); //LittleWord(&vpData[i]);
-                    else if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
-                    else if((RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
+                    if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
+                    else if((RealType == LUMI_DEVICE_PIR) || (RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
                     else State = *vpData[i];
                     byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Power) {
@@ -298,8 +297,8 @@ ZbDeviceDb::GenerateDeviceInfo(
 
         RealType = LUMI_DEVICE_CURTAIN;
     } else if (prefixModel == String("LM-IR")) {
-        SyncDeviceAction(DeviceInfo::DI_IR_Data,       ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IR);
-        SyncDeviceAction(DeviceInfo::DI_State,         ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_SS_IAS_ZONE_STATUS);
+        SyncDeviceAction(DeviceInfo::DI_IR_Data,       ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRCMD);
+        SyncDeviceAction(DeviceInfo::DI_State,         ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRSTATE);
         RealType = LUMI_DEVICE_IR;
     } else if (prefixModel == String("LM-IPZ")) {
         SyncDeviceAction(DeviceInfo::DI_State,       ZCL_CLUSTER_ID_GEN_BINARY_INPUT,    ATTRID_BINARY_INPUT_PRESENT_VALUE);
@@ -385,11 +384,11 @@ ZbDeviceDb::OtherBrandsDevice() {
     DEBUG2("Device %s of %s at address %d.", Model.GetValue().c_str(), Manufacturer.GetValue().c_str(), Network.GetValue());
     bool_t boRetVal = TRUE;
     String prefixModel;
-    EPInfor_t deviceInfo = ZbZdoCmd::GetInstance()->GetDeviceLogic()[Network.GetValue()];
+    EPInfor_t EPsInfo = ZbZdoCmd::GetInstance()->GetDeviceLogic()[Network.GetValue()];
     switch (Type.GetValue()) {
         case ZCL_HA_DEVICEID_ON_OFF_LIGHT: {
             bool_t boCheck = FALSE;
-            for(Map<u16_t, u16_t>::const_iterator_t it = deviceInfo.mapType.begin(); it != deviceInfo.mapType.end(); it++) {
+            for(Map<u16_t, u16_t>::const_iterator_t it = EPsInfo.mapType.begin(); it != EPsInfo.mapType.end(); it++) {
                 if(it->second == ZCL_HA_DEVICEID_DIMMABLE_LIGHT) boCheck = TRUE;
             }
             if(boCheck) prefixModel = "LM-DZ"; //Curtain is OK. Fan???
@@ -532,10 +531,10 @@ ZbDeviceDb::SyncDeviceAction(
             break;
 
         case ZCL_CLUSTER_ID_LUMI_IR:
-            if (Action[devInfo].DP_AttributeID          == ATTRID_LUMI_IR)
+            if (Action[devInfo].DP_AttributeID          == ATTRID_LUMI_IRCMD)
                 { Action[devInfo].DP_AttributeDataType  = ZCL_DATATYPE_BITMAP24;   GenerateAttributeDataSize(devInfo); break; }
-            if (Action[devInfo].DP_AttributeID          == ATTRID_SS_IAS_ZONE_STATUS)
-                { Action[devInfo].DP_AttributeDataType  = ZCL_DATATYPE_ENUM16;   GenerateAttributeDataSize(devInfo); break; }
+            if (Action[devInfo].DP_AttributeID          == ATTRID_LUMI_IRSTATE)
+                { Action[devInfo].DP_AttributeDataType  = ZCL_DATATYPE_UINT8;   GenerateAttributeDataSize(devInfo); break; }
             boRetVal = FALSE;
             break;
 

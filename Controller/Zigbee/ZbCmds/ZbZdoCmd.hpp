@@ -14,9 +14,9 @@
 #include <ZbDeviceDb.hpp>
 
 typedef struct {
-    u8_t byTotalEP;
-    u8_t byEPCount;
-    u8_t byTypeCount;
+    u8_t byTotalEP   = 0;
+    u8_t byEPCount   = 0;
+    u8_t byTypeCount = 0;
     Map<u16_t, u16_t> mapType;
 } EPInfor_t;
 
@@ -26,13 +26,13 @@ typedef Map<u16_t, EPInfor_t>*  DeviceLogic_p;
 class ZbZdoCmd {
 private:
     Map<u16_t,String> m_mapTemps;
-    DeviceLogic_t m_mapEPInfor;
 
     ZbZdoCmd();
 
 public:
     static ZbZdoCmd* s_pInstance;
     static ZbZdoCmd* GetInstance();
+    static DeviceLogic_t s_mapEPInfor;
 
     ~ZbZdoCmd();
     void_t ProcRecvMessage(void_p);

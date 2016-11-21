@@ -58,9 +58,9 @@ ForwardDimmerOrCurtainStateToOutside(
     else
         iLevel = 0;
     Json::Value val;
-    int_t state = device->Action[DI_OnOff].DP_AttributeData;
+    int_t state = device->Action[DeviceInfo::DI_OnOff].DP_AttributeData;
     val["level"] = std::to_string(iLevel);
-    if(state == 1) {
+    if(state > 0) {
         val["state"] = std::string("on");
     } else {
         val["state"] = std::string("off");

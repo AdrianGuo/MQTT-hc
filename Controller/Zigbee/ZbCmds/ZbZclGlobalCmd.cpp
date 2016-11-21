@@ -149,6 +149,15 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     u8_p pbyBuffer
 ){
     u16_t wNwk              = LittleWord(&pbyBuffer);
+
+    //Devices not in DB will be forced to leave.
+    //not have all enpoints joined, forced to leave.
+    if((ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()) ||
+            (ZbZdoCmd::s_mapEPInfor[wNwk].byEPCount != ZbZdoCmd::s_mapEPInfor[wNwk].byTotalEP)) {
+        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk);
+    }
+
+
     u8_t byEndpoint         = *pbyBuffer++;
     u16_t wClusterID        = LittleWord(&pbyBuffer);
     ++pbyBuffer; //CMD ID
@@ -197,6 +206,11 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
         byLength -= byAttributeDataTypeSize;
 
+        for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
+            if(temp == it->second) {
+                temp.DP_DIName = it->first;
+            }
+        }
         vResponseDP.push_back(temp);
 
         temp = {};
@@ -207,59 +221,55 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     }
 
     if(wClusterID == ZCL_CLUSTER_ID_GEN_BASIC) {
-        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(device->Type.GetValue());
+        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+//        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(device->Type.GetValue());
         if(devices.size() == 0) { return; }
         for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
             if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
-                    tempDevice.Modify()->Manufacturer = String((const char*) vpData[i]);
-                    ZbDriver::s_pZbModel->Add(tempDevice);
-                    ZbDriver::s_pZbModel->UpdateChanges();
+                    if(tempDevice.Modify()->IsInterested()) {
+                        tempDevice.Modify()->Manufacturer = String((const char*) vpData[i]);
+                        ZbDriver::s_pZbModel->Add(tempDevice);
+                        ZbDriver::s_pZbModel->UpdateChanges();
+                    }
                 }
             } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
                 String ModelName = String((const char*) vpData[i]);
                 DEBUG2("Device %s has joined.", ModelName.c_str());
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
-                    tempDevice.Modify()->Model = ModelName;
-                    tempDevice.Modify()->GenerateDeviceInfo();
-                    ZbDriver::s_pZbModel->Add(tempDevice);
-                    ZbDriver::s_pZbModel->UpdateChanges();
+                    if(tempDevice.Modify()->IsInterested()) {
+                        tempDevice.Modify()->Model = ModelName;
+                        tempDevice.Modify()->GenerateDeviceInfo();
+                        ZbDriver::s_pZbModel->Add(tempDevice);
+                        ZbDriver::s_pZbModel->UpdateChanges();
 
-                    //Request State
-                    Json::Value jsonVal;
-                    jsonVal["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
-                    jsonVal["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
-                    JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
-                    pJsonCommand->SetJsonObject(jsonVal);
-                    JsonZbGet_p pJsonZbGet = new JsonZbGet();
-                    pJsonZbGet->ParseJsonCommand(pJsonCommand);
-                    ZbMessage_p pZbMessage = new ZbMessage(pJsonZbGet, ZbMessage::Command::GetDevice);
-                    pZbMessage->SetCmdID(ZCL_CMD_REQ);
-                    ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
-                    pZbMessage = NULL;
-                    delete pJsonCommand;
-                    delete pJsonZbGet;
+                        //Request State
+                        Json::Value jsonVal;
+                        jsonVal["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
+                        jsonVal["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
+                        JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
+                        pJsonCommand->SetJsonObject(jsonVal);
+                        JsonZbGet_p pJsonZbGet = new JsonZbGet();
+                        pJsonZbGet->ParseJsonCommand(pJsonCommand);
+                        ZbMessage_p pZbMessage = new ZbMessage(pJsonZbGet, ZbMessage::Command::GetDevice);
+                        pZbMessage->SetCmdID(ZCL_CMD_REQ);
+                        ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
+                        pZbMessage = NULL;
+                        delete pJsonCommand;
+                        delete pJsonZbGet;
+                    }
 
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }
-            delete vpData[i];
+            delete[] vpData[i];
         }
         vpData.clear();
     } else {
-        for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
-            for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
-                if(vResponseDP[i] == it->second) {
-                    vResponseDP[i].DP_DIName = it->first;
-                    break;
-                }
-            }
-        }
 
         device.Modify()->ReceiveInforFromDevice(vResponseDP, vpData);
-
     }
 
 }

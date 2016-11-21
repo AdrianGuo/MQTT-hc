@@ -169,7 +169,7 @@ ZbCtrller::RegisterJsonMessageInform() {
     RegisterHandler(JsonManualRemove::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdManualRemove));
 
     RegisterProcess(ZbMessage::Command::AddDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdAdd));
-    RegisterProcess(ZbMessage::Command::RmvDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdDel));
+    RegisterProcess(ZbMessage::Command::RemoveDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdDel));
     RegisterProcess(ZbMessage::Command::SetDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdSet));
     RegisterProcess(ZbMessage::Command::GetDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdGet));
     RegisterProcess(ZbMessage::Command::InfoReq, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbCtrller::ProcCmdInfo));
@@ -359,7 +359,7 @@ ZbCtrller::HandlerCmdDel(
     pJsonZbDel->ParseJsonCommand(pJsonCommand);
 
     ZbMessage_p pZbMessage = new ZbMessage(pJsonZbDel,
-            ZbMessage::Command::RmvDevice);
+            ZbMessage::Command::RemoveDevice);
 
     m_pZbCtrllerLocker->Lock();
     m_queSendZbMsg.push(pZbMessage);
@@ -541,7 +541,7 @@ ZbCtrller::ProcCmdDel(
 ) {
     if (pZbMessage == NULL) { return; }
 
-    if (pZbMessage->GetZbCommad() == ZbMessage::Command::RmvDevice) {
+    if (pZbMessage->GetZbCommad() == ZbMessage::Command::RemoveDevice) {
         m_pZbDriver->ProcSendMessage(pZbMessage);
     }
 }

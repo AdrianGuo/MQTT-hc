@@ -107,7 +107,7 @@ ZbMessage::Classify(
         m_byCmdID = NWK_JOIN;
         break;
 
-    case ZbMessage::Command::RmvDevice:
+    case ZbMessage::Command::RemoveDevice:
     case ZbMessage::Command::ResetReq:
         m_byCmdID = ZDO_CMD_REQ;
         break;

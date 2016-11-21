@@ -25,24 +25,34 @@ HexToString(
 
 u16_t
 LittleWord(
-    u8_p* pbyBuffer
+    u8_p* pbyBuffer,
+    bool inc
 ) {
     u16_t wRet;
     wRet = **pbyBuffer << 8;
-    ++*pbyBuffer;
-    wRet |= (**pbyBuffer);
-    ++*pbyBuffer;
+    if(inc) {
+        ++*pbyBuffer;
+        wRet |= (**pbyBuffer);
+        ++*pbyBuffer;
+    } else {
+        wRet |= *(*pbyBuffer + 1);
+    }
     return wRet;
 }
 
 u16_t
 BigWord(
-    u8_p* pbyBuffer
+    u8_p* pbyBuffer,
+    bool inc
 ) {
     u16_t wRet;
     wRet = **pbyBuffer;
-    ++*pbyBuffer;
-    wRet |= (**pbyBuffer << 8);
-    ++*pbyBuffer;
+    if(inc) {
+        ++*pbyBuffer;
+        wRet |= (**pbyBuffer << 8);
+        ++*pbyBuffer;
+    } else {
+        wRet |= (*(*pbyBuffer + 1) << 8);
+    }
     return wRet;
 }

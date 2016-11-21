@@ -12,7 +12,7 @@
 #include <String.hpp>
 
 String HexToString(const u8_p pbyHex, int_t iLength);
-u16_t LittleWord(u8_p* pbyBuffer);
-u16_t BigWord(u8_p* pbyBuffer);
+u16_t LittleWord(u8_p* pbyBuffer, bool inc = true);
+u16_t BigWord(u8_p* pbyBuffer, bool inc = true);
 
 #endif /* ZBHELPER_HPP_ */

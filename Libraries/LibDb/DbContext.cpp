@@ -1,4 +1,5 @@
 #include "DbPtr.hpp"
+#include <stdio.h>
 #include "DbContext.hpp"
 
 /**
@@ -87,6 +88,11 @@ DbContext::UpdateChanges() {
        (*it)->UpdateChange();
        m_lstObjectManager.erase(it++);
     }
+
+//    remove("Lumi/zigbee.db");
+//    system("cp zigbee.db /Lumi/zigbee.db");
+
+
 }
 
 /**

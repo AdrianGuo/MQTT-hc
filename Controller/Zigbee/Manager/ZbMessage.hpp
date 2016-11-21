@@ -19,7 +19,7 @@ public:
         SendData = 0,
         AddDevice,
         StopAdd,
-        RmvDevice,
+        RemoveDevice,
         StopRmv,
         SetDevice,
         GetDevice,

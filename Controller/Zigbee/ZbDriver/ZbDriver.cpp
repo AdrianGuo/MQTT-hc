@@ -89,21 +89,15 @@ ZbDriver::ProcSendMessage(
             ZbBasicCmd::s_pInstance->JoinNwkAllow(pZbMessage);
             break;
 
-        case ZbMessage::Command::RmvDevice:
+        case ZbMessage::Command::RemoveDevice:
         case ZbMessage::Command::ResetReq: {
             ZbSocketCmd::GetInstance()->SendResetRes(1);
-            Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-//            DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
-//            if(mapDeviceNwk.size() > 0) {
-//                for(DeviceLogic_t::iterator_t it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
-//                    ZbZdoCmd::GetInstance()->LeaveRequest(it->first);
-//                }
-//            } else {
-//                Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();//.Where("DeviceID !=?").Bind("IR-CMD");
-                for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-                    ZbZdoCmd::GetInstance()->LeaveRequest((*it)->Network.GetValue());
+            DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
+            if(mapDeviceNwk.size() > 0) {
+                for(DeviceLogic_t::iterator_t it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
+                    ZbZdoCmd::GetInstance()->LeaveRequest(it->first);
                 }
-//            }
+            }
 
         }
             break;
@@ -318,9 +312,28 @@ ZbDriver::InitDriver() {
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Device_t temp = (*it);
+
+        //Load endpoints map
+        bool boCheck = false;
+        ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTotalEP++;
+        ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byEPCount =
+                ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTotalEP;
+        for(Map<u16_t, u16_t>::const_iterator_t it2 = ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].mapType.begin();
+                it2 != ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].mapType.end(); it2++) {
+            if(temp->Type.GetValue() == it2->second) {
+                boCheck = true;
+                break;
+            }
+        }
+        if(!boCheck) {
+            ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].mapType[ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTypeCount] = temp->Type.GetValue();
+            ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTypeCount++;
+        }
+
+
+        //Generate device info and request state.
         if(temp.Modify()->IsInterested()) {
         temp.Modify()->GenerateDeviceInfo();
-
         Json::Value jsonVal;
         jsonVal["devid"] = std::to_string(temp->DeviceID.GetValue());
         jsonVal["ord"] = std::to_string(temp->Endpoint.GetValue());
@@ -336,5 +349,4 @@ ZbDriver::InitDriver() {
         delete pJsonZbGet;
         }
     }
-
 }
