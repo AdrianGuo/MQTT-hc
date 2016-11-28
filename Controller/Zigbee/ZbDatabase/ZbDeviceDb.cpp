@@ -66,9 +66,9 @@ ZbDeviceDb::GetTableName() {
  * @retval None
  */
 bool_t
-ZbDeviceDb::IsInterested() {
+ZbDeviceDb::IsInterested(int_t iType) {
     bool_t boRet = FALSE;
-    switch (Type.GetValue()) {
+    switch (iType) {
         case ZCL_HA_DEVICEID_ON_OFF_LIGHT:
         case ZCL_HA_DEVICEID_DIMMABLE_LIGHT:
         case ZCL_HA_DEVICEID_LIGHT_SENSOR:
@@ -92,6 +92,16 @@ ZbDeviceDb::IsInterested() {
     return boRet;
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ZbDeviceDb::IsInterested() {
+ return IsInterested(Type.GetValue());
+}
 /**
  * @func
  * @brief  None
@@ -164,15 +174,12 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
                     else if((RealType == LUMI_DEVICE_PIR) || (RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
                     else State = *vpData[i];
-                    byMsgCount++;
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Power) {
                     Action[DeviceInfo::DI_Power].DP_AttributeData = *vpData[i];
-                    byMsgCount++;
                 }
 
             }
-            if(Endpoint.GetValue() != 1) { byMsgCount = 0; ForwardSensorStateToOutside(this); } //non-master device
-            else if(byMsgCount >= 2) { byMsgCount = 0; ForwardSensorStateToOutside(this); }
+            if(Action[DeviceInfo::DI_Power].DP_AttributeData >= 0) { ForwardSensorStateToOutside(this); }
         }
             break;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,12 +187,8 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for (u8_t i = 0; i < byLimit; i++) {
                 for (Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
                     if (vResponseDP[i].DP_DIName == it->first) {
-                        if (vResponseDP[i].DP_DIName == DeviceInfo::DI_RGB_RemainingTime) {
-                            Action[DeviceInfo::DI_RGB_RemainingTime].DP_AttributeData = *((u16_p) vpData[i]);
-                        } else {
-                            Action[vResponseDP[i].DP_DIName].DP_AttributeData = *vpData[i];
-                            byMsgCount++;
-                        }
+                        Action[vResponseDP[i].DP_DIName].DP_AttributeData = *vpData[i];
+                        byMsgCount++;
                     }
                 }
             }
@@ -240,7 +243,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
 void_t
 ZbDeviceDb::EnvAttached() {
     if(Endpoint.GetValue() == 1) {
-        SyncDeviceAction(DeviceInfo::DI_Power,       ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
+        SyncDeviceAction(DeviceInfo::DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
     }
     if (Type == ZCL_HA_DEVICEID_TEMPERATURE_SENSOR) {
         SyncDeviceAction(DeviceInfo::DI_State,   ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MEASURED_VALUE);
@@ -325,7 +328,7 @@ ZbDeviceDb::GenerateDeviceInfo(
         EnvAttached();
     } else if (prefixModel == String("LM-RGB")) {
         SyncDeviceAction(DeviceInfo::DI_State,                           ZCL_CLUSTER_ID_GEN_ON_OFF,              ATTRID_ON_OFF);
-        SyncDeviceAction(DeviceInfo::DI_RGB_RemainingTime,               ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_REMAINING_TIME);
+//        SyncDeviceAction(DeviceInfo::DI_RGB_RemainingTime,               ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_REMAINING_TIME);
         SyncDeviceAction(DeviceInfo::DI_RGB_Red,                         ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_R_INTENSITY);
         SyncDeviceAction(DeviceInfo::DI_RGB_Green,                       ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_G_INTENSITY);
         SyncDeviceAction(DeviceInfo::DI_RGB_Blue,                        ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_B_INTENSITY);

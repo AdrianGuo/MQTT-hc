@@ -124,7 +124,7 @@ ZbDriver::ProcSendMessage(
 
                     case LUMI_DEVICE_DIMMER:
                     case LUMI_DEVICE_CURTAIN:
-                        ForwardSetValueToDimmer(pZbMessage, device, vZbSet[i].val);
+                        ForwardSetValueToDimmerCurtain(pZbMessage, device, vZbSet[i].val);
                         break;
 
                     case LUMI_DEVICE_FAN:

@@ -152,8 +152,8 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
     //Devices not in DB will be forced to leave.
     //not have all enpoints joined, forced to leave.
-    if((ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()) ||
-            (ZbZdoCmd::s_mapEPInfor[wNwk].byEPCount != ZbZdoCmd::s_mapEPInfor[wNwk].byTotalEP)) {
+    if(ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()){ // ||
+            //(ZbZdoCmd::s_mapEPInfor[wNwk].byEPCount != ZbZdoCmd::s_mapEPInfor[wNwk].byTotalEP)) {
         ZbZdoCmd::GetInstance()->LeaveRequest(wNwk);
     }
 

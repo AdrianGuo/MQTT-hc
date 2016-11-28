@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         return (-1);
     }
 
-//    system("cp /Lumi/zigbee.db /tmp/zigbee.db");
+    system("cp /Lumi/zigbee.db /tmp/zigbee.db");
 
     String ipname(argv[1]);
     String portname(argv[3]);

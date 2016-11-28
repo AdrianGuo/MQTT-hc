@@ -102,10 +102,57 @@ ZbZdoCmd::DeviceAnnounce(
     u16_t wNwk      = BigWord(&pbyBuffer);
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;
-    m_mapTemps[wNwk]   = MAC;
-    ActiveEndpointRequest(wNwk);
-    // ZB Device Type (router, end device - sleepable)!!!
+
     DEBUG2("Device %d announce.", wNwk);
+
+    //Not request ActiveEndpoint to device that has been rejoined.
+    u8_t byCheck = 0;
+    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=?").Bind(MAC);
+    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND MAC=?").Bind(wNwk).Bind(MAC);
+    if(devices.size() > 0) {
+        if(device.Modify() != NULL) {
+            //request state
+            return;
+        }
+        for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+            Device_t tempDevice = *it;
+            byCheck++;
+            if(byCheck == 1) {
+                s_mapEPInfor[wNwk].byTotalEP   = s_mapEPInfor[tempDevice.Modify()->Network].byTotalEP;
+                s_mapEPInfor[wNwk].byEPCount   = s_mapEPInfor[tempDevice.Modify()->Network].byEPCount;
+                s_mapEPInfor[wNwk].byTypeCount   = s_mapEPInfor[tempDevice.Modify()->Network].byTypeCount;
+                for(Map<u16_t, u16_t>::const_iterator_t it2 = s_mapEPInfor[tempDevice.Modify()->Network].mapType.begin();
+                        it2 != s_mapEPInfor[tempDevice.Modify()->Network].mapType.end(); it2++) {
+                    s_mapEPInfor[wNwk].mapType[it2->first] = it2->second;
+                }
+                s_mapEPInfor.erase(tempDevice.Modify()->Network);
+            }
+
+            tempDevice.Modify()->Network = wNwk;
+            tempDevice.Modify()->DeviceID = wNwk;
+            ZbDriver::s_pZbModel->Add(tempDevice);
+//            ZbDriver::s_pZbModel->UpdateChanges();
+
+            if(tempDevice.Modify()->IsInterested()) {
+                //request state
+            }
+        }
+        ZbDriver::s_pZbModel->UpdateChanges();
+
+        ZbSocketCmd::GetInstance()->SendLstDel(devices);
+        for(Map<u16_t, u16_t>::const_iterator_t it3 = s_mapEPInfor[wNwk].mapType.begin();
+                it3 != s_mapEPInfor[wNwk].mapType.end(); it3++) {
+            if(ZbDeviceDb::IsInterested(it3->second)) {
+                Devices_t devices2 = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(it3->second);
+                ZbSocketCmd::GetInstance()->SendLstAdd(devices2);
+            }
+        }
+
+    } else {
+        m_mapTemps[wNwk]   = MAC;
+        ActiveEndpointRequest(wNwk);
+    }
+    // ZB Device Type (router, end device - sleepable)!!!
 }
 
 /**
@@ -170,13 +217,13 @@ ZbZdoCmd::ActiveEndpointResponse(
                 pZbDevice->Controller   = pController; //!!! temporary !!!
 
                 Device_t device = ZbDriver::s_pZbModel->Add(pZbDevice);
-                ZbDriver::s_pZbModel->UpdateChanges();
+//                ZbDriver::s_pZbModel->UpdateChanges();
                 pZbDevice = NULL;
                 delete pZbDevice;
 
                 NodeDescriptionRequest(device);
             }
-        } else if (devices.size() > 0) {
+        } else {
             for (int j = 0; j < byEndpointNo; j++) {
                 Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=? AND Endpoint=?").Bind(m_mapTemps[wNwk]).Bind(byEndpointList[j]);
                 if(device.Modify() != NULL) {
@@ -186,11 +233,12 @@ ZbZdoCmd::ActiveEndpointResponse(
                     device.Modify()->Controller     = pController; //!!! temporary !!!
 
                     ZbDriver::s_pZbModel->Add(device);
-                    ZbDriver::s_pZbModel->UpdateChanges();
+//                    ZbDriver::s_pZbModel->UpdateChanges();
                     NodeDescriptionRequest(device);
                 }
             }
         }
+        ZbDriver::s_pZbModel->UpdateChanges();
         m_mapTemps.erase(wNwk);
     }
         break;
@@ -257,12 +305,11 @@ ZbZdoCmd::NodeDescriptionResponse(
         if (device.Modify() == NULL) { break; }
         device.Modify()->Type = (int_t) wType;
         ZbDriver::s_pZbModel->Add(device);
-        ZbDriver::s_pZbModel->UpdateChanges();
+//        ZbDriver::s_pZbModel->UpdateChanges();
 
         //Only request model & manufacturer info to one of same type devices (send when get the last endpoint).
         if(s_mapEPInfor[wNwk].byEPCount == 0) {
             s_mapEPInfor[wNwk].mapType[++s_mapEPInfor[wNwk].byTypeCount] = wType;
-//            DEBUG2("Update Type: %d, %d at %d.", wType, m_mapEPInfor[wNwk].mapType[m_mapEPInfor[wNwk].byTypeCount], m_mapEPInfor[wNwk].byEPCount);
         } else {
             bool_t boCheck = TRUE;
             for(u8_t i = 1; i <= s_mapEPInfor[wNwk].byEPCount; i++) {
@@ -270,7 +317,6 @@ ZbZdoCmd::NodeDescriptionResponse(
             }
             if(boCheck == TRUE) {
                 s_mapEPInfor[wNwk].mapType[++s_mapEPInfor[wNwk].byTypeCount] = wType;
-//                DEBUG2("Update Type: %d, %d at %d.", wType, m_mapEPInfor[wNwk].mapType[m_mapEPInfor[wNwk].byTypeCount], m_mapEPInfor[wNwk].byEPCount);
             }
         }
 
@@ -290,18 +336,6 @@ ZbZdoCmd::NodeDescriptionResponse(
             vDI.push_back(DeviceInfo::DI_Model);
             vDI.push_back(DeviceInfo::DI_Manufacturer);
             ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(device, vDI);
-
-//            for(int_t i = 1; i <= s_mapEPInfor[wNwk].byTypeCount; i++) {
-//                Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(s_mapEPInfor[wNwk].mapType[i]);
-//                if(device.Modify() == NULL) continue;
-//                if(device.Modify()->IsInterested() == TRUE) {
-//                    DEBUG2("Send req at count %d th for type %d.", s_mapEPInfor[wNwk].byEPCount, s_mapEPInfor[wNwk].mapType[i]);
-//                    Vector<DeviceInfo> vDI;
-//                    vDI.push_back(DeviceInfo::DI_Model);
-//                    vDI.push_back(DeviceInfo::DI_Manufacturer);
-//                    ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(device, vDI);
-//                }
-//            }
         }
 
 

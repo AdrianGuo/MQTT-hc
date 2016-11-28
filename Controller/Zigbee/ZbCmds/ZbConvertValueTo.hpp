@@ -47,7 +47,7 @@ ForwardSetValueToDevice (
  */
 
 void_t
-ForwardSetValueToDimmer (
+ForwardSetValueToDimmerCurtain (
     ZbMessage_p pZbMessage,
     Device_t    device,
     Json::Value jsonVal
@@ -62,9 +62,7 @@ ForwardSetValueToDimmer (
     else
         val = 0;
 
-    if((val == 0 ) && (jsonVal["state"].asString() == std::string("on"))) {
-        val = 0xFF;
-    } else if (jsonVal["state"].asString() == std::string("off")) {
+    if (jsonVal["state"].asString() == std::string("off")) {
         val = 0;
     } else if (jsonVal["state"].asString() == std::string("inc")) {
         val = device->State;
@@ -92,20 +90,22 @@ ForwardSetValueToFan (
     Json::Value jsonVal
 ) {
     if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
-    u8_t val = atoi(jsonVal["level"].asCString());
+    u8_t rcvVal = atoi(jsonVal["level"].asCString());
 
-    if((val == 0 ) && (jsonVal["state"].asString() == std::string("on"))) {
-        val = 0xFF;
-    } else if (jsonVal["state"].asString() == std::string("off")) {
-        val = 0;
+    if (jsonVal["state"].asString() == std::string("off")) {
+        rcvVal = 0;
     } else if (jsonVal["state"].asString() == std::string("inc")) {
-        val = (device->State)/63;
-        if(val < 4)  val = (val + 1)*63;
+        rcvVal = device->State;
+        if(rcvVal/63 < 4)  rcvVal = (rcvVal/63 + 1) * 63;
     } else if (jsonVal["state"].asString() == std::string("dec")) {
-        val = (device->State)/63;
-        if(val > 0)  val = (val -1)*63;
+        rcvVal = device->State;
+        if(rcvVal/63 > 0)  rcvVal = (rcvVal/63 -1)*63;
     }
-    ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
+
+    if(rcvVal > 0xFF) rcvVal = 0xFF;
+    if(rcvVal < 0) rcvVal = 0x00;
+
+    ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, rcvVal/25 * 63);
 }
 
 
@@ -160,7 +160,7 @@ ForwardSetValueToIr (
         }
     } else if (byAct == 5) { //Set
         if(isIrcmd) {
-            if((ircmd.Modify() != NULL) && ((ircmd->Endpoint.GetValue() == 1))) {
+            if((ircmd.Modify() != NULL) && ((ircmd->Endpoint.GetValue() == 1))) { //(ircmd->Endpoint.GetValue() == 1): Enabled command
                 ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, atoi(jsonVal["irid"].asCString()));
             } else {
                 Json::Value jsonRetVal;
@@ -258,18 +258,27 @@ ForwardSetValueToDaikin (
                         temp.DP_AttributeData = 1;
                     } else {
                         temp.DP_AttributeData = 0;
+                        vDP.clear();
+                        temp.DP_DIName = it2->second.DP_DIName;
+                        temp.DP_DIStringName = it2->second.DP_DIStringName;
+                        vDP.push_back(temp);
+                        temp = {};
+                        goto END;
                     }
                 } else {
                     temp.DP_AttributeData = atoi((jsonVal[(std::string) (*it)]).asCString());
                 }
-                temp.DP_DIName = it2->second.DP_DIName;
-                temp.DP_DIStringName = it2->second.DP_DIStringName;
-                vDP.push_back(temp);
+                if(temp.DP_AttributeData >= 0) {
+                    temp.DP_DIName = it2->second.DP_DIName;
+                    temp.DP_DIStringName = it2->second.DP_DIStringName;
+                    vDP.push_back(temp);
+                }
                 temp = {};
                 break;
             }
         }
     }
+END:
     ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, vDP);
 }
 

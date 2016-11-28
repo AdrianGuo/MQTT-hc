@@ -79,13 +79,13 @@ void_t
 ForwardFanStateToOutside(
     const ZbDeviceDb_p device
 ) {
-    int_t iLevel = (device->State)/63;
+    int_t iLevel = ((device->State)/63) * 25;
     Json::Value val;
     val["level"] = std::to_string(iLevel);
-    if(device->Action[DI_OnOff].DP_AttributeData == 0) {
-        val["state"] = std::string("off");
-    } else if(device->Action[DI_OnOff].DP_AttributeData == 1) {
+    if(device->State > 0) {
         val["state"] = std::string("on");
+    } else {
+        val["state"] = std::string("off");
     }
     ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
@@ -132,7 +132,7 @@ ForwardRGBStateToOutside(
     } else {
         val["state"] = std::string("off");
     }
-    val["time"] = std::to_string(device->Action[DI_RGB_RemainingTime].DP_AttributeData);
+//    val["time"] = std::to_string(device->Action[DI_RGB_RemainingTime].DP_AttributeData);
     ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 

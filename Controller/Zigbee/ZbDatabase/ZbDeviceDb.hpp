@@ -41,10 +41,12 @@ public:
     void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();
     void_t EnvAttached();
-    bool_t IsInterested();
 
     bool_t OtherBrandsDevice();
     static u8_t GetAttributeDataSize(u8_t, u8_p*);
+
+    bool_t IsInterested();
+    static bool_t IsInterested(int_t);
 
     static String GetTableName();
     template<class A> void_t Table(A& action);
