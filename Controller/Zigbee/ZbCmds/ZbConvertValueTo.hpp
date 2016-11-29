@@ -105,7 +105,7 @@ ForwardSetValueToFan (
     if(rcvVal > 0xFF) rcvVal = 0xFF;
     if(rcvVal < 0) rcvVal = 0x00;
 
-    ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, rcvVal/25 * 63);
+    ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, rcvVal * 63);
 }
 
 

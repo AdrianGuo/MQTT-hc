@@ -79,7 +79,7 @@ void_t
 ForwardFanStateToOutside(
     const ZbDeviceDb_p device
 ) {
-    int_t iLevel = ((device->State)/63) * 25;
+    int_t iLevel = (device->State)/63;
     Json::Value val;
     val["level"] = std::to_string(iLevel);
     if(device->State > 0) {

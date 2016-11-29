@@ -130,6 +130,8 @@ SClient::ParseData(
         strRawJsonCommand = strRawJsonCommand.substr(posEnd + END.length(), strRawJsonCommand.length());
         m_strRemainder = strRawJsonCommand;
         ParseData(strRawJsonCommand);
+    } else {
+        m_strRemainder += strRawJsonCommand;
     }
 }
 
