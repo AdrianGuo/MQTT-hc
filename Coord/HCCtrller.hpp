@@ -33,6 +33,7 @@
 #include "ICtrller.hpp"
 #include "Locker.hpp"
 #include "SClient.hpp"
+#include "SServer.hpp"
 
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
@@ -45,13 +46,14 @@ private:
 
     Locker_p m_pHCCtrllerLocker;
     SClient_p m_pSClient;
+    SServer_p m_pSServer;
 
     Vector<ICtrller_p> m_vecCtrller;
     HCCtrllerFunctor_t m_HCCtrllerFunctor;
     ICtrllerFunctor_t  m_ICtrllerFunctor;
 
 public:
-    HCCtrller(SClient_p pSClient = NULL);
+    HCCtrller(SClient_p pSClient = NULL, SServer_p pSServer = NULL);
     virtual ~HCCtrller();
 
     void_t SendFunctor();

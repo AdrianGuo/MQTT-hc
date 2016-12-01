@@ -54,7 +54,8 @@
  * @retval None
  */
 HCCtrller::HCCtrller(
-    SClient_p pSClient
+    SClient_p pSClient,
+    SServer_p pSServer
 ) {
     m_pSClient = pSClient;
     m_pHCCtrllerLocker = new Locker();
@@ -86,6 +87,9 @@ void_t
 HCCtrller::SendFunctor() {
     if (m_pSClient != NULL) {
         m_pSClient->SClientRecvFunctor(&m_HCCtrllerFunctor);
+    }
+    if (m_pSServer != NULL) {
+        m_pSServer->RecvFunctor(&m_HCCtrllerFunctor);
     }
 }
 

@@ -89,8 +89,8 @@ DbContext::UpdateChanges() {
        m_lstObjectManager.erase(it++);
     }
 
-    remove("Lumi/zigbee.db");
-    system("cp zigbee.db /Lumi/zigbee.db");
+//    remove("Lumi/zigbee.db");
+//    system("cp zigbee.db /Lumi/zigbee.db");
 
 
 }

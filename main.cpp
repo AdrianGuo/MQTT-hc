@@ -35,6 +35,7 @@
 
 #include "ClientSock.hpp"
 #include "SClient.hpp"
+#include "SServer.hpp"
 
 #include "Serial.hpp"
 #include "SZbSerial.hpp"
@@ -56,6 +57,7 @@ static NetCtrller_p     pNetController      = NULL;
 
 static ClientSock_p     pClientSocket       = NULL;
 static SClient_p        pSessionClient      = NULL;
+static SServer_p        pSessionServer      = NULL;
 
 static Serial_p         pZbSerial           = NULL;
 static SZbSerial_p      pSessionZbSerial    = NULL;
@@ -72,7 +74,7 @@ static RTimer_p         pSystemTimer        = NULL;
 /*                            PRIVATE FUNCTIONS                               */
 /******************************************************************************/
 void_t InitZbDriver(const_char_p portname);
-void_t InitNetwrk(const_char_p ipname, int_t ipport);
+void_t InitNetwrk(const_char_p ipname, int_t ipport, int_t server);
 void_t InitController(const_char_p macID);
 void_t InitSysTimer();
 void_t DesTroyObjects();
@@ -83,20 +85,21 @@ void_t DesTroyObjects();
 int main(int argc, char* argv[]) {
     DEBUG1("main");
 
-    if (argc < 5) {
+    if (argc < 6) {
         DEBUG2("Usage %s <<number>>", argv[0]);
         return (-1);
     }
 
-    system("cp /Lumi/zigbee.db /tmp/zigbee.db");
+//    system("cp /Lumi/zigbee.db /tmp/zigbee.db");
 
     String ipname(argv[1]);
-    String portname(argv[3]);
-    String macID(argv[4]);
+    String portname(argv[4]);
+    String macID(argv[5]);
     int_t ipport = atoi(argv[2]);
+    int_t server = atoi(argv[3]);
 
     InitZbDriver(portname.c_str());
-    InitNetwrk(ipname.c_str(), ipport);
+    InitNetwrk(ipname.c_str(), ipport, server);
     InitController(macID.c_str());
     InitSysTimer();
 
@@ -112,13 +115,15 @@ int main(int argc, char* argv[]) {
     pNetController->InitProcess();
 //    pSessionClient->Connect();
 //    pSessionClient->Start();
-    pNetController->Start();
+    pSessionServer->Serve();
+    pSessionServer->Start();
+//    pNetController->Start();
 
     pZbBasicCmd->NwkInfoReq();
 
     while (TRUE) {
         if (pHcController != NULL) { pHcController->Process(); }
-        if (pSystemTimer != NULL) { pSystemTimer->Process(); }
+//        if (pSystemTimer != NULL) { pSystemTimer->Process(); }
     }
 
     DesTroyObjects();
@@ -167,9 +172,10 @@ void_t InitZbDriver(const_char_p portname) {
  * @param  None
  * @retval None
  */
-void_t InitNetwrk(const_char_p ipname, int_t ipport) {
+void_t InitNetwrk(const_char_p ipname, int_t ipport, int_t server) {
     pClientSocket = new ClientSock(ipname, ipport);
     pSessionClient = new SClient(pClientSocket);
+    pSessionServer = new SServer(server);
     pClientSocket->SetNonBlocking();
 }
 
@@ -180,7 +186,7 @@ void_t InitNetwrk(const_char_p ipname, int_t ipport) {
  * @retval None
  */
 void_t InitController(const_char_p macID) {
-    pHcController = new HCCtrller(pSessionClient);
+    pHcController = new HCCtrller(pSessionClient, pSessionServer);
     pZbController = new ZbCtrller(pZbDriver);
     pNetController = new NetCtrller(pSessionClient, macID);
 

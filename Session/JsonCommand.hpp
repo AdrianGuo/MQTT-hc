@@ -13,6 +13,8 @@ private:
     u32_t m_dwSrcFlag;
     u32_t m_dwDesFlag;
 
+    u32_t m_dwClientID;
+
     bool_t m_boJsonAvailable;
     Json::Value m_jsonValue;
 
@@ -21,7 +23,8 @@ public:
         NetWork     = 0x0001,
         Database    = 0x0002,
         Zwave       = 0x0004,
-        Zigbee      = 0x0008
+        Zigbee      = 0x0008,
+        Client      = 0x0016
     } Flag;
 
     const static u32_t SrcDefault = Flag::NetWork;
@@ -52,6 +55,9 @@ public:
 
     void_t SetDesFlag(u32_t dwDesFlag);
     u32_t  GetDesFlag() const;
+
+    void_t SetClientID(u32_t dwDesFlag);
+    u32_t  GetClientID() const;
 
 };
 

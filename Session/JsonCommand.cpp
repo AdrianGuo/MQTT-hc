@@ -13,6 +13,7 @@ JsonCommand::JsonCommand() {
     m_strCommand = "";
     m_dwSrcFlag = SrcDefault;
     m_dwDesFlag = DesDefault;
+    m_dwClientID = 0;
     m_boJsonAvailable = FALSE;
     m_jsonValue = 0;
 }
@@ -34,6 +35,7 @@ JsonCommand::JsonCommand(
     m_strCommand = strCommand;
     m_dwSrcFlag = dwSrcFlag;
     m_dwDesFlag = dwDesFlag;
+    m_dwClientID = 0;
     Json::Reader reader;
     m_boJsonAvailable = reader.parse(strJson.element, m_jsonValue, false);
 }
@@ -214,4 +216,28 @@ JsonCommand::SetDesFlag(
 u32_t
 JsonCommand::GetDesFlag() const {
     return m_dwDesFlag;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+JsonCommand::SetClientID(
+    u32_t dwClientID
+) {
+    m_dwClientID = dwClientID;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+u32_t
+JsonCommand::GetClientID() const {
+    return m_dwClientID;
 }
