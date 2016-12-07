@@ -21,28 +21,14 @@
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
-#include <RTimer.hpp>
 #include <unistd.h>
 #include <string.h>
 
-#include "debug.hpp"
-
+#include "ZwCtrller.hpp"
 #include "ZbCtrller.hpp"
-#include "NetCtrller.hpp"
 #include "HCCtrller.hpp"
-
-#include "Functor.hpp"
-
-#include "ClientSock.hpp"
-#include "SClient.hpp"
-#include "SServer.hpp"
-
-#include "Serial.hpp"
-#include "SZbSerial.hpp"
-
-#include "ZbDriver.hpp"
 #include "ZbBasicCmd.hpp"
-#include "ZbZclGlobalCmd.hpp"
+#include "LogPlus.hpp"
 
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -51,20 +37,9 @@
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */
 /******************************************************************************/
-static HCCtrller_p      pHcController       = NULL;
-static ZbCtrller_p      pZbController       = NULL;
-static NetCtrller_p     pNetController      = NULL;
-
-static ClientSock_p     pClientSocket       = NULL;
-static SClient_p        pSessionClient      = NULL;
-static SServer_p        pSessionServer      = NULL;
-
-static Serial_p         pZbSerial           = NULL;
-static SZbSerial_p      pSessionZbSerial    = NULL;
-static ZbDriver_p       pZbDriver           = NULL;
-static ZbBasicCmd_p     pZbBasicCmd           = NULL;
-
-static RTimer_p         pSystemTimer        = NULL;
+static HCCtrller_p  pHcController       = NULL;
+static ZwCtrller_p  pZwController       = NULL;
+static ZbCtrller_p  pZbController       = NULL;
 
 /******************************************************************************/
 /*                              EXPORTED DATA                                 */
@@ -73,133 +48,105 @@ static RTimer_p         pSystemTimer        = NULL;
 /******************************************************************************/
 /*                            PRIVATE FUNCTIONS                               */
 /******************************************************************************/
-void_t InitZbDriver(const_char_p portname);
-void_t InitNetwrk(const_char_p ipname, int_t ipport, int_t server);
-void_t InitController(const_char_p macID);
-void_t InitSysTimer();
-void_t DesTroyObjects();
+void_t
+InitController(
+    const_char_p ipname,
+    const_char_p macId,
+    const_char_p ipport,
+    const_char_p zwcom,
+    const_char_p zbcom
+);
 
 /******************************************************************************/
 /*                            EXPORTED FUNCTIONS                              */
 /******************************************************************************/
 int main(int argc, char* argv[]) {
-    DEBUG1("main");
-
-    if (argc < 6) {
-        DEBUG2("Usage %s <<number>>", argv[0]);
+    if (argc < 5) {
+        LOG_ERROR("Usage %s <<number>>", argv[0]);
         return (-1);
     }
+    Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
+    LOG_DEBUG("start log");
 
-//    system("cp /Lumi/zigbee.db /tmp/zigbee.db");
+    String zwcom, zbcom;
+    String ipname (argv[1]);
+    String ipport (argv[2]);
+    String macId  (argv[3]);
 
-    String ipname(argv[1]);
-    String portname(argv[4]);
-    String macID(argv[5]);
-    int_t ipport = atoi(argv[2]);
-    int_t server = atoi(argv[3]);
-
-    InitZbDriver(portname.c_str());
-    InitNetwrk(ipname.c_str(), ipport, server);
-    InitController(macID.c_str());
-    InitSysTimer();
-
-    if (pZbSerial->Connect()) {
-        DEBUG1("zb-com connected");
-    } else {
-        DEBUG1("zb-com failed");
+    if (argc == 5) {
+        String com1 (argv[4]);
+        if (com1.find("zw=") != String::npos) {
+            zwcom = com1.substr(3, com1.length());
+        } else if (com1.find("zb=") != String::npos) {
+            zbcom = com1.substr(3, com1.length());
+        }
+    } else if (argc == 6) {
+        zwcom = argv[4];
+        zbcom = argv[5];
+        zwcom = zwcom.substr(3, zwcom.length());
+        zbcom = zbcom.substr(3, zbcom.length());
     }
 
-    pZbController->Start();
-    pZbController->IniZbCtrller();
+    InitController(ipname.c_str(),
+                   macId.c_str(),
+                   ipport.c_str(),
+                   zwcom.c_str(),
+                   zbcom.c_str());
 
-    pNetController->InitProcess();
-//    pSessionClient->Connect();
-//    pSessionClient->Start();
-    pSessionServer->Serve();
-    pSessionServer->Start();
-//    pNetController->Start();
+    if (pHcController != NULL) {
+//        pHcController->Debug();
+        pHcController->Connect();
+    }
 
-    pZbBasicCmd->NwkInfoReq();
+    if (pZwController != NULL) {
+//        pZwController->Debug();
+        pZwController->Connect();
+        pZwController->Start();
+        pZwController->Init();
+        ZbBasicCmd::GetInstance()->NwkInfoReq();
+    }
+
+    if (pZbController != NULL) {
+        pZbController->Connect();
+        pZbController->Start();
+        pZbController->IniZbCtrller();
+    }
 
     while (TRUE) {
-        if (pHcController != NULL) { pHcController->Process(); }
-//        if (pSystemTimer != NULL) { pSystemTimer->Process(); }
+        if (pHcController != NULL) {
+            pHcController->Process();
+        }
     }
-
-    DesTroyObjects();
 
     return 0;
 }
 
-
 /**
- * @func   None
+ * @func   InitController
  * @brief  None
  * @param  None
  * @retval None
  */
 void_t
-DesTroyObjects() {
-    DEBUG1("DESTROY OBJECTS");
+InitController(
+    const_char_p ipname,
+    const_char_p macId,
+    const_char_p ipport,
+    const_char_p zwcom,
+    const_char_p zbcom
+) {
+    int_t port = std::stoi(ipport);
+    pHcController = new HCCtrller(ipname, port, macId);
 
-    if (pHcController != NULL) {
-        delete pHcController;
-        pHcController = NULL;
+    if (strcmp(zwcom, "") != 0) {
+        LOG_INFO("init zwave module");
+        pZwController = new ZwCtrller(zwcom);
+        pHcController->AddZwCtrller(pZwController);
     }
 
-    if (pSystemTimer != NULL) {
-        delete pSystemTimer;
-        pSystemTimer = NULL;
+    if (strcmp(zbcom, "") != 0) {
+        LOG_INFO("init zigbee module");
+        pZbController = new ZbCtrller(zbcom);
+        pHcController->AddZbCtrller(pZbController);
     }
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t InitZbDriver(const_char_p portname) {
-    pZbSerial = new Serial(portname, BAUD192);
-    pSessionZbSerial = new SZbSerial(pZbSerial);
-    pZbDriver = ZbDriver::GetInstance(pSessionZbSerial);
-    pZbBasicCmd = ZbBasicCmd::GetInstance();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t InitNetwrk(const_char_p ipname, int_t ipport, int_t server) {
-    pClientSocket = new ClientSock(ipname, ipport);
-    pSessionClient = new SClient(pClientSocket);
-    pSessionServer = new SServer(server);
-    pClientSocket->SetNonBlocking();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t InitController(const_char_p macID) {
-    pHcController = new HCCtrller(pSessionClient, pSessionServer);
-    pZbController = new ZbCtrller(pZbDriver);
-    pNetController = new NetCtrller(pSessionClient, macID);
-
-    pHcController->AddCtrller(pZbController);
-    pHcController->AddCtrller(pNetController);
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t InitSysTimer() {
-    pSystemTimer = RTimer::getTimerInstance();
 }

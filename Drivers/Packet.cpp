@@ -3,7 +3,7 @@
 #include <Packet.hpp>
 
 /**
- * @func
+ * @func   Packet
  * @brief  None
  * @param  None
  * @retval None
@@ -34,7 +34,7 @@ Packet::~Packet() {
 }
 
 /**
- * @func
+ * @func   Push
  * @brief  None
  * @param  None
  * @retval None
@@ -59,14 +59,15 @@ Packet::Push(
 }
 
 /**
- * @func
+ * @func   Push
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
 Packet::Push(
-        u8_p pByBuffer, u32_t dwLength
+    u8_p pByBuffer,
+    u32_t dwLength
 ) {
     if (m_dwCount + dwLength > m_dwLength) {
         m_dwLength = m_dwCount + dwLength;
@@ -86,7 +87,7 @@ Packet::Push(
 }
 
 /**
- * @func
+ * @func   GetBuffer
  * @brief  None
  * @param  None
  * @retval None
@@ -97,7 +98,7 @@ Packet::GetBuffer() {
 }
 
 /**
- * @func
+ * @func   AtPosition
  * @brief  None
  * @param  None
  * @retval None
@@ -110,7 +111,7 @@ Packet::AtPosition(
 }
 
 /**
- * @func
+ * @func   operator[]
  * @brief  None
  * @param  None
  * @retval None
@@ -123,7 +124,7 @@ Packet::operator[](
 }
 
 /**
- * @func
+ * @func   Count
  * @brief  None
  * @param  None
  * @retval None
@@ -134,7 +135,7 @@ Packet::Count() {
 }
 
 /**
- * @func
+ * @func   Length
  * @brief  None
  * @param  None
  * @retval None
@@ -145,7 +146,7 @@ Packet::Length() {
 }
 
 /**
- * @func
+ * @func   IsEmpty
  * @brief  None
  * @param  None
  * @retval None
@@ -156,7 +157,7 @@ Packet::IsEmpty() {
 }
 
 /**
- * @func
+ * @func   IsFull
  * @brief  None
  * @param  None
  * @retval None
@@ -167,7 +168,7 @@ Packet::IsFull() {
 }
 
 /**
- * @func
+ * @func   ResetPacket
  * @brief  None
  * @param  None
  * @retval None

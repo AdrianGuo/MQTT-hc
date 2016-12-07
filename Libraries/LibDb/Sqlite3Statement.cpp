@@ -13,11 +13,11 @@
  *
  ******************************************************************************/
 #include <string.h>
-#include "debug.hpp"
+#include "LogPlus.hpp"
 #include "Sqlite3Statement.hpp"
 
 /**
- * @func
+ * @func   Sqlite3Statement
  * @brief  None
  * @param  None
  * @retval None
@@ -30,8 +30,7 @@ Sqlite3Statement::Sqlite3Statement(
     int_t rc = sqlite3_prepare_v2(m_pDatabase->Connection(), m_strSql.c_str(),
             static_cast<int> (m_strSql.length() + 1), &m_pStmt, 0);
 
-    // DEBUG2("\n%s", m_strSql.c_str());
-    // (rc != SQLITE_OK) ? DEBUG2("pre erro %d", rc) : DEBUG2("pre done %d", rc);
+    if (rc != SQLITE_OK) { LOG_ERROR("database error %d", rc); }
 }
 
 /**
@@ -592,6 +591,5 @@ Sqlite3Statement::count() {
 int_t
 Sqlite3Statement::execute() {
     int_t rc = sqlite3_step(m_pStmt);
-    // (rc != SQLITE_DONE) ? DEBUG2("exe erro %d", rc) : DEBUG2("exe done %d", rc);
     return rc;
 }

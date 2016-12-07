@@ -1,4 +1,4 @@
-#include "debug.hpp"
+#include "LogPlus.hpp"
 #include "Database.hpp"
 
 /**
@@ -14,7 +14,7 @@ Database::Database(
                                SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                                nullptr);
 
-    if (rc != SQLITE_OK) { DEBUG1("CAN'T CONNECT DATABASE"); }
+    if (rc != SQLITE_OK) { LOG_ERROR("can't connect db"); }
 }
 
 /**

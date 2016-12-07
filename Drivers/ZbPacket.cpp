@@ -9,10 +9,12 @@
 
 #define INDEX_HEADER                0
 #define INDEX_LENGTH                1
-#define INDEX_SEQ                  2
+#define INDEX_SEQ                   2
 #define INDEX_COMMAND               3
 #define INDEX_PAYLOAD               4
+
 u8_t ZbPacket::m_bySeqOfFrame = 0;
+
 /**
  * @func
  * @brief  None

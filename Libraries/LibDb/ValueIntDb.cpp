@@ -55,12 +55,11 @@ ValueIntDb&
 ValueIntDb::operator= (
     const ValueIntDb& rhs
 ) {
-    m_iValue = rhs.GetValue();
-    SetColumnName(rhs.GetColumnName());
-    SetForeignKeyName(rhs.GetForeignKeyName());
-    SetForeignKeyTable(rhs.GetForeignKeyTable());
-    SetFlag(rhs.GetFlag());
-
+    m_iValue = rhs.m_iValue;
+    m_strColumnName = rhs.m_strColumnName;
+    m_strForeignKeyName  = rhs.m_strForeignKeyName;
+    m_strForeignKeyTable = rhs.m_strForeignKeyTable;
+    m_dwFlags = rhs.m_dwFlags;
     SetChange();
 
     return *this;
@@ -136,11 +135,11 @@ bool_t
 ValueIntDb::operator== (
     const ValueIntDb& rhs
 ) const {
-    return (m_iValue == rhs.GetValue()) &&
-           (GetColumnName() == rhs.GetColumnName()) &&
-           (GetForeignKeyName() == rhs.GetForeignKeyName()) &&
-           (GetForeignKeyTable() == rhs.GetForeignKeyTable()) &&
-           (GetFlag() == rhs.GetFlag());
+    return (m_iValue == rhs.m_iValue) &&
+           (m_strColumnName == rhs.m_strColumnName) &&
+           (m_strForeignKeyName == rhs.m_strForeignKeyName) &&
+           (m_strForeignKeyTable == rhs.m_strForeignKeyTable) &&
+           (m_dwFlags == rhs.m_dwFlags);
 }
 
 /**
@@ -166,7 +165,7 @@ bool_t
 ValueIntDb::operator!= (
     const ValueIntDb& rhs
 ) const {
-    return m_iValue != rhs.GetValue();
+    return m_iValue != rhs.m_iValue;
 }
 
 /**
@@ -192,7 +191,7 @@ bool_t
 ValueIntDb::operator>  (
     const ValueIntDb& rhs
 ) const {
-    return m_iValue > rhs.GetValue();
+    return m_iValue > rhs.m_iValue;
 }
 
 /**
@@ -218,7 +217,7 @@ bool_t
 ValueIntDb::operator>= (
     const ValueIntDb& rhs
 ) const {
-    return m_iValue >= rhs.GetValue();
+    return m_iValue >= rhs.m_iValue;
 }
 
 /**
@@ -244,7 +243,7 @@ bool_t
 ValueIntDb::operator<  (
     const ValueIntDb& rhs
 ) const {
-    return m_iValue < rhs.GetValue();
+    return m_iValue < rhs.m_iValue;
 }
 
 /**

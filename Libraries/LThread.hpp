@@ -16,7 +16,7 @@ private:
     static u8_t m_sbyIndexThread;
     u8_t m_byThreadIndex;
     bool_t m_boIsJoinale;
-    thread_t m_threadID;
+    thread_t m_threadId;
     locker_p m_pThreadLocker;
     void_p m_pArguments;
     threadFunctor_p m_pThreadFunctor;
@@ -36,7 +36,7 @@ public:
     bool_t Detach();
 
     u8_t     GetThreadIndex();
-    thread_t GetThreadID();
+    thread_t GetThreadId();
 
     bool_t SetTimeOut(u32_t dwTimeout);
     bool_t CancelTimeout();

@@ -27,6 +27,7 @@ typedef timeval_t*                          timeval_p;
 
 typedef Functor3_t(u8_p, u32_t, int_t)      SServerFunctor_t;
 typedef SServerFunctor_t*                   SServerFunctor_p;
+
 typedef Map<int_t,Client_t>                 MapClients_t;
 typedef Map<int_t,Client_t>*                MapClients_p;
 
@@ -37,7 +38,7 @@ private:
 
     fd_set m_ReadFds;
     fd_set m_WriteFds;
-    int_t iNfds;
+    int_t m_idwNfds;
 
     bool_t m_boIsServed;
     bool_t m_boIsStarted;
@@ -45,7 +46,6 @@ private:
     MapClients_t m_mapClients;
     sockaddr_p m_pSockAddr;
 
-    RTimer_p m_pServerSockTimer;
     SServerFunctor_p m_pSServerFunctor;
     Locker_p m_pServerSockLocker;
 
@@ -55,6 +55,7 @@ private:
     threadFunctor_t m_MessageThreadFunctor;
     LThread_p m_pMessageThread;
 
+    RTimer_p m_pServerSockTimer;
     timerFunctor_t m_keepaliveTimerFunctor;
     int_t m_iKeepAliveTimerHandle;
 
@@ -76,7 +77,7 @@ public:
 
     void_t PushPacket(Client_p pClient, Packet_p pOutgoing);
 
-    void_t HandleAliveState(void_p pBuffer);
+    void_t HandleKeepAliveProcess(void_p pBuffer);
 };
 
 typedef ServerSock ServerSock_t;

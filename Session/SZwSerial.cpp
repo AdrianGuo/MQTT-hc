@@ -1,12 +1,6 @@
-#include "debug.hpp"
+#include "LogPlus.hpp"
 #include "ZwSerialAPI.hpp"
 #include "SZwSerial.hpp"
-
-#ifndef DEBUG_SZWERIAL
-#define debug_szwerial(x)
-#else /* DEBUG_SZWERIAL */
-#define debug_szwerial(x)               DEBUG1(x)
-#endif /* DEBUG_SZWERIAL */
 
 #define MAX_FRAME_SIZE                  (88)
 #define MIN_FRAME_SIZE                  (3)
@@ -14,7 +8,6 @@
 #define MAX_RETRIES                     3
 #define WAIT_ACK1                       1000
 #define WAIT_ACK2                       1000
-
 
 /**
  * @func
@@ -24,43 +17,18 @@
  */
 SZwSerial::SZwSerial(
     const_char_p cPortName
-) {
+) : m_Serial (cPortName, BAUD1152) {
     m_enuRecvState = FRS_SOF_HUNT;
     m_boIsACKNeeded = FALSE;
     m_boIsReceivedCAN = FALSE;
     m_bySendAttempts = 0;
 
-    m_pSerial = new Serial(cPortName);
     m_strNamePort = cPortName;
     m_pZwavePacket = NULL;
     m_pDriverRecvFunctor = NULL;
 
     m_SerialSendFunctor = makeFunctor((SerialFunctor_p)NULL, *this, &SZwSerial::BufferToZwPacket);
-    SZwSerialSendFunctor();
-
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-SZwSerial::SZwSerial(
-    Serial_p pSerial
-) {
-    m_enuRecvState = FRS_SOF_HUNT;
-    m_boIsACKNeeded = FALSE;
-    m_boIsReceivedCAN = FALSE;
-    m_bySendAttempts = 0;
-
-    m_pSerial = pSerial;
-    m_strNamePort = pSerial->GetNamePort();
-    m_pZwavePacket = NULL;
-    m_pDriverRecvFunctor = NULL;
-
-    m_SerialSendFunctor = makeFunctor((SerialFunctor_p)NULL, *this, &SZwSerial::BufferToZwPacket);
-    SZwSerialSendFunctor();
+    m_Serial.SerialRecvFunctor(&m_SerialSendFunctor);
 }
 
 /**
@@ -70,16 +38,6 @@ SZwSerial::SZwSerial(
  * @retval None
  */
 SZwSerial::~SZwSerial() {
-    if (m_pDriverRecvFunctor != NULL) {
-        delete m_pDriverRecvFunctor;
-        m_pDriverRecvFunctor = NULL;
-    }
-
-    if (m_pSerial != NULL) {
-        delete m_pSerial;
-        m_pSerial = NULL;
-    }
-
     if (m_pZwavePacket != NULL) {
         delete m_pZwavePacket;
         m_pZwavePacket = NULL;
@@ -120,25 +78,9 @@ SZwSerial::SZwSerialRecvFunctor(
  * @param  None
  * @retval None
  */
-void_t
-SZwSerial::SZwSerialSendFunctor(){
-    if (m_pSerial != NULL) {
-        m_pSerial->SerialRecvFunctor(&m_SerialSendFunctor);
-    }
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
 bool_t
 SZwSerial::Start() {
-    if (m_pSerial != NULL) {
-        return m_pSerial->Start();
-    }
-    return FALSE;
+    return m_Serial.Start();
 }
 
 /**
@@ -149,10 +91,7 @@ SZwSerial::Start() {
  */
 bool_t
 SZwSerial::Connect() {
-    if (m_pSerial != NULL) {
-        return m_pSerial->Connect();
-    }
-    return FALSE;
+    return m_Serial.Connect();
 }
 
 /**
@@ -163,10 +102,7 @@ SZwSerial::Connect() {
  */
 bool_t
 SZwSerial::Close() {
-    if (m_pSerial != NULL) {
-        return m_pSerial->Close();
-    }
-    return FALSE;
+    return m_Serial.Close();
 }
 
 /**
@@ -214,7 +150,7 @@ SZwSerial::ParseData(
 
     case FRS_LENGTH:
         if ((byData < MIN_FRAME_SIZE) || (byData > MAX_FRAME_SIZE)) {
-            DEBUG2("len error");
+            LOG_ERROR("len error");
             m_enuRecvState = FRS_SOF_HUNT;
         } else {
             m_pZwavePacket = new ZwPacket(byData - 3);
@@ -234,7 +170,7 @@ SZwSerial::ParseData(
         break;
 
     case FRS_COMMAND:
-        m_pZwavePacket->SetFunctionID(byData);
+        m_pZwavePacket->SetFunctionId(byData);
         if (m_pZwavePacket->IsFull()) {
             m_enuRecvState = FRS_CHECKSUM;
         } else {
@@ -252,13 +188,13 @@ SZwSerial::ParseData(
 
     case FRS_CHECKSUM:
         if (m_pZwavePacket->IsChecksumValid(byData)) {
-            m_pSerial->PushData(ACK);
+            m_Serial.PushData(ACK);
             if (m_pDriverRecvFunctor != NULL) {
                 m_pDriverRecvFunctor->operator ()(m_pZwavePacket);
                 m_pZwavePacket = NULL;
             }
         } else {
-            m_pSerial->PushData(NAK);
+            m_Serial.PushData(NAK);
             delete m_pZwavePacket;
             m_pZwavePacket = NULL;
         }
@@ -298,11 +234,11 @@ SZwSerial::SendZwPacket(
 ) {
     if (m_bySendAttempts < MAX_RETRIES) {
         m_ACKSignal.Reset();
-        m_pSerial->PushPacket(pZwPacket->GetFullPacket());
+        m_Serial.PushPacket(pZwPacket->GetFullPacket());
         if (!m_ACKSignal.Wait(WAIT_ACK1)) {
-            m_pSerial->PushPacket(pZwPacket->GetFullPacket());
+            m_Serial.PushPacket(pZwPacket->GetFullPacket());
             if (!m_ACKSignal.Wait(WAIT_ACK2)) {
-                m_pSerial->PushPacket(pZwPacket->GetFullPacket());
+                m_Serial.PushPacket(pZwPacket->GetFullPacket());
             } else if (m_boIsReceivedCAN) {
                 m_bySendAttempts++;
                 SendZwPacket(pZwPacket);

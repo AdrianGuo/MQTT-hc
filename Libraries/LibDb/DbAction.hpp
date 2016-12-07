@@ -639,7 +639,6 @@ inline void_t
 DbLoadObject<C>::Config(
     C& object
 ) {
-//    m_pStatement->reset();
     m_pStatement->execute();
 
     m_dwColumn = 0;

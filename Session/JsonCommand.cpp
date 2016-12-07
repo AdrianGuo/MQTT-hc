@@ -8,107 +8,72 @@
  * @param  None
  * @retval None
  */
-JsonCommand::JsonCommand() {
-    m_strCmdClass = "";
-    m_strCommand = "";
-    m_dwSrcFlag = SrcDefault;
-    m_dwDesFlag = DesDefault;
-    m_dwClientID = 0;
-    m_boJsonAvailable = FALSE;
-    m_jsonValue = 0;
-}
+//JsonCommand::JsonCommand() {
+////    m_strCmdClass = "";
+////    m_strCommand = "";
+//    m_dwSrcFlag = SrcDefault;
+//    m_dwDesFlag = DesDefault;
+//    m_boJsonAvailable = FALSE;
+//    m_jsonValue = 0;
+//}
 
 /**
- * @func
+ * @func   JsonCommand
  * @brief  None
  * @param  None
  * @retval None
  */
 JsonCommand::JsonCommand(
-    String strCmdClass,
-    String strCommand,
+    String strFullCommand,
     String strJson,
-    u32_t  dwSrcFlag,
-    u32_t  dwDesFlag
-) {
-    m_strCmdClass = strCmdClass;
-    m_strCommand = strCommand;
-    m_dwSrcFlag = dwSrcFlag;
-    m_dwDesFlag = dwDesFlag;
-    m_dwClientID = 0;
+    u32_t dwSrcFlag,
+    u32_t dwDesFlag
+) : m_strFullCommand (strFullCommand),
+    m_dwSrcFlag (dwSrcFlag),
+    m_dwDesFlag (dwDesFlag),
+    m_dwClientId (0){
     Json::Reader reader;
     m_boJsonAvailable = reader.parse(strJson.element, m_jsonValue, false);
+
 }
 
 /**
- * @func
+ * @func   ~JsonCommand
  * @brief  None
  * @param  None
  * @retval None
  */
-JsonCommand::~JsonCommand() {}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-JsonCommand::SetCmdClass(
-    String strCmdClass
-) {
-    m_strCmdClass = strCmdClass;
+JsonCommand::~JsonCommand() {
+    m_strFullCommand.clear();
 }
 
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-String
-JsonCommand::GetCmdClass() const {
-    return m_strCmdClass;
-}
 
 /**
- * @func
+ * @func   SetFullCommand
  * @brief  None
  * @param  None
  * @retval None
  */
 void_t
-JsonCommand::SetCommand(
-    String strCmdClass
+JsonCommand::SetFullCommand(
+    String strFullCommand
 ) {
-    m_strCommand = strCmdClass;
+    m_strFullCommand = strFullCommand;
 }
 
 /**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-String
-JsonCommand::GetCommand() const {
-    return m_strCommand;
-}
-
-/**
- * @func
+ * @func   GetFullCommand
  * @brief  None
  * @param  None
  * @retval None
  */
 String
 JsonCommand::GetFullCommand() const {
-    return m_strCmdClass + "=" + m_strCommand;
+    return m_strFullCommand;
 }
 
 /**
- * @func
+ * @func   SetJsonObject
  * @brief  None
  * @param  None
  * @retval None
@@ -122,7 +87,7 @@ JsonCommand::SetJsonObject(
 }
 
 /**
- * @func
+ * @func   SetJsonObject
  * @brief  None
  * @param  None
  * @retval None
@@ -136,7 +101,7 @@ JsonCommand::SetJsonObject(
 }
 
 /**
- * @func
+ * @func   IsJsonAvailable
  * @brief  None
  * @param  None
  * @retval None
@@ -147,7 +112,7 @@ JsonCommand::IsJsonAvailable() {
 }
 
 /**
- * @func
+ * @func   GetJsonOjbect
  * @brief  None
  * @param  None
  * @retval None
@@ -158,7 +123,7 @@ JsonCommand::GetJsonOjbect() {
 }
 
 /**
- * @func
+ * @func   GetJsonValue
  * @brief  None
  * @param  None
  * @retval None
@@ -171,7 +136,7 @@ JsonCommand::GetJsonValue() {
 }
 
 /**
- * @func
+ * @func   SetSrcFlag
  * @brief  None
  * @param  None
  * @retval None
@@ -184,7 +149,7 @@ JsonCommand::SetSrcFlag(
 }
 
 /**
- * @func
+ * @func   GetSrcFlag
  * @brief  None
  * @param  None
  * @retval None
@@ -195,7 +160,7 @@ JsonCommand::GetSrcFlag() const {
 }
 
 /**
- * @func
+ * @func   SetDesFlag
  * @brief  None
  * @param  None
  * @retval None
@@ -208,7 +173,7 @@ JsonCommand::SetDesFlag(
 }
 
 /**
- * @func
+ * @func   GetDesFlag
  * @brief  None
  * @param  None
  * @retval None
@@ -225,10 +190,10 @@ JsonCommand::GetDesFlag() const {
  * @retval None
  */
 void_t
-JsonCommand::SetClientID(
+JsonCommand::SetClientId(
     u32_t dwClientID
 ) {
-    m_dwClientID = dwClientID;
+    m_dwClientId = dwClientID;
 }
 
 /**
@@ -238,6 +203,6 @@ JsonCommand::SetClientID(
  * @retval None
  */
 u32_t
-JsonCommand::GetClientID() const {
-    return m_dwClientID;
+JsonCommand::GetClientId() const {
+    return m_dwClientId;
 }

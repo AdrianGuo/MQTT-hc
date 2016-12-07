@@ -1,19 +1,13 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <errno.h>
-#include "debug.hpp"
+#include "LogPlus.hpp"
 #include "Event.hpp"
-
-#ifndef DEBUG_EVENT
-#define debug_event(x)
-#else /* DEBUG_EVENT */
-#define debug_event(x)              DEBUG1(x)
-#endif /* DEBUG_EVENT */
 
 #define EVENT_SUCCESS               (0)
 
 /**
- * @func
+ * @func   Event
  * @brief  None
  * @param  None
  * @retval None
@@ -24,12 +18,12 @@ Event::Event() : Locker() {
     m_boManualReset = TRUE;
     m_pEvent = new event_t();
     if (pthread_cond_init(m_pEvent, NULL) != EVENT_SUCCESS) {
-        debug_event("init fail");
+        LOG_ERROR("init fail");
     }
 }
 
 /**
- * @func
+ * @func   ~Event
  * @brief  None
  * @param  None
  * @retval None
@@ -43,7 +37,7 @@ Event::~Event() {
 }
 
 /**
- * @func
+ * @func   Set
  * @brief  None
  * @param  None
  * @retval None
@@ -76,7 +70,7 @@ Event::Set() {
 }
 
 /**
- * @func
+ * @func   Reset
  * @brief  None
  * @param  None
  * @retval None
@@ -88,7 +82,7 @@ void_t Event::Reset() {
 }
 
 /**
- * @func
+ * @func   Wait
  * @brief  None
  * @param  None
  * @retval None
@@ -162,11 +156,12 @@ Event::Wait(
 }
 
 /**
- * @func
+ * @func   IsSignalled
  * @brief  None
  * @param  None
  * @retval None
  */
-bool_t Event::IsSignalled() {
+bool_t
+Event::IsSignalled() {
     return m_boIsSignaled;
 }

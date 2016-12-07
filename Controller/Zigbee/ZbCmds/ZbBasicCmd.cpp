@@ -22,7 +22,7 @@ ZbBasicCmd::HCError(
     ZbPacket_p pZbPacket = new ZbPacket(2);
     pZbPacket->Push(byError);
     pZbPacket->Push(bySeq);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 
@@ -43,7 +43,7 @@ ZbBasicCmd::NwkInit(){
     u8_t byChannel = 11;
     pZbPacket->Push(pbyPanID,2);
     pZbPacket->Push(byChannel);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 
@@ -51,7 +51,7 @@ void_t
 ZbBasicCmd::NwkInfoReq(){
     ZbPacket_p pZbPacket = new ZbPacket();
     pZbPacket->SetCmdID(NWK_INFO_REQ);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 
@@ -81,14 +81,14 @@ void_t
 ZbBasicCmd::JoinNwkAllow(
     ZbPacket_p pZbPacket
 ){
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }
 
 void_t
 ZbBasicCmd::JoinNwkInfoReq(){
     ZbPacket_p pZbPacket = new ZbPacket();
     pZbPacket->SetCmdID(NWK_JOIN_INFO_REQ);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 
@@ -111,7 +111,7 @@ ZbBasicCmd::ResetDevice(
     pZbPacket->Push(wNwk >> 8);
     pZbPacket->Push(wNwk | 0xFF);
     pZbPacket->Push(byTime);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 

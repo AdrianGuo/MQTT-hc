@@ -4,14 +4,8 @@
 #include <sys/signal.h>
 #include <sys/select.h>
 
-#include "debug.hpp"
+#include "LogPlus.hpp"
 #include "Serial.hpp"
-
-#ifndef DEBUG_SERIAL
-#define debug_serial(x)
-#else /* DEBUG_SERIAL */
-#define debug_serial(x)             DEBUG1(x)
-#endif /* DEBUG_SERIAL */
 
 #define BUFFER_SERIAL_SIZE          1024
 
@@ -40,12 +34,13 @@ Serial::Serial(
 
     m_pSerialLocker = new Locker();
     m_pSerialThread = new LThread();
-    m_SerialthreadFunctor = makeFunctor((threadFunctor_p) NULL, *this, &Serial::SerialThreadProc);
+    m_SerialthreadFunctor =
+    makeFunctor((threadFunctor_p) NULL, *this, &Serial::SerialThreadProc);
     m_pSerialThread->RegThreadFunctor(&m_SerialthreadFunctor);
 }
 
 /**
- * @func
+ * @func   ~Serial
  * @brief  None
  * @param  None
  * @retval None
@@ -68,7 +63,7 @@ Serial::~Serial() {
 }
 
 /**
- * @func
+ * @func   SerialThreadProc
  * @brief  None
  * @param  None
  * @retval None
@@ -88,8 +83,8 @@ Serial::SerialThreadProc(
         if (IsConnected() && IsReadable(200)) {
             int_t iLength = read(m_idwPortfd, m_pByBuffer, BUFFER_SERIAL_SIZE);
             if ((m_pSerialFunctor != NULL) && (iLength > 0)) {
-//                DEBUG1("RECEIVE PACKET");
-                m_pSerialFunctor->operator ()(m_pByBuffer, iLength);
+//                LOG_INFO("receive packet");
+                (*m_pSerialFunctor)(m_pByBuffer, iLength);
             }
         }
 
@@ -104,19 +99,15 @@ Serial::SerialThreadProc(
             if (pSendPacket != NULL) {
                 int_t iResult = 0;
                 if ((iResult = write(m_idwPortfd, pSendPacket->GetBuffer(), pSendPacket->Length())) == SERIAL_ERROR) {
-//                    DEBUG1("   SEND PACKET FAIL");
+                    LOG_ERROR("send packet fail");
                 } else {
-                    printf("Sent packet: ");
-                    for(int i = 0; i < pSendPacket->Length(); i++) {
-                        printf("%02X ", pSendPacket->GetBuffer()[i]);
-                    }
-                    printf("\n");
 //                    DEBUG1("   SEND PACKET");
                 }
                 delete pSendPacket;
                 pSendPacket = NULL;
             }
         }
+        usleep(50);
     }
     m_pSerialLocker->UnLock();
 
@@ -131,7 +122,7 @@ Serial::SerialThreadProc(
 }
 
 /**
- * @func
+ * @func   SerialRecvFunctor
  * @brief  None
  * @param  None
  * @retval None
@@ -148,7 +139,7 @@ Serial::SerialRecvFunctor(
 }
 
 /**
- * @func
+ * @func   GetNamePort
  * @brief  None
  * @param  None
  * @retval None
@@ -159,7 +150,7 @@ Serial::GetNamePort() {
 }
 
 /**
- * @func
+ * @func   SetNamePort
  * @brief  None
  * @param  None
  * @retval None
@@ -172,7 +163,7 @@ Serial::SetNamePort(
 }
 
 /**
- * @func
+ * @func   GetBaudRate
  * @brief  None
  * @param  None
  * @retval None
@@ -183,7 +174,7 @@ Serial::GetBaudRate() {
 }
 
 /**
- * @func
+ * @func   SetBaudRate
  * @brief  None
  * @param  None
  * @retval None
@@ -196,7 +187,7 @@ Serial::SetBaudRate(
 }
 
 /**
- * @func
+ * @func   Connect
  * @brief  None
  * @param  None
  * @retval None
@@ -208,7 +199,7 @@ Serial::Connect() {
     m_pSerialLocker->Lock();
     if (!m_boIsConnected) {
         if ((m_idwPortfd = open(m_strNamePort.data(), O_RDWR | O_NOCTTY | O_NONBLOCK)) == SERIAL_ERROR) {
-            debug_serial("connect fail");
+            LOG_ERROR("connect fail");
             boRetval = FALSE;
         } else {
             m_boIsConnected = TRUE;
@@ -243,10 +234,10 @@ Serial::Connect() {
             newtio.c_cc[VTIME] = 5; // 0.5 seconds
 
             tcsetattr(m_idwPortfd, TCSAFLUSH, &newtio);
-            debug_serial("connect success");
+            LOG_INFO("connect success");
         }
     } else {
-        debug_serial("port's opened");
+        LOG_INFO("port's opened");
         boRetval = FALSE;
     }
     m_pSerialLocker->UnLock();
@@ -254,7 +245,7 @@ Serial::Connect() {
 }
 
 /**
- * @func
+ * @func   Close
  * @brief  None
  * @param  None
  * @retval None
@@ -272,7 +263,7 @@ Serial::Close() {
 }
 
 /**
- * @func
+ * @func   IsClosing
  * @brief  None
  * @param  None
  * @retval None
@@ -283,7 +274,7 @@ Serial::IsClosing() {
 }
 
 /**
- * @func
+ * @func   IsConnected
  * @brief  None
  * @param  None
  * @retval None
@@ -294,7 +285,7 @@ Serial::IsConnected() {
 }
 
 /**
- * @func
+ * @func   IsWriteable
  * @brief  None
  * @param  None
  * @retval None
@@ -323,7 +314,7 @@ Serial::IsWriteable(
     iResult = select(m_idwPortfd + 1, NULL, &Writefd, NULL, &timeout);
 
     if (iResult == -1) {
-//        debug_serial("select fail");
+        LOG_ERROR("select fail");
     } else if (iResult == 0) {
 //        debug_serial("timeout");
     } else {
@@ -337,7 +328,7 @@ Serial::IsWriteable(
 }
 
 /**
- * @func
+ * @func   IsReadable
  * @brief  None
  * @param  None
  * @retval None
@@ -365,7 +356,7 @@ Serial::IsReadable(
     iResult = select(m_idwPortfd + 1, &readfd, NULL, NULL, &timeout);
 
     if (iResult == -1) {
-//        debug_serial("select fail");
+        LOG_ERROR("select fail");
     } else if (iResult == 0) {
 //        debug_serial("timeout");
     } else {
@@ -379,7 +370,7 @@ Serial::IsReadable(
 }
 
 /**
- * @func
+ * @func   Start
  * @brief  None
  * @param  None
  * @retval None
@@ -397,7 +388,7 @@ Serial::Start() {
 }
 
 /**
- * @func
+ * @func   PushData
  * @brief  None
  * @param  None
  * @retval None
@@ -412,7 +403,7 @@ Serial::PushData(
 }
 
 /**
- * @func
+ * @func   PushBuffer
  * @brief  None
  * @param  None
  * @retval None
@@ -430,7 +421,7 @@ Serial::PushBuffer(
 }
 
 /**
- * @func
+ * @func   PushPacket
  * @brief  None
  * @param  None
  * @retval None

@@ -42,9 +42,8 @@ private:
     threadFunctor_t m_ClientSockThreadFunctor;
     LThread_p m_pClientSockThread;
 public:
-    ClientSock();
     ClientSock(const_char_p pChostname, int_t idwPort);
-    ~ClientSock();
+    virtual ~ClientSock();
     
     void_p ClientSockThreadProc(void_p pBuffer);
 

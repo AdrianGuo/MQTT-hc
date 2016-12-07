@@ -7,6 +7,7 @@
 
 #include <ZbDriver.hpp>
 #include <debug.hpp>
+#include <LogPlus.hpp>
 #include <zcl.hpp>
 #include <zdo.hpp>
 #include <zcl_lumi.hpp>
@@ -83,7 +84,7 @@ ZbZdoCmd::ProcRecvMessage(
             break;
 
         default:
-            DEBUG1("ZDO COMMAND NOT FOUND!");
+            LOG_WARN("ZDO COMMAND NOT FOUND!");
             break;
     }
 }
@@ -103,7 +104,7 @@ ZbZdoCmd::DeviceAnnounce(
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;
 
-    DEBUG2("Device %d announce.", wNwk);
+    LOG_INFO("Device %d announce.", wNwk);
 
     //Not request ActiveEndpoint to device that has been rejoined.
     u8_t byCheck = 0;
@@ -165,7 +166,6 @@ void_t
 ZbZdoCmd::ActiveEndpointRequest(
         u16_t wNwk
 ) {
-    DEBUG2("ActiveEndpointRequest device %d .", wNwk);
     ZbPacket_p pZbPacket = new ZbPacket(8);
     pZbPacket->SetCmdID(ZDO_CMD_REQ);
     pZbPacket->Push(wNwk >> 8);
@@ -176,7 +176,7 @@ ZbZdoCmd::ActiveEndpointRequest(
     pZbPacket->Push(0x00);
     pZbPacket->Push(wNwk & 0xFF);
     pZbPacket->Push(wNwk >> 8);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 
@@ -246,7 +246,7 @@ ZbZdoCmd::ActiveEndpointResponse(
     case ZDO_STATUS_INV_REQUESTTYPE:
     case ZDO_STATUS_DEVICE_NOT_FOUND:
     default:
-        DEBUG1("NO DESCRIPTOR|INV REQUEST TYPE|DEVICE NOT FOUND!");
+        LOG_WARN("NO DESCRIPTOR|INV REQUEST TYPE|DEVICE NOT FOUND!");
         break;
     }
 }
@@ -273,7 +273,7 @@ ZbZdoCmd::NodeDescriptionRequest(
     pZbPacket->Push(wNwk & 0xFF);
     pZbPacket->Push(wNwk >> 8);
     pZbPacket->Push(device->Endpoint.GetValue());
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
 
@@ -295,7 +295,7 @@ ZbZdoCmd::NodeDescriptionResponse(
     switch (byStatus) {
     case ZDO_STATUS_SUCCESS: {
         if (byLeng < 5) {
-            DEBUG1("NONFORMAT RSP!");
+            LOG_WARN("NONFORMAT RSP!");
             break;
         }
         u8_t byEndpoint = *pbyBuffer++;
@@ -323,10 +323,11 @@ ZbZdoCmd::NodeDescriptionResponse(
         s_mapEPInfor[wNwk].byEPCount++;
         if (s_mapEPInfor[wNwk].byEPCount == s_mapEPInfor[wNwk].byTotalEP) {
             Device_t device;
+            Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
             bool_t boCheck = FALSE;
-            for(int_t i = 0; i < s_mapEPInfor[wNwk].byTotalEP; i++ ) {
-                device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(i + 1);
-                if((device.Modify() != NULL) && device.Modify()->IsInterested()) {
+            for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                if((*it).Modify()->IsInterested()) {
+                    device = *it;
                     boCheck = TRUE;
                     break;
                 }
@@ -347,7 +348,7 @@ ZbZdoCmd::NodeDescriptionResponse(
     case ZDO_STATUS_INV_REQUESTTYPE:
     case ZDO_STATUS_DEVICE_NOT_FOUND:
     default:
-        DEBUG1("INVALID EP|NOT ACTIVE|NO DESCRIPTOR|INV REQUESTTYPE|DEVICE NOT FOUND!");
+        LOG_WARN("INVALID EP|NOT ACTIVE|NO DESCRIPTOR|INV REQUESTTYPE|DEVICE NOT FOUND!");
         break;
     }
 }
@@ -376,7 +377,7 @@ ZbZdoCmd::LeaveRequest(
     u8_t byMAC[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; //MC will add MAC.
     pZbPacket->Push(byMAC, 8);
     pZbPacket->Push(0b00000011);
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
@@ -405,7 +406,7 @@ ZbZdoCmd::LeaveResponse(
     u8_t byStatus = *pbyBuffer;
 
     if (byStatus == ZDO_STATUS_SUCCESS) {
-        DEBUG2("Device %d left." ,wNwk);
+        LOG_INFO("Device %d left." ,wNwk);
         if (s_mapEPInfor.find(wNwk) != s_mapEPInfor.end()) {
             s_mapEPInfor.erase(wNwk);
         }

@@ -5,22 +5,23 @@
 #include "typedefs.h"
 
 typedef pthread_mutex_t locker_t;
-typedef locker_t* locker_p;
+typedef locker_t*       locker_p;
 
 class Locker {
 protected:
-    bool_t m_isLocked;
+    bool_t m_boIsLocked;
+    i32_t  m_iRefCount;
     locker_p m_pLocker;
 public:
     Locker();
     ~Locker();
 
-    bool_t Lock();
-    bool_t UnLock();
-    bool_t TryLock();
-    bool_t IsLocked();
+    bool_t   Lock();
+    bool_t   UnLock();
+    bool_t   TryLock();
+    bool_t   IsLocked();
+    void_t   DelLocker();
     locker_p GetLocker();
-    void_t DelLocker();
 };
 
 typedef Locker  Locker_t;

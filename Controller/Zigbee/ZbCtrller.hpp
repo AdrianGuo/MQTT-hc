@@ -12,7 +12,6 @@
 #include "JsonCommand.hpp"
 #include "ZbMessage.hpp"
 #include "ICtrller.hpp"
-#include "ValueJsonChecker.hpp"
 #include "LThread.hpp"
 #include "Locker.hpp"
 #include "Vector.hpp"
@@ -31,14 +30,13 @@ typedef ProcZbCmdFunctor_t*         ProcZbCmdFunctor_p;
 class ZbCtrller : public ICtrller {
 private:
     Queue<ZbMessage_p>  m_queSendZbMsg;
-    ValueJsonChecker    m_valueJsonChecker;
 
     ZbDriver_p          m_pZbDriver;
     LThread_p           m_pZbCtrllerThread;
     Locker_p            m_pZbCtrllerLocker;
-    ICtrllerFunctor_p   m_pICtrllerFunctor;
+    CtrllerFunctor_p    m_pCtrllerFunctor;
 
-    JsonSendZigbeeSession_p m_pJsonZigbeeSession;
+    JsonRecvZigbeeSession_p m_pJsonRecvSession;
     threadFunctor_t     m_ZbCtrllerThreadFunctor;
     ZbCtrllerFunctor_t  m_ZbCtrllerFunctor;
     Event_t             m_evWaitMsgSignal;
@@ -50,7 +48,6 @@ private:
     MapProcFunctor      m_mapProcFunctor;
 
     void_t RegisterHandler(String strJsonCommand, HandlerZbCmdFunctor_t funcTor);
-    void_t ProcessHandler(JsonCommand_p pJsonCommand);
     void_t RegisterProcess(ZbMessage::Command ZbCommand, ProcZbCmdFunctor_t funcTor);
     void_t ProcessProcess(ZbMessage_p pZbMessage);
 
@@ -62,8 +59,6 @@ private:
     void_t HandlerCmdReset(JsonCommand_p pJsonCommand);
     void_t HandlerCmdRestart(JsonCommand_p pJsonCommand);
 
-    void_t HandlerCmdManualRemove(JsonCommand_p pJsonCommand);
-
     void_t ProcCmdAdd(ZbMessage_p pZbMessage);
     void_t ProcCmdDel(ZbMessage_p pZbMessage);
     void_t ProcCmdSet(ZbMessage_p pZbMessage);
@@ -72,23 +67,23 @@ private:
     void_t ProcCmdRestart(ZbMessage_p pZbMessage);
     void_t ProcCmdInfo(ZbMessage_p pZbMessage);
 
-    void_t ProcCmdManualRemove(ZbMessage_p pZbMessage);
+    void_t RegisterZbSession();
+    void_t RegisterHandler();
+    void_t RegisterProcess();
 
-    void_t RegisterJsonMessageInform();
 public:
-    ZbCtrller(ZbDriver_p pZbDriver = NULL);
+    ZbCtrller(const_char_p chPortname);
     virtual ~ZbCtrller();
 
-    virtual void_t Process();
+    void_t CtrllerSendFunctor();
+    void_t CtrllerRecvFunctor(CtrllerFunctor_p pRecvFunctor);
 
-    void_t ZbCtrllerSendFunctor();
-    bool_t ICtrllerRecvFunctor(ICtrllerFunctor_p pRecvFunctor);
-
+    void_t Connect();
     void_t Start();
 
-    bool_t LoadCmdClass(JsonCommand_p pJsonCommand);
+    void_t ProcessHandler(JsonCommand_p pJsonCommand);
 
-    void_t PushJsonCommand(EvAction evAction, void_p pBuffer);
+    void_t PushJsonCommand(EvAct evAction, void_p pBuffer);
     void_p ZbCtrlllerThreadProc(void_p pInBuffer);
 
     void_t IniZbCtrller();

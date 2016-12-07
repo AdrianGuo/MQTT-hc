@@ -1,0 +1,59 @@
+#ifndef MULTICHANNEL_CMDCLASS_HPP_
+#define MULTICHANNEL_CMDCLASS_HPP_
+
+#include "typedefs.h"
+#include "Value.hpp"
+#include "ZwDefs.hpp"
+#include "ZwCmdClass.hpp"
+#include "ZwDbModel.hpp"
+#include "ZwNode.hpp"
+
+class MultiChannelCmdClass : public ZwCmdClass {
+private:
+    bool_t  m_boDynamicNumber;
+    bool_t  m_boEpIsIdentical;
+
+    u8_t m_byNumberOfEndpoints;
+    u8_t m_byNumberOfIndividualEndpoints;
+    u8_t m_byNumberOfAggregatedEndpoints;
+    u8_t m_byTransmitOptions;
+
+    ZwDbModel_p m_pDbModel;
+    MultiChannelCmdClass(u32_t dwHomeId, u8_t byNodeId);
+
+    void_t ProcGetCapability(ZwNode_p pZwNode, u8_t byEndpoint);
+
+    ValueDevice_p
+    HandleMultiChannelEndpointReport(u8_p pbCommand, u8_t byLength);
+    ValueDevice_p
+    HandleMultiChannelCapabilityReport(u8_p pbCommand, u8_t byLength);
+    ValueDevice_p
+    HandleMultiChannelEnpointFindReport(u8_p pbCommand, u8_t byLength);
+    ValueDevice_p
+    HandleMultiChannelAggregatedMemberReport(u8_p pbCommand, u8_t byLength);
+    ValueDevice_p
+    HandleMultiChannelEncap(u8_p pbCommand, u8_t byLength);
+public:
+    static ZwCmdClass_p CreateZwCmdClass(u32_t dwHomeId, u8_t byNodeId);
+    virtual ~MultiChannelCmdClass();
+
+    virtual u8_t GetMaxVersion() const { return MULTI_CHANNEL_VERSION_V4; }
+    static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_MULTI_CHANNEL_V4; }
+    static const String GetZwCmdClassName() { return "COMMAND_CLASS_MULTI_CHANNEL"; }
+
+
+    virtual u8_t GetNumberOfEndpoints() const;
+    virtual u8_t GetNumberOfIndividualEndpoints() const;
+    virtual u8_t GetNumberOfAggregatedEndpoints() const;
+
+    virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
+
+    virtual ZwMessage_p GetEndpoint();
+    virtual ZwMessage_p GetCapabilitiy(u8_t byEndPoint);
+    virtual ZwMessage_p EndpointFind(u8_t byGeneric, u8_t bySpecific);
+};
+
+typedef MultiChannelCmdClass  MultiChannelCmdClass_t;
+typedef MultiChannelCmdClass* MultiChannelCmdClass_p;
+
+#endif /* !MULTICHANNEL_CMDCLASS_HPP_ */

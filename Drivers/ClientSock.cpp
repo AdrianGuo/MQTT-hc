@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "debug.hpp"
+#include "LogPlus.hpp"
 #include "ClientSock.hpp"
 
 #ifndef INVALID_SOCKET
@@ -18,30 +19,6 @@
 #define CONNECTION_TIMEOUT_SEC              (5)
 
 #define BUFFER_SOCKET_SIZE                  (1024)
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-ClientSock::ClientSock() {
-    m_idwSockfd = 0;
-    m_idwPort = 0;
-    m_pByBuffer = new u8_t[BUFFER_SOCKET_SIZE];
-
-    m_boIsConnected = FALSE;
-    m_boIsClosing = FALSE;
-    m_boIsStarted = FALSE;
-    m_boIsBlocked = TRUE;
-
-    m_pSockAddr = NULL;
-    m_pSClientRecvFunctor = NULL;
-    m_pClientSockThread = new LThread();
-    m_ClientSockThreadFunctor = makeFunctor((threadFunctor_p) NULL, *this, &ClientSock::ClientSockThreadProc);
-    m_pClientSockThread->RegThreadFunctor(&m_ClientSockThreadFunctor);
-    m_pClientSockLocker = new Locker();
-}
 
 /**
  * @func
@@ -97,7 +74,8 @@ ClientSock::ClientSock(
     m_pSockAddr = pAddress;
     m_pSClientRecvFunctor = NULL;
     m_pClientSockThread = new LThread();
-    m_ClientSockThreadFunctor = makeFunctor((threadFunctor_p) NULL, *this, &ClientSock::ClientSockThreadProc);
+    m_ClientSockThreadFunctor =
+    makeFunctor((threadFunctor_p) NULL, *this, &ClientSock::ClientSockThreadProc);
     m_pClientSockThread->RegThreadFunctor(&m_ClientSockThreadFunctor);
     m_pClientSockLocker = new Locker();
 }
@@ -129,7 +107,7 @@ ClientSock::~ClientSock() {
 }
 
 /**
- * @func
+ * @func   RecvFunctor
  * @brief  None
  * @param  None
  * @retval None
@@ -147,7 +125,7 @@ ClientSock::RecvFunctor(
 
 
 /**
- * @func
+ * @func   Connect
  * @brief  None
  * @param  None
  * @retval None
@@ -155,9 +133,12 @@ ClientSock::RecvFunctor(
 bool_t
 ClientSock::Connect() {
     int idwSockfd = SOCKET_ERROR;
+
+    LOG_INFO("connecting...");
+
     /* Set socket fd */
     if ((idwSockfd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        DEBUG1("sock fail"); /* Debug */
+        LOG_INFO("sock fail"); /* Debug */
         m_boIsConnected = FALSE;
         return FALSE;
     }
@@ -166,12 +147,12 @@ ClientSock::Connect() {
     m_idwSockfd = idwSockfd;
 
     if (m_pSockAddr != NULL) {
-        int_t idwResult;
-        idwResult = connect(m_idwSockfd, (struct sockaddr*) m_pSockAddr, sizeof(*m_pSockAddr));
+        int_t idwResult =
+        connect(m_idwSockfd, (struct sockaddr*) m_pSockAddr, sizeof(*m_pSockAddr));
 
         if (m_boIsBlocked) { /* If is blocking */
             if (idwResult == SOCKET_ERROR) {
-                DEBUG1("connect fail"); /* Debug */
+                LOG_ERROR("connect fail"); /* Debug */
                 m_boIsConnected = FALSE;
                 return FALSE;
             } else {
@@ -183,11 +164,9 @@ ClientSock::Connect() {
             int_t idwError = 0;
 
             if (idwResult == SOCKET_ERROR) {
-//                debug1_clientsock("waiting for connect"); /* Debug */
-                DEBUG1("wait connect");
+                LOG_WARN("wait connect");
                 if (errno != EINPROGRESS) {
-//                    debug1_clientsock("connect fail");
-                    DEBUG1("connect fail");
+                    LOG_ERROR("connect fail");
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
                     return FALSE;
@@ -195,8 +174,7 @@ ClientSock::Connect() {
             }
 
             if (idwResult == 0) {
-//                debug1_clientsock("connect local");
-                DEBUG1("connect local");
+                LOG_INFO("connect local");
                 goto done; /* connect completed immediately */
             }
 
@@ -207,8 +185,7 @@ ClientSock::Connect() {
             tval.tv_usec = 0;
             /* Waiting for the socket to be ready for either reading and writing */
             if ((idwResult == select(m_idwSockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
-//                debug1_clientsock("timeout"); /* timeout */
-                DEBUG1("timeout");
+                LOG_WARN("timeout");
                 m_boIsConnected = FALSE;
                 close(m_idwSockfd);
                 idwError = ETIMEDOUT;
@@ -223,7 +200,7 @@ ClientSock::Connect() {
                     m_boIsConnected = FALSE;
                     return FALSE;
                 } else {
-                    DEBUG1("connected");
+                    LOG_INFO("connected");
                     m_boIsConnected = TRUE;
                 }
             } else {
@@ -245,7 +222,7 @@ ClientSock::Connect() {
 }
 
 /**
- * @func
+ * @func   Close
  * @brief  None
  * @param  None
  * @retval None
@@ -254,12 +231,12 @@ bool_t
 ClientSock::Close() {
     int_t idwResult;
 
-    DEBUG2("close sockfd %d", m_idwSockfd);
+    LOG_INFO("close sockfd %d", m_idwSockfd);
 
     m_pClientSockLocker->Lock();
     if ((idwResult = shutdown(m_idwSockfd, SHUT_RDWR)) == SOCKET_ERROR) {
         m_pClientSockLocker->UnLock();
-        DEBUG1("shutdown fail");
+        LOG_ERROR("shutdown fail");
         return FALSE;
     }
     m_pClientSockLocker->UnLock();
@@ -267,12 +244,12 @@ ClientSock::Close() {
     m_pClientSockLocker->Lock();
     if ((idwResult = close(m_idwSockfd)) == SOCKET_ERROR) {
         m_pClientSockLocker->UnLock();
-        DEBUG1("close fail");
+        LOG_ERROR("close fail");
         return FALSE;
     }
     m_pClientSockLocker->UnLock();
 
-    DEBUG2("after close sockfd %d", m_idwSockfd);
+    LOG_INFO("after close sockfd %d", m_idwSockfd);
 
     m_pClientSockLocker->Lock();
     m_boIsConnected = FALSE;
@@ -283,7 +260,7 @@ ClientSock::Close() {
 }
 
 /**
- * @func
+ * @func   IsConnected
  * @brief  None
  * @param  None
  * @retval None
@@ -294,7 +271,7 @@ ClientSock::IsConnected() {
 }
 
 /**
- * @func
+ * @func   IsBlocked
  * @brief  None
  * @param  None
  * @retval None
@@ -305,7 +282,7 @@ ClientSock::IsBlocked() {
 }
 
 /**
- * @func
+ * @func   IsWritable
  * @brief  None
  * @param  None
  * @retval None
@@ -336,7 +313,7 @@ ClientSock::IsWritable(
     if (idwResult == 0) {
 //        DEBUG1("timeout");
     } else if (idwResult == -1) {
-        DEBUG1("error"); /* error */
+        LOG_ERROR("error"); /* error */
     } else {
         if (FD_ISSET(m_idwSockfd, &Writefds)) {
             boRetVal = TRUE;
@@ -346,7 +323,7 @@ ClientSock::IsWritable(
 }
 
 /**
- * @func
+ * @func   IsReadable
  * @brief  None
  * @param  None
  * @retval None
@@ -377,7 +354,7 @@ ClientSock::IsReadable(
     if (idwResult == 0) {
 //        DEBUG1("timeout"); /* timeout */
     } else if (idwResult == -1) {
-        DEBUG1("error"); /* error */
+        LOG_ERROR("error"); /* error */
     } else {
         if (FD_ISSET(m_idwSockfd, &Readfds)) {
             boRetVal = TRUE;
@@ -387,7 +364,7 @@ ClientSock::IsReadable(
 }
 
 /**
- * @func
+ * @func   Ping
  * @brief  None
  * @param  None
  * @retval None
@@ -398,7 +375,7 @@ ClientSock::Ping() {
 }
 
 /**
- * @func
+ * @func   Start
  * @brief  None
  * @param  None
  * @retval None
@@ -408,13 +385,13 @@ ClientSock::Start() {
     bool_t boRetVal = FALSE;
 
     m_pClientSockLocker->Lock();
-    DEBUG1("start");
+    LOG_INFO("start");
     if (!m_boIsStarted) {
         if (m_pClientSockThread->Start()) {
             m_boIsStarted = TRUE;
             boRetVal = TRUE;
         } else {
-            DEBUG1("thread fail");
+            LOG_ERROR("thread fail");
         }
     }
     m_pClientSockLocker->UnLock();
@@ -423,7 +400,7 @@ ClientSock::Start() {
 }
 
 /**
- * @func
+ * @func   ClientSockThreadProc
  * @brief  None
  * @param  None
  * @retval None
@@ -432,7 +409,6 @@ void_p
 ClientSock::ClientSockThreadProc(
     void_p pBuffer
 ) {
-//    DEBUG2("thread start %u", (uint_t) pthread_self());
     while (TRUE) {
         m_pClientSockLocker->Lock();
         if (m_boIsClosing) {
@@ -443,7 +419,7 @@ ClientSock::ClientSockThreadProc(
         if (IsConnected() && IsReadable(100)) {
             int_t iLength = recv(m_idwSockfd, m_pByBuffer, BUFFER_SOCKET_SIZE, 0);
             if ((m_pSClientRecvFunctor != NULL) && (iLength > 0)) {
-                m_pSClientRecvFunctor->operator ()((u8_p)m_pByBuffer, iLength);
+                (*m_pSClientRecvFunctor)((u8_p)m_pByBuffer, iLength);
             }
             memset(m_pByBuffer, '\0', BUFFER_SOCKET_SIZE);
         }
@@ -460,6 +436,7 @@ ClientSock::ClientSockThreadProc(
             }
             m_pClientSockLocker->UnLock();
         }
+        usleep(50);
     }
     m_pClientSockLocker->UnLock();
 
@@ -468,14 +445,14 @@ ClientSock::ClientSockThreadProc(
     m_boIsClosing = FALSE;
     m_pClientSockLocker->UnLock();
 
-//    DEBUG2("thread exit %u", (uint_t) pthread_self());
+    LOG_INFO("thread exit");
     pthread_exit(NULL);
 
     return NULL;
 }
 
 /**
- * @func
+ * @func   SetNonBlocking
  * @brief  None
  * @param  None
  * @retval None
@@ -485,13 +462,15 @@ ClientSock::SetNonBlocking() {
     int_t idwFlags;
     int_t idwResult = SOCKET_ERROR;
 
+    LOG_INFO("set non-blocking");
+
     if ((idwFlags = fcntl(m_idwSockfd, F_GETFL, 0)) < 0) {
-        DEBUG1("get error"); /* Debug */
+        LOG_ERROR("get error"); /* Debug */
         return FALSE;
     }
 
     if ((idwResult = fcntl(m_idwSockfd, F_SETFL, idwFlags | O_NONBLOCK)) < 0) {
-        DEBUG1("set error"); /* Debug */
+        LOG_ERROR("set error"); /* Debug */
         fcntl(m_idwSockfd, F_SETFL, idwFlags); /* Restore if error */
         return FALSE;
     }
@@ -501,7 +480,7 @@ ClientSock::SetNonBlocking() {
 }
 
 /**
- * @func
+ * @func   SetBlocking
  * @brief  None
  * @param  None
  * @retval None
@@ -511,13 +490,15 @@ ClientSock::SetBlocking() {
     int_t idwFlags;
     int_t idwResult = SOCKET_ERROR;
 
+    LOG_INFO("set blocking");
+
     if ((idwFlags = fcntl(m_idwSockfd, F_GETFL, 0)) < 0) {
-        DEBUG1("get error");/* Debug */
+        LOG_ERROR("get error");/* Debug */
         return FALSE;
     }
 
     if ((idwResult = fcntl(m_idwSockfd, F_SETFL, idwFlags & (~O_NONBLOCK))) < 0) {
-        DEBUG1("set error");/* Debug */
+        LOG_ERROR("set error"); /* Debug */
         fcntl(m_idwSockfd, F_SETFL, idwFlags); /* Restore if error */
         return FALSE;
     }
@@ -527,7 +508,7 @@ ClientSock::SetBlocking() {
 }
 
 /**
- * @func
+ * @func   PushData
  * @brief  None
  * @param  None
  * @retval None
@@ -542,7 +523,7 @@ ClientSock::PushData(
 }
 
 /**
- * @func
+ * @func   PushBuffer
  * @brief  None
  * @param  None
  * @retval None
@@ -560,7 +541,7 @@ ClientSock::PushBuffer(
 }
 
 /**
- * @func
+ * @func   PushPacket
  * @brief  None
  * @param  None
  * @retval None

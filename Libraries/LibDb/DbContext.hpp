@@ -90,6 +90,8 @@ private:
     };
 
     Database_p m_pDatabase;
+    String m_strRamFileName;
+    String m_strFlashFileName;
 
     typedef const std::type_info* const_type_info_ptr;
     typedef Map<const_type_info_ptr, IMapTable_p> ClassRegistry;

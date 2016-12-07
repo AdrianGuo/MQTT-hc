@@ -176,10 +176,11 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     else State = *vpData[i];
                 } else if (vResponseDP[i].DP_DIName == DeviceInfo::DI_Power) {
                     Action[DeviceInfo::DI_Power].DP_AttributeData = *vpData[i];
+                    Action[DeviceInfo::DI_Power].DP_IsChanged = TRUE;
                 }
 
             }
-            if(Action[DeviceInfo::DI_Power].DP_AttributeData >= 0) { ForwardSensorStateToOutside(this); }
+            if(Action[DeviceInfo::DI_Power].DP_IsChanged) { ForwardSensorStateToOutside(this); }
         }
             break;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,7 +385,7 @@ ZbDeviceDb::GenerateDeviceInfo(
  */
 bool_t
 ZbDeviceDb::OtherBrandsDevice() {
-    DEBUG2("Device %s of %s at address %d.", Model.GetValue().c_str(), Manufacturer.GetValue().c_str(), Network.GetValue());
+    LOG_INFO("Device %s of %s at address %d.", Model.GetValue().c_str(), Manufacturer.GetValue().c_str(), Network.GetValue());
     bool_t boRetVal = TRUE;
     String prefixModel;
     EPInfor_t EPsInfo = ZbZdoCmd::GetInstance()->GetDeviceLogic()[Network.GetValue()];

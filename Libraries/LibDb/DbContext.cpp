@@ -1,22 +1,27 @@
+#include "ConfigHc.hpp"
+#include "HelperHc.hpp"
 #include "DbPtr.hpp"
-#include <stdio.h>
 #include "DbContext.hpp"
 
 /**
- * @func
+ * @func   DbContext
  * @brief  None
  * @param  None
  * @retval None
  */
 DbContext::DbContext(
     const String& strDbName
-) {
+) : m_strRamFileName (PATH_RAM ),
+    m_strFlashFileName(PATH_FLASH) {
+    m_strRamFileName += strDbName;
+    m_strFlashFileName += strDbName;
+    CopyFile(m_strFlashFileName.c_str(), m_strRamFileName.c_str());
     m_pDatabase = new Database(strDbName);
     m_flushMode = MODE_MANUAL;
 }
 
 /**
- * @func
+ * @func   ~DbContext
  * @brief  None
  * @param  None
  * @retval None
@@ -24,7 +29,7 @@ DbContext::DbContext(
 DbContext::~DbContext() { }
 
 /**
- * @func
+ * @func   GetMapping
  * @brief  None
  * @param  None
  * @retval None
@@ -69,7 +74,7 @@ DbContext::GetSqlStatement(
 }
 
 /**
- * @func
+ * @func   UpdateChanges
  * @brief  None
  * @param  None
  * @retval None
@@ -89,14 +94,12 @@ DbContext::UpdateChanges() {
        m_lstObjectManager.erase(it++);
     }
 
-//    remove("Lumi/zigbee.db");
-//    system("cp zigbee.db /Lumi/zigbee.db");
-
-
+    remove(m_strFlashFileName.c_str());
+    CopyFile(m_strRamFileName.c_str(), m_strFlashFileName.c_str());
 }
 
 /**
- * @func
+ * @func   Execute
  * @brief  None
  * @param  None
  * @retval None
@@ -111,7 +114,7 @@ DbContext::Execute(
 }
 
 /**
- * @func
+ * @func   DisCardChanges
  * @brief  None
  * @param  None
  * @retval None
@@ -124,7 +127,7 @@ DbContext::DisCardChanges(
 }
 
 /**
- * @func
+ * @func   GetColumns
  * @brief  None
  * @param  None
  * @retval None
@@ -148,7 +151,7 @@ DbContext::GetColumns(
 }
 
 /**
- * @func
+ * @func   CreateTables
  * @brief  None
  * @param  None
  * @retval None
@@ -169,7 +172,7 @@ DbContext::CreateTables() {
 }
 
 /**
- * @func
+ * @func   DropTables
  * @brief  None
  * @param  None
  * @retval None
@@ -183,7 +186,7 @@ DbContext::DropTables() {
 }
 
 /**
- * @func
+ * @func   InitSchema
  * @brief  None
  * @param  None
  * @retval None
@@ -202,7 +205,7 @@ DbContext::InitSchema() {
 }
 
 /**
- * @func
+ * @func   ConsTraintString
  * @brief  None
  * @param  None
  * @retval None
@@ -241,7 +244,7 @@ DbContext::ConsTraintString(
 }
 
 /**
- * @func
+ * @func   ConsTraintName
  * @brief  None
  * @param  None
  * @retval None
@@ -257,7 +260,7 @@ DbContext::ConsTraintName(
 }
 
 /**
- * @func
+ * @func   FlushObject
  * @brief  None
  * @param  None
  * @retval None
@@ -270,7 +273,7 @@ DbContext::FlushObject(
 }
 
 /**
- * @func
+ * @func   InitStatements
  * @brief  None
  * @param  None
  * @retval None
@@ -383,7 +386,7 @@ DbContext::InitStatements(
 }
 
 /**
- * @func
+ * @func   CreateTable
  * @brief  None
  * @param  None
  * @retval None

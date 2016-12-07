@@ -29,18 +29,16 @@
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
-typedef Functor1Ret_t(JsonCommand_p, bool_t)         ICtrllerFunctor_t;
-typedef ICtrllerFunctor_t*                           ICtrllerFunctor_p;
+typedef Functor1Ret_t(JsonCommand_p, bool_t)        CtrllerFunctor_t;
+typedef CtrllerFunctor_t*                           CtrllerFunctor_p;
 
 class ICtrller {
 public:
     ICtrller() {}
     virtual ~ICtrller() { }
 
-    virtual void_t Process() = 0;
-    virtual void_t RegisterJsonMessageInform() = 0;
-    virtual bool_t LoadCmdClass(JsonCommand_p pJsonCommand) = 0;
-    virtual bool_t ICtrllerRecvFunctor(ICtrllerFunctor_p pRecvFunctor) = 0;
+    virtual void_t Process() {}
+    virtual void_t CtrllerRecvFunctor(CtrllerFunctor_p pRecvFunctor) {}
 };
 
 typedef ICtrller ICtrller_t;

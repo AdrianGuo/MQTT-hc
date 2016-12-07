@@ -31,7 +31,7 @@ typedef enum {
 
 class SZbSerial {
 private:
-    Serial_p m_pSerial;
+    Serial_t m_Serial;
     Event_t m_ACKSignal;
     ZbPacket_p  m_pZbPacket;
     ZbRecvState_t m_enuRecvState;
@@ -46,10 +46,9 @@ private:
     void_t ParseData(u8_t byData);
     void_t SendZbPacket(ZbPacket_p pZbPacket);
 public:
-    SZbSerial(Serial_p pSerial = NULL);
+    SZbSerial(const_char_p chPortname);
     ~SZbSerial();
 
-    void_t SendFunctor();
     bool_t RecvFunctor(DriverFunctor_p pDriverFunctor);
 
     bool_t Start();

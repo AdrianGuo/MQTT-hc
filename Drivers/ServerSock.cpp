@@ -9,10 +9,11 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <debug.hpp>
+#include <LogPlus.hpp>
 
 #include <ServerSock.hpp>
 
-#define CONNECT_TIMEOUT_SEC                     (60)
+#define CONNECT_TIMEOUT_SEC                     (5)
 
 /**
  * @func
@@ -26,22 +27,23 @@ ServerSock::ServerSock(int_t idwPort) {
 
     FD_ZERO(&m_ReadFds);
     FD_ZERO(&m_WriteFds);
-    iNfds = 0;
+    m_idwNfds = 0;
 
     m_boIsServed = FALSE;
     m_boIsStarted = FALSE;
 
 
     m_pSServerFunctor = NULL;
-    m_pServerSockTimer = RTimer::getTimerInstance();
     m_pListenThread = new LThread();
     m_pMessageThread = new LThread();
     m_pServerSockLocker = new Locker();
 
-    m_ListenThreadFunctor = makeFunctor((threadFunctor_p) NULL, *this, &ServerSock::ListenThread);
+    m_ListenThreadFunctor =
+    makeFunctor((threadFunctor_p) NULL, *this, &ServerSock::ListenThread);
     m_pListenThread->RegThreadFunctor(&m_ListenThreadFunctor);
 
-    m_MessageThreadFunctor = makeFunctor((threadFunctor_p) NULL, *this, &ServerSock::MessageThread);
+    m_MessageThreadFunctor =
+    makeFunctor((threadFunctor_p) NULL, *this, &ServerSock::MessageThread);
     m_pMessageThread->RegThreadFunctor(&m_MessageThreadFunctor);
 
     m_pSockAddr = (struct sockaddr_in*) malloc(sizeof(struct sockaddr_in));
@@ -49,9 +51,11 @@ ServerSock::ServerSock(int_t idwPort) {
     m_pSockAddr->sin_port = htons(m_idwPort);
     m_pSockAddr->sin_addr.s_addr = INADDR_ANY;
 
-    m_keepaliveTimerFunctor = makeFunctor(
-                (timerFunctor_p) NULL, *this, &ServerSock::HandleAliveState);
-    m_iKeepAliveTimerHandle = m_pServerSockTimer->StartTimer(RTimer::Repeat::Forever, CONNECT_TIMEOUT_SEC, &m_keepaliveTimerFunctor, NULL);
+    m_pServerSockTimer = RTimer::getTimerInstance();
+    m_keepaliveTimerFunctor =
+    makeFunctor((timerFunctor_p) NULL, *this, &ServerSock::HandleKeepAliveProcess);
+    m_iKeepAliveTimerHandle = m_pServerSockTimer->StartTimer(
+    RTimer::Repeat::Forever,  CONNECT_TIMEOUT_SEC, &m_keepaliveTimerFunctor, NULL);
 }
 
 /**
@@ -65,7 +69,7 @@ ServerSock::~ServerSock() {
 }
 
 /**
- * @func
+ * @func   RecvFunctor
  * @brief  None
  * @param  None
  * @retval None
@@ -82,7 +86,7 @@ ServerSock::RecvFunctor(
 }
 
 /**
- * @func
+ * @func   Serve
  * @brief  None
  * @param  None
  * @retval None
@@ -162,11 +166,11 @@ ServerSock::ListenThread(
         ready = select(nfds, &readset, NULL, NULL, &timeout);
 
         if ((ready == SOCKET_ERROR) || (ready == EINTR) || (ready == EBADF)) {
-            DEBUG1("SOCKET_ERROR");
+            LOG_ERROR("SOCKET_ERROR");
             continue;
         } else if (ready == 1) {
             if (FD_ISSET(m_idwSockfd, &readset)) {
-                DEBUG1("New connection.");
+                LOG_DEBUG("New connection.");
                 int_t tempSock;
                 sockaddr_p tempSockAddr = (struct sockaddr_in*) malloc(
                         sizeof(struct sockaddr_in));
@@ -176,12 +180,12 @@ ServerSock::ListenThread(
                         (socklen_t*) &tempSockAddrLen);
 
                 if (tempSock == INVALID_SOCKET) {
-                    DEBUG1("INVALID_SOCKET");
+                    LOG_INFO("INVALID_SOCKET");
                     delete tempSockAddr;
                     close(tempSock);
                     continue;
                 } else {
-                    DEBUG2("New client from %s on socket %d.",
+                    LOG_INFO("New client from %s on socket %d.",
                             inet_ntoa(tempSockAddr->sin_addr), tempSock);
 
                     if(m_mapClients.find(tempSock) != m_mapClients.end())
@@ -192,20 +196,18 @@ ServerSock::ListenThread(
                     client.SetSocketAddress(tempSockAddr);
                     FD_SET(tempSock, &m_ReadFds);
                     FD_SET(tempSock, &m_WriteFds);
-                    if(iNfds <= tempSock)
-                        iNfds = tempSock + 1;
-
-                    m_pServerSockLocker->Lock();
+                    if(m_idwNfds <= tempSock)
+                        m_idwNfds = tempSock + 1;
                     m_mapClients[tempSock] = client;
-                    m_pServerSockLocker->UnLock();
 
-//                    tempSockAddr = NULL;
+                    tempSockAddr = NULL;
                     delete tempSockAddr;
                 }
             }
         }
     }
     m_pListenThread->Stop();
+    return NULL;
 }
 
 /**
@@ -224,11 +226,12 @@ ServerSock::MessageThread(
     fd_set readfds, writefds;
 
     while (TRUE) {
+        sleep(1);
         readfds = m_ReadFds;
         writefds = m_WriteFds;
-        ready = select(iNfds, &readfds, &writefds, NULL, &timeout);
+        ready = select(m_idwNfds, &readfds, &writefds, NULL, &timeout);
         if ((ready != SOCKET_ERROR) && (ready != EINTR) && (ready != EBADF) && (ready != 0)) {
-            for (int_t fd = 0; fd < iNfds; fd++) {
+            for (int_t fd = 0; fd < m_idwNfds; fd++) {
                 if(m_mapClients.find(fd) != m_mapClients.end()) {
                     // Receive messages
                     if (FD_ISSET(fd, &m_ReadFds)) {
@@ -244,20 +247,18 @@ ServerSock::MessageThread(
                     }
                     // Send messages
                     if (FD_ISSET(fd, &m_WriteFds)) {
-                        if (m_mapClients[fd].PendingMessages() > 0) {
+                        while (m_mapClients[fd].PendingMessages() > 0) {
                             Packet_p pPacket = NULL;
                             pPacket = m_mapClients[fd].Front();
                             if (pPacket != NULL) {
                                 send(fd, pPacket->GetBuffer(), pPacket->Length(), 0);
-                                m_mapClients[fd].Pop();
                             }
+                            m_mapClients[fd].Pop();
                             pPacket = NULL;
                             delete pPacket;
                         }
                     }
-
                 }
-
             }
         }
         FD_ZERO(&readfds);
@@ -278,13 +279,13 @@ ServerSock::Start() {
     bool_t boRetVal = FALSE;
 
     m_pServerSockLocker->Lock();
-    DEBUG1("start");
+    LOG_DEBUG("start");
     if (!m_boIsStarted) {
         if (m_pListenThread->Start() && m_pMessageThread->Start()) {
             m_boIsStarted = TRUE;
             boRetVal = TRUE;
         } else {
-            DEBUG1("thread fail");
+            LOG_INFO("thread fail");
         }
     }
     m_pServerSockLocker->UnLock();
@@ -313,10 +314,17 @@ void_t
 ServerSock::RemoveClient(
     Client_t client
 ) {
-    m_mapClients.erase(client.GetSocketFd());
     close(client.GetSocketFd());
     FD_CLR(client.GetSocketFd(), &m_ReadFds);
     FD_CLR(client.GetSocketFd(), &m_WriteFds);
+    m_mapClients.erase(client.GetSocketFd());
+    m_pServerSockLocker->Lock();
+    m_idwNfds = 0;
+    for(MapClients_t::const_iterator_t it = m_mapClients.begin(); it != m_mapClients.end(); it++) {
+        if(m_idwNfds < (it->first + 1))
+            m_idwNfds = it->first + 1;
+    }
+    m_pServerSockLocker->UnLock();
 }
 
 /**
@@ -339,14 +347,14 @@ ServerSock::PushPacket(
  * @retval None
  */
 void_t
-ServerSock::HandleAliveState(void_p pBuffer) {
-    DEBUG1("Handle clients alive state.");
-    m_pServerSockLocker->Lock();
+ServerSock::HandleKeepAliveProcess(void_p pBuffer) {
+    LOG_DEBUG("Handle clients alive state.");
     for(MapClients_t::const_iterator_t it = m_mapClients.begin(); it != m_mapClients.end(); it++) {
-        if(!m_mapClients[it->first].IsAlive())
-            RemoveClient(m_mapClients[it->first]);
-        else
+        if(m_mapClients[it->first].IsAlive()) {
             m_mapClients[it->first].SetAlive(FALSE);
+        } else {
+            RemoveClient(m_mapClients[it->first]);
+        }
+        if(m_mapClients.size() == 0) break;
     }
-    m_pServerSockLocker->UnLock();
 }

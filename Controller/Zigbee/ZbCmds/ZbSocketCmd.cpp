@@ -8,10 +8,10 @@
 #include <typedefs.h>
 #include <stdarg.h>
 #include <zcl_ha.hpp>
-#include <JsonZbLstAdd.hpp>
-#include <JsonZbLstDel.hpp>
-#include <JsonZbStt.hpp>
-#include <JsonZbResetRes.hpp>
+#include <JsonDevLstAdd.hpp>
+#include <JsonDevLstDel.hpp>
+#include <JsonDevStt.hpp>
+#include <JsonDevResetRes.hpp>
 #include <ZbSocketCmd.hpp>
 
 ZbSocketCmd* ZbSocketCmd::s_pInstance = NULL;
@@ -23,14 +23,24 @@ ZbSocketCmd* ZbSocketCmd::s_pInstance = NULL;
  * @retval None
  */
 ZbSocketCmd::ZbSocketCmd() {
-    m_pJsonRecvZigbeeSession = JsonRecvZigbeeSession::CreateSession();
+    m_pJsonSendSession = JsonSendZigbeeSession::CreateSession();
 
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbLstAdd>(JsonZbLstAdd::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbLstDel>(JsonZbLstDel::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbStt>(JsonZbStt::GetStrCmd());
-    m_pJsonRecvZigbeeSession->MapJsonMessage<JsonZbResetRes>(JsonZbResetRes::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonDevLstAdd>(JsonDevLstAdd::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonDevLstDel>(JsonDevLstDel::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonDevStt>(JsonDevStt::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonDevResetRes>(JsonDevResetRes::GetStrCmd());
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ZbSocketCmd::~ZbSocketCmd() {
+    delete m_pJsonSendSession;
+    delete s_pInstance;
+}
 /**
  * @func
  * @brief  None
@@ -52,13 +62,12 @@ ZbSocketCmd::GetInstance(){
  */
 void_t
 ZbSocketCmd::SendJsonMessage(
-    EvAction avAction,
+    EvAct EvAct,
     JsonCommand_p pJsonCommand
 ) {
     pJsonCommand->SetSrcFlag(JsonCommand::Flag::Zigbee);
-    pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
-    if (ZbDriver::s_pInstance->m_pZbCtrllerFunctor != NULL)
-        ZbDriver::s_pInstance->m_pZbCtrllerFunctor->operator ()(avAction,pJsonCommand);
+    pJsonCommand->SetDesFlag(JsonCommand::Flag::Coord);
+    ZbDriver::GetInstance()->SendJsonMessage(EvAct,pJsonCommand);
 }
 
 /**
@@ -71,11 +80,22 @@ void_t
 ZbSocketCmd::SendLstAdd(
     Devices_t devices
 ) {
-//    DEBUG1("SendLstAdd");
-    JsonMessagePtr<JsonZbLstAdd> jsonZbLstAdd = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonZbLstAdd>();
-    JsonCommand_p pJsonCommand = jsonZbLstAdd->CreateJsonCommand(devices);
+    Vector<JsonDevLstAdd::Device_t> vecLstDev;
+    for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+        JsonDevLstAdd::Device_t temp;
+        temp.devid = (*it)->DeviceID.GetValue();
+        temp.netwk = 1;
+        temp.type = (*it)->RealType;
+        temp.order = (*it)->Endpoint.GetValue();
+        temp.mac = (*it)->MAC.GetValue();
+        vecLstDev.push_back(temp);
+    }
+    if(vecLstDev.size() > 0) {
+        JsonMessagePtr<JsonDevLstAdd> jsonZbLstAdd = m_pJsonSendSession->GetJsonMapping<JsonDevLstAdd>();
+        JsonCommand_p pJsonCommand = jsonZbLstAdd->CreateJsonCommand(vecLstDev);
 
-    SendJsonMessage(EvAction::None, pJsonCommand);
+        SendJsonMessage(EvAct::EA_None, pJsonCommand);
+    }
 }
 
 /**
@@ -88,10 +108,20 @@ void_t
 ZbSocketCmd::SendLstDel(
     Devices_t devices
 ) {
-    JsonMessagePtr<JsonZbLstDel> jsonZbLstDel = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonZbLstDel>();
-    JsonCommand_p pJsonCommand = jsonZbLstDel->CreateJsonCommand(devices);
+    Vector<JsonDevLstDel::Device_t> vecLstDev;
+    for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+        JsonDevLstDel::Device_t temp;
+        temp.devid = (*it)->DeviceID.GetValue();
+        temp.netwk = 1;
+        temp.order = (*it)->Endpoint.GetValue();
+        vecLstDev.push_back(temp);
+    }
+    if(vecLstDev.size() > 0) {
+        JsonMessagePtr<JsonDevLstDel> jsonZbLstDel = m_pJsonSendSession->GetJsonMapping<JsonDevLstDel>();
+        JsonCommand_p pJsonCommand = jsonZbLstDel->CreateJsonCommand(vecLstDev);
 
-    SendJsonMessage(EvAction::None, pJsonCommand);
+        SendJsonMessage(EvAct::EA_None, pJsonCommand);
+    }
 }
 
 /**
@@ -105,10 +135,19 @@ ZbSocketCmd::SendZbStt(
     Device_t device,
     Json::Value val
 ) {
-    JsonMessagePtr<JsonZbStt> jsonZbStt = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonZbStt>();
-    JsonCommand_p pJsonCommand = jsonZbStt->CreateJsonCommand(device, val);
+    Vector<JsonDevStt::Device_t> vecLstDev;
+    JsonDevStt::Device_t temp;
+    temp.devid = device->DeviceID.GetValue();
+    temp.order = device->Endpoint.GetValue();
+    temp.type = device->RealType;
+    temp.netwk = 1;
+    temp.value = val;
+    vecLstDev.push_back(temp);
 
-    SendJsonMessage(EvAction::None, pJsonCommand);
+    JsonMessagePtr<JsonDevStt> jsonZbStt = m_pJsonSendSession->GetJsonMapping<JsonDevStt>();
+    JsonCommand_p pJsonCommand = jsonZbStt->CreateJsonCommand(vecLstDev);
+
+    SendJsonMessage(EvAct::EA_None, pJsonCommand);
 }
 
 /**
@@ -121,8 +160,12 @@ void_t
 ZbSocketCmd::SendResetRes(
     u8_t byRet
 ) {
-    JsonMessagePtr<JsonZbResetRes> jsonZbResetRes = m_pJsonRecvZigbeeSession->GetJsonMapping<JsonZbResetRes>();
-    JsonCommand_p pJsonCommand = jsonZbResetRes->CreateJsonCommand(byRet);
+    JsonDevResetRes::Device_t temp;
+    temp.ret = byRet;
+    temp.netwk = 1;
 
-    SendJsonMessage(EvAction::None, pJsonCommand);
+    JsonMessagePtr<JsonDevResetRes> jsonZbResetRes = m_pJsonSendSession->GetJsonMapping<JsonDevResetRes>();
+    JsonCommand_p pJsonCommand = jsonZbResetRes->CreateJsonCommand(temp);
+
+    SendJsonMessage(EvAct::EA_None, pJsonCommand);
 }

@@ -1,80 +1,122 @@
 #include <stddef.h>
-#include "debug.hpp"
+#include "LogPlus.hpp"
 #include "Locker.hpp"
-
-#ifndef DEBUG_LOCKER
-#define debug_locker(x)
-#else /* DEBUG_LOCKER */
-#define debug_locker(x)             DEBUG(x)
-#endif /* DEBUG_LOCKER */
 
 #define LOCK_SUCCESS                (0)
 #define LOCK_ERROR                  (-1)
 
-Locker::Locker() {
-    m_isLocked = FALSE;
-    m_pLocker = new locker_t();
+/**
+ * @func   Locker
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+Locker::Locker(
+) : m_boIsLocked (FALSE),
+    m_iRefCount (0),
+    m_pLocker (new locker_t()) {
     if (pthread_mutex_init(m_pLocker, NULL) != LOCK_SUCCESS) {
-        debug_locker("init fail");
+        LOG_ERROR("init fail");
     }
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 Locker::~Locker() {
-    debug_locker("delete");
     if (m_pLocker != NULL) {
-        pthread_mutex_destroy(m_pLocker);
-        delete(m_pLocker);
-        m_pLocker = NULL;
+        Lock();
+        if (--m_iRefCount <= 0) {
+            UnLock();
+            pthread_mutex_destroy(m_pLocker);
+            delete m_pLocker;
+            m_pLocker = NULL;
+        } else {
+            UnLock();
+        }
+
     }
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 bool_t
 Locker::Lock() {
-    int idwResult = 0;
+    int_t idwResult = 0;
     if (m_pLocker != NULL) {
         if ((idwResult = pthread_mutex_lock(m_pLocker)) == LOCK_SUCCESS) {
-            debug_locker("lock success");
-            m_isLocked = TRUE;
+            m_iRefCount++;
+            m_boIsLocked = TRUE;
             return TRUE;
         }
     }
-    debug_locker("lock fail");
+    LOG_ERROR("lock fail");
     return FALSE;
 }
 
+/**
+ * @func   UnLock
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 bool_t
 Locker::UnLock() {
-    int idwResult = 0;
+    int_t idwResult = 0;
     if (m_pLocker != NULL) {
         if((idwResult = pthread_mutex_unlock(m_pLocker)) == LOCK_SUCCESS) {
-            debug_locker("unlock success");
-            m_isLocked = FALSE;
+            m_iRefCount--;
+            m_boIsLocked = FALSE;
             return TRUE;
         }
     }
-    debug_locker("unlock fail");
+    LOG_ERROR("unlock fail");
     return FALSE;
 }
 
+/**
+ * @func   TryLock
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 bool_t
 Locker::TryLock() {
-    int idwResult = 0;
+    int_t idwResult = 0;
     if (m_pLocker != NULL) {
         if ((idwResult = pthread_mutex_trylock(m_pLocker)) == LOCK_SUCCESS) {
-            debug_locker("trylock success");
-            m_isLocked = TRUE;
+            m_iRefCount++;
+            m_boIsLocked = TRUE;
             return TRUE;
         }
     }
     return FALSE;
 }
 
+/**
+ * @func   IsLocked
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 bool_t
 Locker::IsLocked() {
-    return m_isLocked;
+    return m_boIsLocked;
 }
 
-
+/**
+ * @func   GetLocker
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 locker_p
 Locker::GetLocker() {
     return m_pLocker;

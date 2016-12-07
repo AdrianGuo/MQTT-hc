@@ -1,21 +1,21 @@
 /*******************************************************************************
-*
-* Copyright (c) 2016
-* Lumi, JSC.
-* All Rights Reserved
-*
-*
-* Description:      Include file for application
-*
-* Author:
-*
-* Last Changed By:  TrungTQ
-* Revision:         Revision: 1.0
-* Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
-*
-* Note:             
-*
-*******************************************************************************/
+ *
+ * Copyright (c) 2016
+ * Lumi, JSC.
+ * All Rights Reserved
+ *
+ *
+ * Description:      Include file for application
+ *
+ * Author:
+ *
+ * Last Changed By:  TrungTQ
+ * Revision:         Revision: 1.0
+ * Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
+ *
+ * Note:
+ *
+ ******************************************************************************/
 
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
@@ -29,35 +29,60 @@
 #include "typedefs.h"
 #include "Vector.hpp"
 #include "Queue.hpp"
+#include "Functor.hpp"
 #include "JsonCommand.hpp"
 #include "ICtrller.hpp"
 #include "Locker.hpp"
 #include "SClient.hpp"
-#include "SServer.hpp"
+#include "DbModel.hpp"
+#include "DbManager.hpp"
+#include "DevManager.hpp"
+#include "NetManager.hpp"
+#include "ZwCtrller.hpp"
+#include "ZbCtrller.hpp"
 
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
+typedef Functor1_t(JsonCommand_p)   HandlerJsonCmdFunctor_t;
+typedef HandlerJsonCmdFunctor_t*    HandlerJsonCmdFunctor_p;
 
 class HCCtrller {
 private:
+    DbManager_t  m_DbManager;
+    DevManager_t m_DevManager;
+    NetManager_t m_NetManager;
+
+    SClient_t    m_SessionClient;
+    ZwCtrller_p  m_pZwCtrller;
+    ZbCtrller_p  m_pZbCtrller;
+    Locker_p     m_pHCCtrllerLocker;
+    bool_t       m_boIsDebug;
+
     Queue<JsonCommand_p> m_queJsonCommand;
-    Queue<JsonCommand_p> m_quePedingJsonCommand;
 
-    Locker_p m_pHCCtrllerLocker;
-    SClient_p m_pSClient;
-    SServer_p m_pSServer;
+    typedef Map<String, HandlerJsonCmdFunctor_t> MapHandlerFunctor;
+    MapHandlerFunctor m_mapHandlerFunctor;
 
-    Vector<ICtrller_p> m_vecCtrller;
     HCCtrllerFunctor_t m_HCCtrllerFunctor;
-    ICtrllerFunctor_t  m_ICtrllerFunctor;
+    CtrllerFunctor_t m_CtrllerFunctor;
 
+    DbModel_p m_pDbModelDb;
+
+    void_t RegisterHandler(String strJsonCommand, HandlerJsonCmdFunctor_t funcTor);
+    void_t RegisterHandler();
+    void_t ProcessHandler(JsonCommand_p pJsonCommand);
 public:
-    HCCtrller(SClient_p pSClient = NULL, SServer_p pSServer = NULL);
+    HCCtrller(const_char_p ipname = "",
+              int_t ipport = -1,
+              const_char_p cMacID = "");
     virtual ~HCCtrller();
 
-    void_t SendFunctor();
-    void_t AddCtrller(ICtrller_p pCtrller);
+    void_t Debug();
+    void_t Connect();
+    void_t AddZwCtrller(ZwCtrller_p pZwCtrller);
+    void_t AddZbCtrller(ZbCtrller_p pZbCtrller);
+
     bool_t RecvCommandFromSession(JsonCommand_p pJsonCommand);
     bool_t RecvCommandFromModules(JsonCommand_p pJsonCommand);
     void_t Process();

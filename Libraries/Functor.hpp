@@ -192,7 +192,7 @@ template <typename P1, typename P2, typename Callee, typename MemFunc>
 class CBMemberTranslator2 : public CBFunctor2<P1, P2> {
 public:
     CBMemberTranslator2(Callee &c, const MemFunc &m):
-        CBFunctor2<P1, P2>(thunk, &c, &m, sizeof(MemFunc)) { }
+        CBFunctor2<P1,P2>(thunk, &c, &m, sizeof(MemFunc)) { }
     static void thunk(const CBFunctorBase &ftor, P1 p1, P2 p2) {
         Callee *callee = (Callee*) ftor.callee;
         MemFunc &memFunc(*(MemFunc*)(void *)(ftor.memFunc));
@@ -285,7 +285,10 @@ class CBFunctor1wRet : protected CBFunctorBase{
 public:
     CBFunctor1wRet(DummyInit* = NULL) { thunk = NULL; }
     RT operator()(P1 p1) const {
+        //if (thunk != NULL) {
             return thunk(*this, p1);
+        //}
+        //return 0;
     }
     using CBFunctorBase::operator int;
     //for STL
@@ -423,7 +426,7 @@ makeFunctor(CBFunctor2<P1, P2>*, Callee &c, TRT (CallType::* const &f)(TP1, TP2)
     return CBMemberTranslator2<P1, P2, Callee, MemFunc>(c, f);
 }
 
-template <typename P1, typename P2, typename Callee,
+template <typename P1,typename P2,typename Callee,
           typename TRT, typename CallType, typename TP1, typename TP2>
 inline CBMemberTranslator2<P1, P2, const Callee, TRT (CallType::*)(TP1, TP2) const>
 makeFunctor(CBFunctor2<P1, P2>*, const Callee &c, TRT (CallType::* const &f)(TP1, TP2) const) {
@@ -432,25 +435,24 @@ makeFunctor(CBFunctor2<P1, P2>*, const Callee &c, TRT (CallType::* const &f)(TP1
 }
 
 template <typename P1, typename P2, typename TRT, typename TP1, typename TP2>
-inline CBFunctionTranslator2<P1, P2, TRT (*)(TP1, TP2)>
+inline CBFunctionTranslator2<P1,P2,TRT (*)(TP1, TP2)>
 makeFunctor(CBFunctor2<P1, P2>*, TRT (*f)(TP1, TP2)) {
     return CBFunctionTranslator2<P1, P2, TRT (*)(TP1, TP2)>(f);
 }
 
 template <typename P1, typename P2, typename TRT, typename CallType, typename TP1>
-inline CBMemberOf1stArgTranslator2<P1, P2, TRT (CallType::*)(TP1)>
+inline CBMemberOf1stArgTranslator2<P1,P2,TRT (CallType::*)(TP1)>
 makeFunctor(CBFunctor2<P1, P2>*, TRT (CallType::* const &f)(TP1)) {
     typedef TRT (CallType::*MemFunc)(TP1);
     return CBMemberOf1stArgTranslator2<P1, P2, MemFunc>(f);
 }
 
 template <typename P1, typename P2, typename TRT, typename CallType, typename TP1>
-inline CBMemberOf1stArgTranslator2<P1, P2, TRT (CallType::*)(TP1) const>
-makeFunctor(CBFunctor2<P1, P2>*, TRT (CallType::* const &f)(TP1) const) {
+inline CBMemberOf1stArgTranslator2<P1, P2, TRT (CallType::*)(TP1)const>
+makeFunctor(CBFunctor2<P1, P2>*, TRT (CallType::* const &f)(TP1)const) {
     typedef TRT (CallType::*MemFunc)(TP1)const;
     return CBMemberOf1stArgTranslator2<P1, P2, MemFunc>(f);
 }
-
 
 /******************************************************************************/
 /*                      FUNCTOR: THREE ARG, NO RETURN                         */

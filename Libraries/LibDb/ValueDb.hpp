@@ -24,7 +24,7 @@
 /*                                   CLASS                                    */
 /******************************************************************************/
 class ValueDb : public Value {
-private:
+protected:
     String m_strColumnName;
     String m_strSqlType;
     String m_strForeignKeyTable;

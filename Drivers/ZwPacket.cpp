@@ -9,7 +9,7 @@
 #define INDEX_PAYLOAD               4
 
 /**
- * @func
+ * @func   CalculateChecksum
  * @brief  None
  * @param  None
  * @retval None
@@ -19,7 +19,7 @@ ZwPacket::CalculateChecksum() {
     u8_t byCheckSum = 0xFF;
     byCheckSum ^= (Packet::Count() + 3);
     byCheckSum ^= m_byTypeOfFrame;
-    byCheckSum ^= m_byFunctionID;
+    byCheckSum ^= m_byFunctionId;
     for (u32_t i = 0; i < Packet::Count(); i++) {
         byCheckSum ^= Packet::AtPosition(i);
     }
@@ -27,7 +27,7 @@ ZwPacket::CalculateChecksum() {
 }
 
 /**
- * @func
+ * @func   IsChecksumValid
  * @brief  None
  * @param  None
  * @retval None
@@ -40,7 +40,7 @@ ZwPacket::IsChecksumValid(
 }
 
 /**
- * @func
+ * @func   ZwPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -49,11 +49,11 @@ ZwPacket::ZwPacket(
     u32_t byLength
 ) : Packet (byLength) {
     m_byTypeOfFrame = 0;
-    m_byFunctionID = 0;
+    m_byFunctionId = 0;
 }
 
 /**
- * @func
+ * @func   ZwPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -64,21 +64,20 @@ ZwPacket::ZwPacket(
     u32_t byLength
 ) : Packet (byLength) {
     m_byTypeOfFrame = byTypeOfFrame;
-    m_byFunctionID  = byCommand;
+    m_byFunctionId  = byCommand;
 }
 
 /**
- * @func
+ * @func   ~ZwPacket
  * @brief  None
  * @param  None
  * @retval None
  */
 ZwPacket::~ZwPacket() {
-    //DEBUG1("delete ZwPacket");
 }
 
 /**
- * @func
+ * @func   SetTypeOfFrame
  * @brief  None
  * @param  None
  * @retval None
@@ -91,20 +90,20 @@ ZwPacket::SetTypeOfFrame(
 }
 
 /**
- * @func
+ * @func   SetFunctionID
  * @brief  None
  * @param  None
  * @retval None
  */
 void_t
-ZwPacket::SetFunctionID(
+ZwPacket::SetFunctionId(
     u8_t byCommand
 ) {
-    m_byFunctionID = byCommand;
+    m_byFunctionId = byCommand;
 }
 
 /**
- * @func
+ * @func   GetTypeOfFrame
  * @brief  None
  * @param  None
  * @retval None
@@ -115,18 +114,18 @@ ZwPacket::GetTypeOfFrame() {
 }
 
 /**
- * @func
+ * @func   GetFunctionId
  * @brief  None
  * @param  None
  * @retval None
  */
 u8_t
-ZwPacket::GetFunctionID() {
-    return m_byFunctionID;
+ZwPacket::GetFunctionId() {
+    return m_byFunctionId;
 }
 
 /**
- * @func
+ * @func   GetPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -139,7 +138,7 @@ ZwPacket::GetPacket() {
 }
 
 /**
- * @func
+ * @func   GetFullPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -150,7 +149,7 @@ ZwPacket::GetFullPacket() {
     pPacket->Push(SOF);
     pPacket->Push(Packet::Count() + 3);
     pPacket->Push(m_byTypeOfFrame);
-    pPacket->Push(m_byFunctionID);
+    pPacket->Push(m_byFunctionId);
     pPacket->Push(Packet::GetBuffer(), Packet::Count());
     pPacket->Push(CalculateChecksum());
 

@@ -14,6 +14,7 @@
 #include <ZbModelDb.hpp>
 #include <ZbDriver.hpp>
 #include <json.h>
+#include <LogPlus.hpp>
 
 
 /*****************************************************************************/
@@ -172,7 +173,7 @@ ForwardIrState(
     ZbDeviceDb_p device
 ){
     Json::Value jsonRetVal;
-    DEBUG2("Received IR State: %d", device->State);
+    LOG_DEBUG("Received IR State: %d", device->State);
     switch (device->State) {
         case 0x00:
             jsonRetVal["state"] = std::to_string(6);
@@ -187,7 +188,7 @@ ForwardIrState(
             break;
 
         case 0x03: {
-            DEBUG2("Add new IrCmd %04X,", device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            LOG_DEBUG("Add new IrCmd %04X,", device->Action[DeviceInfo::DI_State].DP_AttributeID);
             Device_t pdevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
                     Bind(device->Network.GetValue()).Bind(device->Endpoint.GetValue());
             if(pdevice.Modify() == NULL) { return; }

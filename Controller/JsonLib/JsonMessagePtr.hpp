@@ -28,7 +28,7 @@ private:
     JsonMessageMap<C>* m_pJsonMessageMap;
 public:
     JsonMessagePtr(JsonMessageMap<C>* pJsonMessageMap);
-    virtual ~JsonMessagePtr() { }
+    virtual ~JsonMessagePtr() { Refresh(); }
 
     JsonMessageMap<C>* Object() const;
 
@@ -39,6 +39,8 @@ public:
 
     bool_t operator== (const JsonMessagePtr<C>& other) const;
     bool_t operator!= (const JsonMessagePtr<C>& other) const;
+
+    void_t Refresh() { m_pJsonMessageMap->Refresh(); }
 };
 
 /**

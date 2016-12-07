@@ -20,13 +20,13 @@
 #include "ValueBool.hpp"
 
 typedef enum {
-    None = 0,
-    Set1,
-    Reset,
-    Wait,
-    Pushback,
-    Count
-} EvAction;
+    EA_None = 0,
+    EA_Set,
+    EA_Reset,
+    EA_Wait,
+    EA_Pushback,
+    EA_Count
+} EvAct;
 
 
 
@@ -44,7 +44,7 @@ typedef enum ZbCtrllerState {
     ZBCTRLLER_STATE_COUNT
 } ZbCtrllerState_t;
 
-typedef Functor2_t(EvAction, void_p)  ZbCtrllerFunctor_t;
+typedef Functor2_t(EvAct, void_p)  ZbCtrllerFunctor_t;
 typedef ZbCtrllerFunctor_t*             ZbCtrllerFunctor_p;
 
 class IZbDriver {

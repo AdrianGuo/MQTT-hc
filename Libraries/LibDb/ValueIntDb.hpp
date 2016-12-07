@@ -51,7 +51,7 @@ public:
     ValueIntDb& operator++ ();
     ValueIntDb& operator++ (int_t);
 
-    operator int_t() { return m_iValue; }
+    operator int_t() const { return m_iValue; }
     operator int_p() { return &m_iValue; }
 };
 

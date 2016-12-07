@@ -22,7 +22,7 @@ Client::Client() {
 
     m_byCount = 0;
     m_boIsAuthenticated = FALSE;
-    m_boIsAlive = FALSE;
+    m_boIsAlive = TRUE;
 
     m_pClientLocker = new Locker();
 
@@ -72,9 +72,7 @@ int_t Client::GetSocketFd() {
  */
 void_t Client::SetSocketAddress(sockaddr_p pSocketAddress) {
     if(pSocketAddress != NULL) {
-        m_pClientLocker->Lock();
         m_pSockAddr = pSocketAddress;
-        m_pClientLocker->UnLock();
     }
 }
 
@@ -229,7 +227,9 @@ bool_t Client::IsAuthenMessage() {
  * @retval None
  */
 void_t Client::SetAlive(bool_t boAlive) {
+    m_pClientLocker->Lock();
     m_boIsAlive = boAlive;
+    m_pClientLocker->UnLock();
 }
 
 /**
@@ -239,7 +239,5 @@ void_t Client::SetAlive(bool_t boAlive) {
  * @retval None
  */
 bool_t Client::IsAlive() {
-    m_pClientLocker->Lock();
     return m_boIsAlive;
-    m_pClientLocker->UnLock();
 }

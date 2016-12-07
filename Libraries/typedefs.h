@@ -17,6 +17,9 @@
  ******************************************************************************/
 #ifndef _TYPEDEFS_H_
 #define _TYPEDEFS_H_
+#include <string>
+#include <sstream>
+#include <cstdlib>
 
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
@@ -88,9 +91,6 @@ typedef double*                 dob_p;
 typedef const char              const_char_t;
 typedef const char*             const_char_p;
 
-typedef char const              char_const_t;
-typedef char const*             char_const_p;
-
 typedef const void              const_void_t;
 typedef const void*             const_void_p;
 
@@ -128,6 +128,20 @@ typedef void const*             void_const_p;
 #ifndef MERGE
 #define MERGE(h,l)              (((h) << 8) | (l))
 #endif /* !MERGE */
+
+#ifdef MT7688
+namespace std {
+    inline std::string to_string(int i) {
+        std::stringstream ss;
+        ss << i;
+        return ss.str();
+    }
+
+    inline int stoi(std::string string) {
+        return atoi(string.c_str());
+    }
+}
+#endif
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */

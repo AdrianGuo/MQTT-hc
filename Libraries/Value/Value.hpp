@@ -17,7 +17,13 @@ public:
         type_array,
         type_switch,
         type_dimmer,
-        type_rgb
+        type_rgb,
+        type_pir_ac,
+        type_pir_sensor,
+        type_door_sensor,
+        type_temp_sensor,
+        type_humi_sensor,
+        type_light_sensor
     } Type_t;
 private:
     Type_t m_valueType;

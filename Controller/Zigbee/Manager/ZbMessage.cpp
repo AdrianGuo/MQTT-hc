@@ -30,6 +30,7 @@ ZbMessage::ZbMessage(
 }
 
 ZbMessage::~ZbMessage(){
+//    delete m_pJsonMessage;
 }
 
 void_t

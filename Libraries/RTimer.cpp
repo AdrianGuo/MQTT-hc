@@ -90,7 +90,7 @@ RTimer::getTickCount() {
 }
 
 /**
- * @func
+ * @func   Process
  * @brief  None
  * @param  None
  * @retval None

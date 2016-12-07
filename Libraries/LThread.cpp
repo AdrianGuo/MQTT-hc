@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "debug.hpp"
+#include "LogPlus.hpp"
 #include "LThread.hpp"
 
 #define THREAD_NULL                 (0)
@@ -10,7 +11,7 @@
 u8_t LThread::m_sbyIndexThread = 0;
 
 /**
- * @func
+ * @func   Execute
  * @brief  None
  * @param  None
  * @retval None
@@ -20,7 +21,8 @@ LThread::Execute(
     void_p pArguments
 ) {
     LThread_p pThread = (LThread_p) pArguments;
-    DEBUG2("EXECUTE THREAD %d", pThread->GetThreadIndex());
+//    DEBUG2("execute thread %d", pThread->GetThreadIndex());
+    LOG_INFO("execute thread %d", pThread->GetThreadIndex());
     pThread->Process(pThread->m_pArguments);
 
     return NULL;
@@ -35,7 +37,7 @@ LThread::Execute(
 LThread::LThread(
     void_p pArguments
 ) {
-    m_threadID = THREAD_NULL;
+    m_threadId = THREAD_NULL;
     m_pThreadLocker = NULL;
     m_pThreadFunctor = NULL;
     m_boIsJoinale = TRUE; /* Default */
@@ -70,8 +72,9 @@ LThread::~LThread() {
 bool_t
 LThread::Start() {
     if (m_pThreadFunctor != NULL) {
-        DEBUG2("  START THREAD %d", m_byThreadIndex);
-        if (pthread_create(&m_threadID, NULL, LThread::Execute, (void*) this) == THREAD_SUCCESS) {
+//        DEBUG2("start thread %d", m_byThreadIndex);
+        LOG_INFO("start thread %d", m_byThreadIndex);
+        if (pthread_create(&m_threadId, NULL, LThread::Execute, (void*) this) == THREAD_SUCCESS) {
             return TRUE;
         }
     }
@@ -80,21 +83,22 @@ LThread::Start() {
 }
 
 /**
- * @func
+ * @func   Stop
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
 LThread::Stop() {
-    DEBUG2("STOP THREAD %d", m_byThreadIndex);
+//    DEBUG2("stop thread %d", m_byThreadIndex);
+    LOG_INFO("stop thread %d", m_byThreadIndex);
     pthread_exit(NULL);
 
     return TRUE;
 }
 
 /**
- * @func
+ * @func   Process
  * @brief  None
  * @param  None
  * @retval None
@@ -103,11 +107,11 @@ void_t
 LThread::Process(
     void_p pArguments
 ) {
-    m_pThreadFunctor->operator ()(pArguments);
+    (*m_pThreadFunctor)(pArguments);
 }
 
 /**
- * @func
+ * @func   RegThreadFunctor
  * @brief  None
  * @param  None
  * @retval None
@@ -125,7 +129,7 @@ LThread::RegThreadFunctor(
 }
 
 /**
- * @func
+ * @func   SetLocker
  * @brief  None
  * @param  None
  * @retval None
@@ -142,7 +146,7 @@ LThread::SetLocker(
 }
 
 /**
- * @func
+ * @func   Join
  * @brief  None
  * @param  None
  * @retval None
@@ -151,18 +155,17 @@ bool_t
 LThread::Join() {
     int_t idwResult;
 
-    if ((idwResult = pthread_join(m_threadID, NULL)) == THREAD_SUCCESS) {
-        DEBUG1("join success");
+    if ((idwResult = pthread_join(m_threadId, NULL)) == THREAD_SUCCESS) {
+        LOG_INFO("join success");
         m_boIsJoinale = TRUE;
         return TRUE;
     }
-    DEBUG1("join fail");
-
+    LOG_INFO("join fail");
     return FALSE;
 }
 
 /**
- * @func
+ * @func   Detach
  * @brief  None
  * @param  None
  * @retval None
@@ -171,19 +174,18 @@ bool_t
 LThread::Detach() {
     int_t idwResult;
 
-    if ((idwResult = pthread_detach(m_threadID)) == THREAD_SUCCESS) {
-        DEBUG2(" DETACH THREAD %d", m_byThreadIndex);
-        DEBUG1("detach success");
+    if ((idwResult = pthread_detach(m_threadId)) == THREAD_SUCCESS) {
+        LOG_INFO("detach thread %d success", m_byThreadIndex);
         m_boIsJoinale = FALSE;
         return TRUE;
     }
-    DEBUG1("detach fail");
+    LOG_INFO("detach fail");
     return FALSE;
 
 }
 
 /**
- * @func
+ * @func   GetThreadIndex
  * @brief  None
  * @param  None
  * @retval None
@@ -194,18 +196,18 @@ LThread::GetThreadIndex() {
 }
 
 /**
- * @func
+ * @func   GetThreadId
  * @brief  None
  * @param  None
  * @retval None
  */
 thread_t
-LThread::GetThreadID() {
-    return m_threadID;
+LThread::GetThreadId() {
+    return m_threadId;
 }
 
 /**
- * @func
+ * @func   SetTimeOut
  * @brief  None
  * @param  None
  * @retval None
@@ -218,7 +220,7 @@ LThread::SetTimeOut(
 }
 
 /**
- * @func
+ * @func   CancelTimeout
  * @brief  None
  * @param  None
  * @retval None

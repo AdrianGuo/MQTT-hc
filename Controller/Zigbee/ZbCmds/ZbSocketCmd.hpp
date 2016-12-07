@@ -21,9 +21,9 @@ class ZbSocketCmd {
 private:
     ZbSocketCmd();
 
-    JsonRecvZigbeeSession_p m_pJsonRecvZigbeeSession;
+    JsonSendZigbeeSession_p m_pJsonSendSession;
 
-    void_t SendJsonMessage(EvAction, JsonCommand_p);
+    void_t SendJsonMessage(EvAct, JsonCommand_p);
 
 public:
     static ZbSocketCmd* s_pInstance;

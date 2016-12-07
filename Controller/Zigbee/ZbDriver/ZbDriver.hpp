@@ -28,20 +28,20 @@ private:
     DriverFunctor_t     m_driverSendFunctor;
     ZbCtrllerFunctor_p  m_pZbCtrllerFunctor;
 
-    SZbSerial_p m_pSZbSerial;
+    SZbSerial_t m_SZbSerial;
 
     ZbBasicCmd_p     m_pZbBasicCmd;
     ZbZdoCmd_p       m_pZbZdoCmd;
     ZbZclCmd_p       m_pZbZclCmd;
     ZbZclGlobalCmd_p m_pZbZclGlobalCmd;
 
-    ZbDriver(SZbSerial_p pSZbSerial = NULL);
+    ZbDriver(const_char_p chPortname);
 
 public:
     virtual ~ZbDriver();
 
     static ZbDriver* s_pInstance;
-    static ZbDriver* GetInstance(SZbSerial_p pSZbSerial = NULL);
+    static ZbDriver* GetInstance(const_char_p chPortname = NULL);
     static ZbModelDb_p s_pZbModel;
 
     Packet_p    ProcSendMessage(void_p pInBuffer, u32_t dwMsecTimeout = WAIT_PACKET_RESPONSE, bool_t boReturned = FALSE);
@@ -54,17 +54,14 @@ public:
     bool_t      Start();
     bool_t      Connect();
     bool_t      Close();
+    void_t      SendZbPacket(ZbPacket_p);
+    void_t      SendJsonMessage(EvAct, void_p);
 
     void_t      HandleZbAdd(ZbMessage_p);
     void_t      HandleDevSet(ZbMessage_p);
     void_t      HandleZbReset(ZbMessage_p);
     void_t      HandleZbDel(ZbMessage_p);
 
-    friend class ZbBasicCmd;
-    friend class ZbZdoCmd;
-    friend class ZbZclCmd;
-    friend class ZbZclGlobalCmd;
-    friend class ZbSocketCmd;
 };
 
 typedef ZbDriver ZbDriver_t;

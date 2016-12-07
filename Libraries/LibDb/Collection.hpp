@@ -236,7 +236,6 @@ Collection<C>::empty() const {
 template<class C>
 inline void_t
 Collection<C>::clear() {
-
 }
 
 /**

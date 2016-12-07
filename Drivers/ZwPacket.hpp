@@ -6,7 +6,7 @@
 class ZwPacket : public Packet {
 private:
     u8_t m_byTypeOfFrame;
-    u8_t m_byFunctionID;
+    u8_t m_byFunctionId;
 
     u8_t CalculateChecksum();
 
@@ -18,10 +18,10 @@ public:
     virtual ~ZwPacket();
     
     u8_t GetTypeOfFrame();
-    u8_t GetFunctionID();
+    u8_t GetFunctionId();
 
     void_t SetTypeOfFrame(u8_t byTypeOfFrame);
-    void_t SetFunctionID(u8_t byFunctionID);
+    void_t SetFunctionId(u8_t byFunctionID);
 
     bool_t IsChecksumValid(u8_t byChecksum);
     Packet_p GetPacket();

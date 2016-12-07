@@ -29,6 +29,7 @@ class JsonMessageBase {
 public:
     JsonMessageBase() {}
     virtual ~JsonMessageBase() {}
+    virtual void_t Refresh() { }
 };
 
 typedef JsonMessageBase  JsonMessageBase_t;

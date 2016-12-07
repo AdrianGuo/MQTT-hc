@@ -7,21 +7,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <typedefs.h>
-#include <string.h>
+#include "typedefs.h"
+#include "Log.hpp"
 
-#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#define __FILENAME__            (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define DEBUG1(x)               std::cout << "DEBUG1: " << std::setw(15) << __FILENAME__ \
+#define DEBUG1(x)               std::cout << "DEBUG1: " << std::setw(12) << __DATE__ \
+                                          << ":" << std::setw(10) << __TIME__ \
+                                          << ":" << std::setw(20) << __FILENAME__ \
                                           << ":" << std::setw(4) << __LINE__ \
-                                          << ": " << x << std::endl;
+                                          << ":" << std::setw(40) << __FUNCTION__ \
+                                          << ":" << std::setw(12) << (uint_t) pthread_self() \
+                                          << ":" << x << std::endl;
 
-#define DEBUG2(x, args ...)     printf("DEBUG2: %15s:%4d: " x "\n", \
-                                        __FILENAME__, __LINE__, ##args)
-#ifdef MT7688
-namespace std {
-    std::string to_string(int i);
-    int stoi(std::string string);
-}
-#endif
+#define ERROR(x)                std::cerr << "DEBUG1: " << std::setw(12) << __DATE__ \
+                                          << ":" << std::setw(10) << __TIME__ \
+                                          << ":" << std::setw(20) << __FILENAME__ \
+                                          << ":" << std::setw(4) << __LINE__ \
+                                          << ":" << std::setw(40) << __FUNCTION__ \
+                                          << ":" << std::setw(12) << (uint_t) pthread_self() \
+                                          << ":" << x << std::endl;
+
+#define DEBUG2(x, args ...)     printf("DEBUG2: %12s:%10s:%20s:%4d:%40s:%12u:" x "\n", \
+                                        __DATE__, __TIME__, __FILENAME__, __LINE__, __FUNCTION__, \
+                                        (uint_t) pthread_self(), ##args)
+
 #endif /* !DEBUG_HPP_ */

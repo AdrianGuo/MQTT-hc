@@ -23,19 +23,18 @@
  * @retval None
  */
 SZbSerial::SZbSerial(
-    Serial_p pSerial
-) {
+    const_char_p chPortname
+) : m_Serial(chPortname, BAUD192) {
     m_enuRecvState = ZB_FRS_SOF_HUNT1;
     m_boIsACKNeeded = FALSE;
     m_boIsReceivedCAN = FALSE;
     m_bySendAttempts = 0;
 
-    m_pSerial = pSerial;
     m_pZbPacket = NULL;
     m_pDriverRecvFunctor = NULL;
 
     m_serialSendFunctor = makeFunctor((SerialFunctor_p)NULL, *this, &SZbSerial::BufferToZbPacket);
-    SendFunctor();
+    m_Serial.SerialRecvFunctor(&m_serialSendFunctor);
 }
 
 /**
@@ -48,11 +47,6 @@ SZbSerial::~SZbSerial() {
     if (m_pDriverRecvFunctor != NULL) {
         delete m_pDriverRecvFunctor;
         m_pDriverRecvFunctor = NULL;
-    }
-
-    if (m_pSerial != NULL) {
-        delete m_pSerial;
-        m_pSerial = NULL;
     }
 
     if (m_pZbPacket != NULL) {
@@ -76,19 +70,6 @@ SZbSerial::RecvFunctor(
         return TRUE;
     }
     return FALSE;
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-SZbSerial::SendFunctor(){
-    if (m_pSerial != NULL) {
-        m_pSerial->SerialRecvFunctor(&m_serialSendFunctor);
-    }
 }
 
 /**
@@ -182,7 +163,7 @@ SZbSerial::ParseData(
         if (m_pZbPacket->IsChecksumValid(byData)) {
             if(m_boIsACKNeeded){
                 DEBUG1("push ack");
-                m_pSerial->PushData(ACK);
+                m_Serial.PushData(ACK);
             }
 
             if (m_pDriverRecvFunctor != NULL) {
@@ -225,12 +206,7 @@ SZbSerial::ParseData(
  */
 bool_t
 SZbSerial::Start() {
-    if (m_pSerial != NULL) {
-        DEBUG1("START SUCCESS");
-        return m_pSerial->Start();
-    }
-    DEBUG1("START FAIL");
-    return FALSE;
+    return m_Serial.Start();
 }
 
 /**
@@ -241,10 +217,7 @@ SZbSerial::Start() {
  */
 bool_t
 SZbSerial::Connect() {
-    if (m_pSerial != NULL) {
-        return m_pSerial->Connect();
-    }
-    return FALSE;
+    return m_Serial.Connect();
 }
 
 /**
@@ -255,10 +228,7 @@ SZbSerial::Connect() {
  */
 bool_t
 SZbSerial::Close() {
-    if (m_pSerial != NULL) {
-        return m_pSerial->Close();
-    }
-    return FALSE;
+    return m_Serial.Close();
 }
 
 /**
@@ -287,13 +257,13 @@ SZbSerial::SendZbPacket(
     ZbPacket_p pZbPacket
 ) {
     if (m_bySendAttempts < MAX_RETRIES) {
-        m_pSerial->PushPacket(pZbPacket->GetFullPacket());
+        m_Serial.PushPacket(pZbPacket->GetFullPacket());
         if (m_boIsACKNeeded) {
             m_ACKSignal.Reset();
             if (!m_ACKSignal.Wait(WAIT_ACK1)) {
-                m_pSerial->PushPacket(pZbPacket->GetFullPacket());
+                m_Serial.PushPacket(pZbPacket->GetFullPacket());
                 if (!m_ACKSignal.Wait(WAIT_ACK2)) {
-                    m_pSerial->PushPacket(pZbPacket->GetFullPacket());
+                    m_Serial.PushPacket(pZbPacket->GetFullPacket());
                 } else if (m_boIsReceivedCAN) {
                     m_bySendAttempts++;
                     SendZbPacket(pZbPacket);

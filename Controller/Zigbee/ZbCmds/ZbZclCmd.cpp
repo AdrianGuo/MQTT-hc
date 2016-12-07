@@ -51,7 +51,6 @@ void_t
 ZbZclCmd::ProcRecvMessage(
     void_p pInBuffer
 ) {
-
     ZbPacket_p pZbPacket    = (ZbPacket_p) pInBuffer;
     u8_p pbyBuffer          = pZbPacket->GetBuffer();
     u16_t wNwk              = LittleWord(&pbyBuffer);
@@ -103,7 +102,7 @@ ZbZclCmd::SetDevice(
         default:
             break;
     }
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }
 
 /**
@@ -134,5 +133,5 @@ ZbZclCmd::SetIR(
         pZbPacket->Push(0x01);                //Payload's length
         pZbPacket->Push((u8_t) irCommand);    //CMD ID
     }
-    ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }

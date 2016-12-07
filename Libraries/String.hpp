@@ -150,6 +150,7 @@ public:
     String operator+ (const String& rhs);
     String operator+ (const_char_p rhs);
     String operator+ (char rhs);
+
     friend String operator+ (const String &lhs, const String& rhs);
     friend String operator+ (const String &lhs, const_char_p rhs);
     friend String operator+ (const_char_p lhs, const String& rhs);

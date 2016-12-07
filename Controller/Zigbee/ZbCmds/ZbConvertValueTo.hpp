@@ -230,7 +230,6 @@ ForwardSetValueToRGB (
     vDP.push_back(dpBlue);
     vDP.push_back(dpState);
 
-//    DEBUG2("Red: %d, Green: %d, Blue: %d, State: %d, Time: %d", red, green, blue, state);
     ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, vDP);
 }
 

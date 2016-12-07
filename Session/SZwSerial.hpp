@@ -24,7 +24,7 @@ typedef enum {
 
 class SZwSerial {
 private:
-    Serial_p m_pSerial;
+    Serial_t m_Serial;
     Event_t m_ACKSignal;
     ZwPacket_p  m_pZwavePacket;
     RecvState_t m_enuRecvState;
@@ -47,7 +47,6 @@ public:
 
     String GetNamePort();
 
-    void_t SZwSerialSendFunctor();
     bool_t SZwSerialRecvFunctor(ZwDriverRecvMsgFunctor_p pDriverFunctor);
 
     bool_t Start();

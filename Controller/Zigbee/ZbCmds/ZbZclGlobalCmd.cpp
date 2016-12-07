@@ -7,12 +7,13 @@
 
 #include <ZbDriver.hpp>
 #include <debug.hpp>
+#include <LogPlus.hpp>
 #include <zcl.hpp>
 #include <zcl_lumi.hpp>
 #include <zcl_general.hpp>
 #include <ZbHelper.hpp>
 #include <ZbSocketCmd.hpp>
-#include <JsonZbGet.hpp>
+#include <JsonDevGet.hpp>
 
 #include <ZbZclGlobalCmd.hpp>
 
@@ -74,7 +75,7 @@ ZbZclGlobalCmd::ProcRecvMessage(
             break;
 
         default:
-            DEBUG1("ZCL GLOBAL COMMAND NOT FOUND!")
+            LOG_WARN("ZCL GLOBAL COMMAND NOT FOUND!");
             break;
     }
 }
@@ -116,7 +117,7 @@ ZbZclGlobalCmd::ReadAttributeRequest(
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID & 0xFF);
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID >> 8);
             }
-           ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+           ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
            delete pZbPacket;
         }
     }
@@ -190,7 +191,6 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         byLength--;
         temp.DP_AttributeDataType = byAttributeDataType;
 
-        //DEBUG
         u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
         if((byAttributeDataType == 0x41) || (byAttributeDataType == 0x42)) byLength -= 1;
         else if((byAttributeDataType == 0x43) || (byAttributeDataType == 0x44)) byLength -= 2;
@@ -236,7 +236,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                 }
             } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
                 String ModelName = String((const char*) vpData[i]);
-                DEBUG2("Device %s has joined.", ModelName.c_str());
+                LOG_INFO("Device %s has joined.", ModelName.c_str());
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
                     if(tempDevice.Modify()->IsInterested()) {
@@ -251,14 +251,14 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                         jsonVal["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
                         JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
                         pJsonCommand->SetJsonObject(jsonVal);
-                        JsonZbGet_p pJsonZbGet = new JsonZbGet();
-                        pJsonZbGet->ParseJsonCommand(pJsonCommand);
-                        ZbMessage_p pZbMessage = new ZbMessage(pJsonZbGet, ZbMessage::Command::GetDevice);
+                        JsonDevGet_p pJsonDevGet = new JsonDevGet();
+                        pJsonDevGet->ParseJsonCommand(pJsonCommand);
+                        ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
                         pZbMessage->SetCmdID(ZCL_CMD_REQ);
                         ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
                         pZbMessage = NULL;
                         delete pJsonCommand;
-                        delete pJsonZbGet;
+                        delete pJsonDevGet;
                     }
 
                 }
@@ -318,7 +318,7 @@ ZbZclGlobalCmd::WriteAttributeRequest(
             }
         }
 
-        ZbDriver::s_pInstance->m_pSZbSerial->PushZbPacket(pZbPacket);
+        ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
         delete pZbPacket;
     }
 }
