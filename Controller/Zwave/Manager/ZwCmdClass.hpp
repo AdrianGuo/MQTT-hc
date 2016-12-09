@@ -30,19 +30,19 @@ public:
 
     virtual u8_t GetMaxVersion() { return 0; }
     virtual ValueDevice_p HandleMessage(u8_p pBuffer, u8_t byLength) { return NULL; }
-
     virtual ZwMessage_p GetValue() { return NULL; }
+    virtual ZwMessage_p GetVersionValue() { return NULL; }
     virtual ZwMessage_p SetValue(ValueDevice_p pValueDevice) { return NULL; }
     virtual void_t SetValue(ValueDevice_p pValueDevice, u8_p& pBuffer, u8_p pLength);
 
     void_t  SetNode(ZwNode* pZwNode) { m_pZwNode = pZwNode; }
     ZwNode* GetNode() { return m_pZwNode; }
 
+    u8_t   GetVersion() const { return m_byVersion; }
     void_t SetVersion(u8_t byVersion) { m_byVersion = byVersion; }
 
     u32_t GetHomeId() const { return m_dwHomeId; }
     u8_t  GetNodeId() const { return m_byNodeId; }
-    u8_t  GetVersion() const { return m_byVersion; }
 };
 
 typedef ZwCmdClass  ZwCmdClass_t;

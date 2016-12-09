@@ -81,7 +81,7 @@ ZwCmdNvm::HandleMemoryGetIdResponse(
         m_ValueZwDriver.expectedCbakId = 0;
         m_ValueZwDriver.expectedNodeId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
-        m_ValueZwDriver.expectedCClaId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.packetSignal->Set();
     }
 }

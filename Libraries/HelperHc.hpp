@@ -60,9 +60,9 @@
         strRecevCmd.remove_char(SPACE); \
         std::replace(strRecevCmd.begin(), strRecevCmd.end(), AT, SPACE); \
         if ((logLevel) == Log::Level::eInfo) { \
-            LOG_INFO("jsoncmd %s", strRecevCmd.c_str()); \
+            LOG_INFO (" json %s", strRecevCmd.c_str()); \
         } else if ((logLevel) == Log::Level::eDebug) { \
-            LOG_DEBUG("jsoncmd %s", strRecevCmd.c_str()); \
+            LOG_DEBUG(" json %s", strRecevCmd.c_str()); \
         } \
     )
 

@@ -39,7 +39,7 @@ public:
 
     virtual u8_t GetMaxVersion() const { return MULTI_CHANNEL_VERSION_V4; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_MULTI_CHANNEL_V4; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_MULTI_CHANNEL"; }
+    static const String GetZwCmdClassName() { return "MULTI_CHANNEL"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

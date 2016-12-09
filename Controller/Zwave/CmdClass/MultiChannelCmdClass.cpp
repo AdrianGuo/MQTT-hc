@@ -102,7 +102,7 @@ MultiChannelCmdClass::HandleMessage(
     ValueDevice_p pValueDevice = NULL;
     u8_t byCommand = pbCommand[1];
     switch (byCommand) {
-    case  MULTI_CHANNEL_END_POINT_REPORT_V4:
+    case MULTI_CHANNEL_END_POINT_REPORT_V4:
         pValueDevice = HandleMultiChannelEndpointReport(&pbCommand[2], byLength - 2);
         break;
 
@@ -184,7 +184,7 @@ MultiChannelCmdClass::GetEndpoint() {
     u8_t byLength   = 2;
     u8_p pbyBuffer  = new u8_t[byLength];
 
-    LOG_DEBUG("send enpoint %d get", byZwNodeId);
+    LOG_DEBUG("get ep %2d", byZwNodeId);
 
     pbyBuffer[dwCount++] = GetZwCmdClassId(); // Comand Class
     pbyBuffer[dwCount++] = MULTI_CHANNEL_END_POINT_GET_V4; // Command
@@ -306,10 +306,14 @@ MultiChannelCmdClass::HandleMultiChannelEndpointReport(
     m_byNumberOfEndpoints =
     m_byNumberOfIndividualEndpoints + m_byNumberOfAggregatedEndpoints;
 
+    LOG_DEBUG("rep ep %03d %03d",
+    m_byNumberOfIndividualEndpoints, m_byNumberOfAggregatedEndpoints);
+
     ZwNode_p pZwRootNode = GetNode();
     pZwRootNode->SetNbrOfEndpoints(m_byNumberOfEndpoints);
 
     for (u32_t i = 0; i < m_byNumberOfIndividualEndpoints; i++) {
+        LOG_DEBUG("get ep %03d cability", i + 1);
         ProcGetCapability(pZwRootNode, i + 1);
     }
 
@@ -334,8 +338,6 @@ MultiChannelCmdClass::ProcGetCapability(
 
     pZwMessage->SetExpectedEndpointId(byEndpoint);
     pZwNode->ProcessFunctor(EvAction::Pushback, pZwMessage);
-
-    LOG_DEBUG("send endpoint %d cability", byEndpoint);
 }
 
 /**
@@ -355,7 +357,7 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
     u8_t byGeneric  = pbCommand[1];
     u8_t bySpecific = pbCommand[2];
 
-    LOG_DEBUG("get endpoint %d cability", byEndpoint);
+    LOG_DEBUG("rep ep %03d cability", byEndpoint);
 
     if (pZwRootNode == NULL) { return NULL; }
 
@@ -366,10 +368,10 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
     pZwEndPoint->SetNodeId(byRootId);
     pZwEndPoint->SetDeviceType();
 
-    ZwDbDevice parentfind = m_pDbModel->Find<ZwDbDeviceItem>().
+    ZwDbDevice parentFind = m_pDbModel->Find<ZwDbDeviceItem>().
     Where("NodeId = ?").Bind(byRootId).Where("Position = ?").Bind(0);
 
-    if (parentfind.get() == NULL) { return NULL; }
+    if (parentFind.get() == NULL) { return NULL; }
 
     ZwDbDevice devicefind = m_pDbModel->Find<ZwDbDeviceItem>().
     Where("NodeId = ?").Bind(byRootId).Where("Position = ?").Bind(byEndpoint);
@@ -389,14 +391,14 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
 
         pZwRootNode->ProcessFunctor(EvAction::None, pJsonCommand);
 
-        LOG_DEBUG("add endpoint %d ", byEndpoint);
+        LOG_DEBUG("add ep %03d ", byEndpoint);
         ZwDbDevice device = m_pDbModel->Add(new ZwDbDeviceItem());
         device.Modify()->NodeId   = byRootId;
         device.Modify()->Position = byEndpoint;
         device.Modify()->Generic  = byGeneric;
         device.Modify()->Specific = bySpecific;
         device.Modify()->DevType  = pZwEndPoint->GetDeviceType();
-        device.Modify()->Device   = parentfind;
+        device.Modify()->Device   = parentFind;
 
         for (u8_t i = 0; i < byLength; i++) {
             pZwEndPoint->AddZwCmdClass(pbCommand[3 + i]);
@@ -408,6 +410,7 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
     }
 
     m_pDbModel->UpdateChanges();
+
     return NULL;
 }
 

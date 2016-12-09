@@ -17,17 +17,17 @@
  */
 DbDeviceItem::DbDeviceItem() :
     DbItem(DB_NAME_TABLE_DEVICE),
-    DevId   (-1, "DeviceId"),
+    DevId (-1, "DeviceId"),
     Position(-1, "Position"),
     TypeDev (-1, "TypeDev"),
     TypeNet (-1, "TypeNet"),
-    RoomId  (-1, "RoomId"),
-    MacId   (String(), "Mac"),
-    ParId   (-1, "ParId") {
+    RoomId (-1, "RoomId"),
+    MacId (String(), "Mac"),
+    ParId (-1, "ParId") {
 }
 
 /**
- * @func
+ * @func   ~DbDeviceItem
  * @brief  None
  * @param  None
  * @retval None

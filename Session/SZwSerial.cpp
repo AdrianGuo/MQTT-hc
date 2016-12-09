@@ -161,7 +161,7 @@ SZwSerial::ParseData(
     case FRS_TYPE:
         if ((byData == REQUEST) || (byData == RESPONSE)) {
             m_enuRecvState = FRS_COMMAND;
-            m_pZwavePacket->SetTypeOfFrame(byData);
+            m_pZwavePacket->SetTpeOfFrame(byData);
         } else {
             m_enuRecvState = FRS_SOF_HUNT;
             delete m_pZwavePacket;
@@ -190,7 +190,7 @@ SZwSerial::ParseData(
         if (m_pZwavePacket->IsChecksumValid(byData)) {
             m_Serial.PushData(ACK);
             if (m_pDriverRecvFunctor != NULL) {
-                m_pDriverRecvFunctor->operator ()(m_pZwavePacket);
+                (*m_pDriverRecvFunctor)(m_pZwavePacket);
                 m_pZwavePacket = NULL;
             }
         } else {

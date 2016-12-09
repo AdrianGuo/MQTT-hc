@@ -8,7 +8,7 @@
 #include "AssociationCmdClass.hpp"
 
 /**
- * @func
+ * @func   AssociationCmdClass
  * @brief  None
  * @param  None
  * @retval None
@@ -24,7 +24,7 @@ AssociationCmdClass::AssociationCmdClass(
 }
 
 /**
- * @func
+ * @func   CreateZwCmdClass
  * @brief  None
  * @param  None
  * @retval None
@@ -38,7 +38,7 @@ AssociationCmdClass::CreateZwCmdClass(
 }
 
 /**
- * @func
+ * @func   CreateZwCmdClass
  * @brief  None
  * @param  None
  * @retval None

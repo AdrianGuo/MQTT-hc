@@ -1,4 +1,4 @@
-#include "debug.hpp"
+#include "HelperHc.hpp"
 #include "ZwSerialAPI.hpp"
 #include "ZwPacket.hpp"
 
@@ -18,7 +18,7 @@ u8_t
 ZwPacket::CalculateChecksum() {
     u8_t byCheckSum = 0xFF;
     byCheckSum ^= (Packet::Count() + 3);
-    byCheckSum ^= m_byTypeOfFrame;
+    byCheckSum ^= m_byTpeOfFrame;
     byCheckSum ^= m_byFunctionId;
     for (u32_t i = 0; i < Packet::Count(); i++) {
         byCheckSum ^= Packet::AtPosition(i);
@@ -48,7 +48,7 @@ ZwPacket::IsChecksumValid(
 ZwPacket::ZwPacket(
     u32_t byLength
 ) : Packet (byLength) {
-    m_byTypeOfFrame = 0;
+    m_byTpeOfFrame = 0;
     m_byFunctionId = 0;
 }
 
@@ -59,12 +59,13 @@ ZwPacket::ZwPacket(
  * @retval None
  */
 ZwPacket::ZwPacket(
-    u8_t byTypeOfFrame,
+    u8_t byTpeOfFrame,
     u8_t byCommand,
-    u32_t byLength
-) : Packet (byLength) {
-    m_byTypeOfFrame = byTypeOfFrame;
-    m_byFunctionId  = byCommand;
+    u32_t dwLength
+) : Packet (dwLength) ,
+    m_byTpeOfFrame (byTpeOfFrame),
+    m_byFunctionId (byCommand) {
+
 }
 
 /**
@@ -83,10 +84,10 @@ ZwPacket::~ZwPacket() {
  * @retval None
  */
 void_t
-ZwPacket::SetTypeOfFrame(
+ZwPacket::SetTpeOfFrame(
     u8_t byTypeOfFrame
 ) {
-    m_byTypeOfFrame = byTypeOfFrame;
+    m_byTpeOfFrame = byTypeOfFrame;
 }
 
 /**
@@ -109,8 +110,8 @@ ZwPacket::SetFunctionId(
  * @retval None
  */
 u8_t
-ZwPacket::GetTypeOfFrame() {
-    return m_byTypeOfFrame;
+ZwPacket::GetTpeOfFrame() {
+    return m_byTpeOfFrame;
 }
 
 /**
@@ -146,12 +147,30 @@ ZwPacket::GetPacket() {
 Packet_p
 ZwPacket::GetFullPacket() {
     Packet_p pPacket = new Packet(Packet::Count() + 5);
+
     pPacket->Push(SOF);
     pPacket->Push(Packet::Count() + 3);
-    pPacket->Push(m_byTypeOfFrame);
+    pPacket->Push(m_byTpeOfFrame);
     pPacket->Push(m_byFunctionId);
     pPacket->Push(Packet::GetBuffer(), Packet::Count());
     pPacket->Push(CalculateChecksum());
 
     return pPacket;
+}
+
+/**
+ * @func   PrintfPacket
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+String
+ZwPacket::PrintfPacket() {
+    Packet_p pPacket = GetFullPacket();
+    String strRet;
+    for (u32_t i = 0; i < pPacket->Length(); i++) {
+        strRet.append(GetHex((*pPacket)[i]));
+        strRet.append(" ");
+    }
+    return strRet;
 }

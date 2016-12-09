@@ -37,15 +37,15 @@
 #include "ZwCmdTransport.hpp"
 
 class ZwDriver {
-    const static i32_t wait_response = 4000;
+    const static i32_t wait_response = 6000;
 
     u32_t m_dwCountCommand;
 
-    ValueByte_t m_byExpectedCallbackId;
+    ValueByte_t m_byExpectedCbakId;
     ValueByte_t m_byExpectedNodeId;
-    ValueByte_t m_byExpectedFunctionId;
-    ValueByte_t m_byExpectedCmdClassId;
-    ValueByte_t m_byExpectedEndpointId;
+    ValueByte_t m_byExpectedFuncId;
+    ValueByte_t m_byExpectedCmdCId;
+    ValueByte_t m_byExpectedEndPId;
 
     ValueByte_t  m_byNodeId;                    // Value ZwCmdNvm, ZwCmdCtrller
     ValueDword_t m_dwHomeId;                    // Value ZwCmdNvm, ZwCmdCtrller

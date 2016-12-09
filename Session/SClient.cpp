@@ -146,7 +146,7 @@ SClient::BufferToJsCmdClass(
 ) {
     String temp = String(reinterpret_cast<char*>(pBuffer));
 
-    LOG_INFO("   recv %s", temp.c_str());
+    LOG_INFO(" recv %s", temp.c_str());
 
     String strJsonCommand = m_strRemainder + temp;
     m_strRemainder.clear();
@@ -159,7 +159,7 @@ SClient::BufferToJsCmdClass(
         String strJsonValue = m_vecStringJsonCommand[i*3 + 2];
         String strFullCommand = strCmdClass + "=" + strCommand;
 
-        LOG_DEBUG("  parse $%s%s$end", strFullCommand.c_str(), strJsonValue.c_str());
+        LOG_DEBUG("parse $%s%s$end", strFullCommand.c_str(), strJsonValue.c_str());
 
         JsonCommand_p pJsonCommand = new JsonCommand(strFullCommand, strJsonValue);
 
@@ -189,7 +189,7 @@ SClient::JsCommandToPacket(
     strOutput.remove_char(SPACE); // remove all spaces
     std::replace(strOutput.begin(), strOutput.end(), AT, SPACE);
 
-    LOG_INFO("   send %s", strOutput.c_str());
+    LOG_INFO(" send %s", strOutput.c_str());
 
     Packet_p packet = new Packet(strOutput.size());
 

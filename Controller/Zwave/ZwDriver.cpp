@@ -27,11 +27,11 @@ ZwDriver::ZwDriver(
                     m_byNodeId)),
     m_ValueZwDriver (
             ValueRef<ValueZwDriver>::GetInstance(
-                    m_byExpectedCallbackId,
+                    m_byExpectedCbakId,
                     m_byExpectedNodeId,
-                    m_byExpectedFunctionId,
-                    m_byExpectedCmdClassId,
-                    m_byExpectedEndpointId,
+                    m_byExpectedFuncId,
+                    m_byExpectedCmdCId,
+                    m_byExpectedEndPId,
                     m_evPacketSignal)),
     m_ValueZwAppFunc (
             ValueRef<ValueZwAppFunc>::GetInstance(
@@ -517,80 +517,91 @@ ZwDriver::ProcSendMessage(
     void_p pInBuffer
 ) {
     bool_t boStopNetwrk = FALSE;
-    ZwMessage_p pCurrentZwMsg = (ZwMessage_p) pInBuffer;
+    ZwMessage_p pCurrZwMsg = (ZwMessage_p) pInBuffer;
 
     m_pZwDriverLocker->Lock();
-    if (pCurrentZwMsg == NULL) {
-        m_byExpectedCallbackId = 0;
-        m_byExpectedNodeId     = 0 ;
-        m_byExpectedFunctionId = 0;
-        m_byExpectedCmdClassId = 0;
-        m_byExpectedEndpointId = 0;
+    if (pCurrZwMsg == NULL) {
+        m_byExpectedCbakId = 0;
+        m_byExpectedNodeId = 0 ;
+        m_byExpectedFuncId = 0;
+        m_byExpectedCmdCId = 0;
+        m_byExpectedEndPId = 0;
         m_pZwDriverLocker->UnLock();
         return;
     }
     m_pZwDriverLocker->UnLock();
 
-    if ((pCurrentZwMsg->GetZwCommad() == ZwMessage::Command::StopAdd) ||
-        (pCurrentZwMsg->GetZwCommad() == ZwMessage::Command::StopRmv)) {
-        LOG_INFO("    stop adding/removing");
+    if ((pCurrZwMsg->GetZwCommad() == ZwMessage::Command::StopAdd) ||
+        (pCurrZwMsg->GetZwCommad() == ZwMessage::Command::StopRmv)) {
+        LOG_DEBUG("    stop adding/removing");
         boStopNetwrk = TRUE;
     }
 
     if (!boStopNetwrk) {
         m_pZwDriverLocker->Lock();
-        m_byExpectedCallbackId = pCurrentZwMsg->GetCallbackId();
-        m_byExpectedNodeId     = pCurrentZwMsg->GetTargetNodeId();
-        m_byExpectedFunctionId = pCurrentZwMsg->GetExpectedFunctionId();
-        m_byExpectedCmdClassId = pCurrentZwMsg->GetExpectedCmdClassId();
-        m_byExpectedEndpointId = pCurrentZwMsg->GetExpectedEndpointId();
+        m_byExpectedCbakId = pCurrZwMsg->GetCallbackId();
+        m_byExpectedNodeId = pCurrZwMsg->GetTargetNodeId();
+        m_byExpectedFuncId = pCurrZwMsg->GetExpectedFunctionId();
+        m_byExpectedCmdCId = pCurrZwMsg->GetExpectedCmdClassId();
+        m_byExpectedEndPId = pCurrZwMsg->GetExpectedEndpointId();
         m_pZwDriverLocker->UnLock();
     }
 
-    ZwPacket_p pZwPacket = new ZwPacket(pCurrentZwMsg->GetTypeMessage(),
-            pCurrentZwMsg->GetFunctionId(), pCurrentZwMsg->Length());
+    ZwPacket_p pZwPacket = new ZwPacket(
+                                pCurrZwMsg->GetTypeMessage(),
+                                pCurrZwMsg->GetFunctionId(),
+                                pCurrZwMsg->Length());
 
     LOG_INFO("send command %d", ++m_dwCountCommand);
 
-    LOG_INFO("    send: Cb:%3d Func:0x%02x Node:%3d EndP:%3d",
-            pCurrentZwMsg->GetCallbackId(),
-            pCurrentZwMsg->GetFunctionId(),
-            pCurrentZwMsg->GetTargetNodeId(),
-            pCurrentZwMsg->GetExpectedEndpointId());
+    LOG_DEBUG("send: Func: %02x Node: %03d EndP: %03d Cb: %03d",
+                    pCurrZwMsg->GetFunctionId(),
+                    pCurrZwMsg->GetTargetNodeId(),
+                    pCurrZwMsg->GetExpectedEndpointId(),
+                    pCurrZwMsg->GetCallbackId());
 
     m_pZwDriverLocker->Lock();
-    LOG_INFO("expected: Cb:%3d Func:0x%02x Node:%3d CmdClass:0x%02x",
-            m_byExpectedCallbackId.GetValue(),
-            m_byExpectedFunctionId.GetValue(),
-            m_byExpectedNodeId.GetValue(),
-            m_byExpectedCmdClassId.GetValue());
+    LOG_DEBUG("expc: Func: %02x Node: %03d CmdC:  %02X Cb: %03d",
+                    m_byExpectedFuncId.GetValue(),
+                    m_byExpectedNodeId.GetValue(),
+                    m_byExpectedCmdCId.GetValue(),
+                    m_byExpectedCbakId.GetValue());
     m_pZwDriverLocker->UnLock();
 
-    if (pCurrentZwMsg->Length() > 0) {
-        pZwPacket->Push(pCurrentZwMsg->GetBuffer(), pCurrentZwMsg->Length());
+    if (pCurrZwMsg->Length() > 0) {
+        pZwPacket->Push(pCurrZwMsg->GetBuffer(), pCurrZwMsg->Length());
     }
+
+    LOG_INFO("data: %s", pZwPacket->PrintfPacket().c_str());
 
     m_evPacketSignal->Reset();
     m_SessionZwSerial.PushZwPacket(pZwPacket);
 
     if (!boStopNetwrk) {
         if (!m_evPacketSignal->Wait(wait_response)) {
-            LOG_INFO("wait timeout");
+            LOG_INFO("send command %d timeout", m_dwCountCommand);
             m_pZwDriverLocker->Lock();
-            m_byExpectedCallbackId  = 0;
-            m_byExpectedNodeId      = 0;
-            m_byExpectedFunctionId  = 0;
-            m_byExpectedCmdClassId  = 0;
-            m_byExpectedEndpointId  = 0;
+            m_byExpectedNodeId = 0;
+            m_byExpectedCbakId = 0;
+            m_byExpectedFuncId = 0;
+            m_byExpectedCmdCId = 0;
+            m_byExpectedEndPId = 0;
             m_pZwDriverLocker->UnLock();
+            ProcessFunctor(EvAction::Pushback, pCurrZwMsg);
+        } else {
+            LOG_INFO("send command %d done", m_dwCountCommand);
+            if (pCurrZwMsg != NULL) {
+                delete pCurrZwMsg;
+                pCurrZwMsg = NULL;
+            }
+        }
+    } else {
+        LOG_INFO("send command %d done", m_dwCountCommand);
+        if (pCurrZwMsg != NULL) {
+            delete pCurrZwMsg;
+            pCurrZwMsg = NULL;
         }
     }
-
-    if (pCurrentZwMsg != NULL) {
-        delete pCurrentZwMsg;
-        pCurrentZwMsg = NULL;
-    }
-    LOG_INFO("send command %d done", m_dwCountCommand);
 }
 
 /**
@@ -606,9 +617,9 @@ ZwDriver::ProcRecvMessage(
     ZwPacket_p pZwPacket = (ZwPacket_p) pInBuffer;
 
     m_pZwDriverLocker->Lock();
-    if (pZwPacket->GetTypeOfFrame() == RESPONSE) {
+    if (pZwPacket->GetTpeOfFrame() == RESPONSE) {
         m_pHandlerResponse->ProcessFunctor(pZwPacket);
-    } else if (pZwPacket->GetTypeOfFrame() == REQUEST) {
+    } else if (pZwPacket->GetTpeOfFrame() == REQUEST) {
         m_pHandlerRequest->ProcessFunctor(pZwPacket);
     }
     m_pZwDriverLocker->UnLock();
@@ -630,7 +641,7 @@ ZwDriver::HandleSerialApiGetInitDataResponse(
 
     if (pZwPacket->GetBuffer() == NULL) { return; }
 
-    if (m_byExpectedFunctionId == pZwPacket->GetFunctionId()) {
+    if (m_byExpectedFuncId == pZwPacket->GetFunctionId()) {
         u8_t byCount = 0;
         u8_p pbyBuffer = pZwPacket->GetBuffer();
         m_byVersion = pbyBuffer[byCount++];
@@ -663,10 +674,10 @@ ZwDriver::HandleSerialApiGetInitDataResponse(
             m_pZwDbModel->UpdateChanges();
         }
 
-        m_byExpectedCallbackId  = 0;
+        m_byExpectedCbakId  = 0;
         m_byExpectedNodeId      = 0;
-        m_byExpectedFunctionId  = 0;
-        m_byExpectedCmdClassId  = 0;
+        m_byExpectedFuncId  = 0;
+        m_byExpectedCmdCId  = 0;
         m_evPacketSignal->Set();
     }
 }
@@ -685,7 +696,7 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
 
     if (pZwPacket->GetBuffer() == NULL) { return; }
 
-    if (m_byExpectedFunctionId == pZwPacket->GetFunctionId()) {
+    if (m_byExpectedFuncId == pZwPacket->GetFunctionId()) {
         u8_p pbyBuffer = pZwPacket->GetBuffer();
         m_pbySerialApiVersion[0]    = pbyBuffer[0];
         m_pbySerialApiVersion[1]    = pbyBuffer[1];
@@ -705,10 +716,10 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
             m_pZwDbModel->UpdateChanges();
         }
 
-        m_byExpectedCallbackId  = 0;
+        m_byExpectedCbakId  = 0;
         m_byExpectedNodeId      = 0;
-        m_byExpectedFunctionId  = 0;
-        m_byExpectedCmdClassId  = 0;
+        m_byExpectedFuncId  = 0;
+        m_byExpectedCmdCId  = 0;
         m_evPacketSignal->Set();
     }
 }
@@ -729,10 +740,9 @@ ZwDriver::LoadCmdClasses(
     Where("DevId = ?").Bind((int_t)dwKeyId);
     for (ZwDbCommandClasses::const_iterator it = cmdClasses.begin();
             it != cmdClasses.end(); it++) {
+        ZwNode_p pZwNode = m_ValueLstNode[bNodeId - 1];
         u8_t byCmdClass = (u8_t) (*it)->CmdId;
-        if (bEndPId == 0) {
-            m_ValueLstNode[bNodeId - 1][bEndPId].AddZwCmdClass(byCmdClass);
-        }
+        (*pZwNode)[bEndPId]->AddZwCmdClass(byCmdClass);
     }
 }
 
@@ -749,14 +759,12 @@ ZwDriver::LoadZwDevices(
     for (ZwDbDevices::const_iterator it = m_pZwDbModel->Devices.begin();
             it != m_pZwDbModel->Devices.end(); it++) {
         ZwNode_p pZwNode = NULL;
-        u8_t byKeyId = (u8_t) it->Id();
-        u8_t byDevTy = (u8_t) (*it)->DevType;
+        u8_t byKeyId  = (u8_t) it->Id();
+        u8_t byDevTy  = (u8_t) (*it)->DevType;
         u8_t byNodeId = (u8_t) (*it)->NodeId;
         u8_t byEndPId = (u8_t) (*it)->Position;
 
-        LOG_DEBUG("load nodeid %2d ep %2d tp %2d", byNodeId, byEndPId, byDevTy);
-
-        if (-1 == (*it)->ParId) {
+        if ((-1) == (*it)->ParId) {
             pZwNode = new ZwNode(dwHomeId, byNodeId);
             m_ValueLstNode[byNodeId - 1] = pZwNode;
 

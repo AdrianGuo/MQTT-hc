@@ -158,6 +158,3 @@ ZbPacket::GetFullPacket() {
 
     return pPacket;
 }
-
-
-

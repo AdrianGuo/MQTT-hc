@@ -103,15 +103,26 @@ ZwCmdAppFunc::ProcMultiChannel(
 ) {
     u8_t byCommandRes = pbCommand[1];
     switch (byCommandRes) {
+    case MULTI_CHANNEL_END_POINT_REPORT_V4:
+    case MULTI_CHANNEL_END_POINT_FIND_REPORT_V4:
+    case MULTI_CHANNEL_AGGREGATED_MEMBERS_REPORT_V4:
+        m_ValueZwDriver.expectedCbakId = 0;
+        m_ValueZwDriver.expectedNodeId = 0;
+        m_ValueZwDriver.expectedFuncId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
+        m_ValueZwDriver.expectedEndPId = 0;
+        m_ValueZwDriver.packetSignal->Set();
+        break;
+
     case MULTI_CHANNEL_CAPABILITY_REPORT_V4:
         {
             u8_t byEndpointId = pbCommand[2];
-            if (byEndpointId == m_ValueZwDriver.expectedEndpId) {
+            if (byEndpointId == m_ValueZwDriver.expectedEndPId) {
                 m_ValueZwDriver.expectedCbakId = 0;
                 m_ValueZwDriver.expectedNodeId = 0;
                 m_ValueZwDriver.expectedFuncId = 0;
-                m_ValueZwDriver.expectedCClaId = 0;
-                m_ValueZwDriver.expectedEndpId = 0;
+                m_ValueZwDriver.expectedCmdCId = 0;
+                m_ValueZwDriver.expectedEndPId = 0;
                 m_ValueZwDriver.packetSignal->Set();
             }
         }
@@ -141,6 +152,7 @@ ZwCmdAppFunc::ProcApplicationCommandHandler(
 
     if ((pValueDevice != NULL) && (*pZwRootNode)[byOrder] != NULL) {
         u8_t byDeviceType = (*pZwRootNode)[byOrder]->GetDeviceType();
+        LOG_DEBUG("type %d", byDeviceType);
 
         if (byDeviceType == DEVICE_TYPE_UNKNOW) {
             delete pValueDevice;
@@ -204,14 +216,14 @@ ZwCmdAppFunc::HandleApplicationCommandHandlerRequest(
     if (FUNC_ID_APPLICATION_COMMAND_HANDLER ==
         m_ValueZwDriver.expectedFuncId &&
         m_ValueZwDriver.expectedNodeId == byNodeId &&
-        m_ValueZwDriver.expectedCClaId == byCmdClass) {
+        m_ValueZwDriver.expectedCmdCId == byCmdClass) {
         if (byCmdClass == MultiChannelCmdClass::GetZwCmdClassId()) {
             ProcMultiChannel(pbCommand, byLength - 3);
         } else {
             m_ValueZwDriver.expectedCbakId = 0;
             m_ValueZwDriver.expectedNodeId = 0;
             m_ValueZwDriver.expectedFuncId = 0;
-            m_ValueZwDriver.expectedCClaId = 0;
+            m_ValueZwDriver.expectedCmdCId = 0;
             m_ValueZwDriver.packetSignal->Set();
         }
     } else {

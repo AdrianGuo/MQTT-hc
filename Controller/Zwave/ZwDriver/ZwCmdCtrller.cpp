@@ -237,12 +237,13 @@ ZwCmdCtrller::ProcAddEndpointMultiChannel(
     if (m_ValueLstNode[byNodeId - 1] == NULL) { return; }
 
     if (m_ValueLstNode[byNodeId - 1]->IsMultiChannel()) {
-        LOG_DEBUG("multichannel endpoint get...");
+        LOG_DEBUG("multichannel ep get...");
         ZwCmdClass_p pZwCmdClass =
         m_ValueLstNode[byNodeId - 1]->GetZwCmdClass(
         MultiChannelCmdClass::GetZwCmdClassId());
 
-        ZwMessage_p pZwMessage = ((MultiChannelCmdClass_p) pZwCmdClass)->GetEndpoint();
+        ZwMessage_p pZwMessage =
+        ((MultiChannelCmdClass_p) pZwCmdClass)->GetEndpoint();
         pZwMessage->SetZwCommand(ZwMessage::Command::SendData);
 
         ProcessFunctor(EvAction::Pushback, pZwMessage);
@@ -337,7 +338,7 @@ ZwCmdCtrller::HandleAddNodeToNetworkRequest(
                 m_ValueZwDriver.expectedCbakId = 0;
                 m_ValueZwDriver.expectedNodeId = 0;
                 m_ValueZwDriver.expectedFuncId = 0;
-                m_ValueZwDriver.expectedCClaId = 0;
+                m_ValueZwDriver.expectedCmdCId = 0;
 
                 ProcessFunctor(EvAction::SSet, NULL);
 
@@ -409,9 +410,9 @@ ZwCmdCtrller::HandleAssignReturnRouteRequest(
         u8_t byStatus = pZwPacket->GetBuffer()[1];
         LOG_DEBUG("bStatus: %d", byStatus);
         m_ValueZwDriver.expectedCbakId = 0;
-        m_ValueZwDriver.expectedNodeId     = 0;
+        m_ValueZwDriver.expectedNodeId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
-        m_ValueZwDriver.expectedCClaId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.packetSignal->Set();
     }
 }
@@ -547,7 +548,7 @@ ZwCmdCtrller::HandleDeleteReturnRouteRequest(
         m_ValueZwDriver.expectedCbakId = 0;
         m_ValueZwDriver.expectedNodeId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
-        m_ValueZwDriver.expectedCClaId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.packetSignal->Set();
     }
 }
@@ -624,7 +625,7 @@ ZwCmdCtrller::HandleGetControllerCapabilitiesResponse(
         m_ValueZwDriver.expectedCbakId = 0;
         m_ValueZwDriver.expectedNodeId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
-        m_ValueZwDriver.expectedCClaId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.packetSignal->Set();
     }
 }
@@ -731,7 +732,7 @@ ZwCmdCtrller::HandleGetNodeProtocolInfoRespose(
         m_ValueZwDriver.expectedCbakId = 0;
         m_ValueZwDriver.expectedNodeId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
-        m_ValueZwDriver.expectedCClaId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.packetSignal->Set();
     }
 }
@@ -865,9 +866,9 @@ ZwCmdCtrller::HandleRemoveNodeFromNetworkRequest(
         case REMOVE_NODE_STATUS_DONE:
             LOG_DEBUG("remove done");
             m_ValueZwDriver.expectedCbakId = 0;
-            m_ValueZwDriver.expectedNodeId     = 0;
+            m_ValueZwDriver.expectedNodeId = 0;
             m_ValueZwDriver.expectedFuncId = 0;
-            m_ValueZwDriver.expectedCClaId = 0;
+            m_ValueZwDriver.expectedCmdCId = 0;
             {
                 u8_t byNodeId = pZwPacket->GetBuffer()[2];
 
@@ -978,7 +979,7 @@ ZwCmdCtrller::HandleRequestNodeInfoResponse(
         m_ValueZwDriver.expectedCbakId = 0;
         m_ValueZwDriver.expectedNodeId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
-        m_ValueZwDriver.expectedCClaId = 0;
+        m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.packetSignal->Set();
     }
 }
@@ -1057,7 +1058,7 @@ ZwCmdCtrller::HandleSetDefaultRequest(
     m_ValueZwDriver.expectedCbakId = 0;
     m_ValueZwDriver.expectedNodeId = 0;
     m_ValueZwDriver.expectedFuncId = 0;
-    m_ValueZwDriver.expectedCClaId = 0;
+    m_ValueZwDriver.expectedCmdCId = 0;
     m_ValueZwDriver.packetSignal->Set();
 }
 

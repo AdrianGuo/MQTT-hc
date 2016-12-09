@@ -6,7 +6,7 @@
 
 class Packet {
 private:
-    u8_p    m_pByBuffer;
+    u8_p    m_pbBuffer;
     u32_t   m_dwLength;
     u32_t   m_dwCount;
 public:
@@ -14,7 +14,7 @@ public:
     virtual ~Packet();
 
     virtual bool_t Push(u8_t byData);
-    virtual bool_t Push(u8_p pByBuffer, u32_t dwLength);
+    virtual bool_t Push(u8_p pbBuffer, u32_t dwLength);
 
     virtual u8_p GetBuffer();
 
@@ -32,7 +32,7 @@ public:
     virtual Packet& operator= (Packet& packet);
 };
 
-typedef Packet Packet_t;
+typedef Packet  Packet_t;
 typedef Packet* Packet_p;
 
 #endif /* !PACKET_HPP_ */

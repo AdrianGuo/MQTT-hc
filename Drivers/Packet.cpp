@@ -14,9 +14,9 @@ Packet::Packet(
     m_dwLength = dwLength;
     m_dwCount = 0;
     if (dwLength > 0) {
-        m_pByBuffer = new u8_t[dwLength];
+        m_pbBuffer = new u8_t[dwLength];
     } else {
-        m_pByBuffer = NULL;
+        m_pbBuffer = NULL;
     }
 }
 
@@ -27,9 +27,9 @@ Packet::Packet(
  * @retval None
  */
 Packet::~Packet() {
-    if (m_pByBuffer != NULL) {
-        delete[] m_pByBuffer;
-        m_pByBuffer = NULL;
+    if (m_pbBuffer != NULL) {
+        delete[] m_pbBuffer;
+        m_pbBuffer = NULL;
     }
 }
 
@@ -47,14 +47,14 @@ Packet::Push(
         m_dwLength = m_dwCount + 1;
         u8_p temp = new u8_t[m_dwLength];
         for (u32_t i = 0; i < m_dwCount; i++) {
-            temp[i] = m_pByBuffer[i];
+            temp[i] = m_pbBuffer[i];
         }
-        delete m_pByBuffer;
-        m_pByBuffer = temp;
+        delete m_pbBuffer;
+        m_pbBuffer = temp;
         temp = NULL;
         delete temp;
     }
-    m_pByBuffer[m_dwCount++] = byData;
+    m_pbBuffer[m_dwCount++] = byData;
     return TRUE;
 }
 
@@ -66,22 +66,22 @@ Packet::Push(
  */
 bool_t
 Packet::Push(
-    u8_p pByBuffer,
+    u8_p  pbBuffer,
     u32_t dwLength
 ) {
     if (m_dwCount + dwLength > m_dwLength) {
         m_dwLength = m_dwCount + dwLength;
         u8_p temp = new u8_t[m_dwLength];
         for (u32_t i = 0; i < m_dwCount; i++) {
-            temp[i] = m_pByBuffer[i];
+            temp[i] = m_pbBuffer[i];
         }
-        delete m_pByBuffer;
-        m_pByBuffer = temp;
+        delete m_pbBuffer;
+        m_pbBuffer = temp;
         temp = NULL;
         delete temp;
     }
     for (u32_t i = 0; i < dwLength; i++) {
-        m_pByBuffer[m_dwCount++] = pByBuffer[i];
+        m_pbBuffer[m_dwCount++] = pbBuffer[i];
     }
     return TRUE;
 }
@@ -94,7 +94,7 @@ Packet::Push(
  */
 u8_p
 Packet::GetBuffer() {
-    return m_pByBuffer;
+    return m_pbBuffer;
 }
 
 /**
@@ -107,7 +107,7 @@ u8_t
 Packet::AtPosition(
     u32_t dwPosition
 ) {
-    return m_pByBuffer[dwPosition];
+    return m_pbBuffer[dwPosition];
 }
 
 /**
@@ -120,7 +120,7 @@ u8_t
 Packet::operator[](
     u32_t dwPosition
 ) {
-    return m_pByBuffer[dwPosition];
+    return m_pbBuffer[dwPosition];
 }
 
 /**
@@ -178,10 +178,10 @@ Packet::ResetPacket(
     u32_t dwLength
 ) {
     if (dwLength > 0) {
-        if (m_pByBuffer != NULL) {
-            delete[] m_pByBuffer;
+        if (m_pbBuffer != NULL) {
+            delete[] m_pbBuffer;
         }
-        m_pByBuffer = new u8_t[dwLength];
+        m_pbBuffer = new u8_t[dwLength];
         m_dwLength = dwLength;
         m_dwCount = 0;
     }
@@ -197,13 +197,13 @@ Packet&
 Packet::operator= (
     Packet& packet
 ) {
-    if (m_pByBuffer != NULL) {
-        delete[] m_pByBuffer;
+    if (m_pbBuffer != NULL) {
+        delete[] m_pbBuffer;
     }
-    m_pByBuffer = new u8_t[m_dwLength = packet.Length()];
+    m_pbBuffer = new u8_t[m_dwLength = packet.Length()];
     m_dwCount = packet.Count();
     for (u32_t i = 0; i < m_dwLength; i++) {
-        m_pByBuffer[i] = packet[i];
+        m_pbBuffer[i] = packet[i];
     }
 
     return *this;

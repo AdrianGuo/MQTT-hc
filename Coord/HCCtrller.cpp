@@ -327,7 +327,7 @@ HCCtrller::RecvCommandFromSession(
 ) {
     m_pHCCtrllerLocker->Lock();
     if (pJsonCommand->IsJsonAvailable()) {
-        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
+//        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
         m_queJsonCommand.push(pJsonCommand);
         m_pHCCtrllerLocker->UnLock();
         return TRUE;
@@ -348,7 +348,7 @@ HCCtrller::RecvCommandFromModules(
 ) {
     m_pHCCtrllerLocker->Lock();
     if (pJsonCommand->IsJsonAvailable()) {
-        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
+//        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
         m_queJsonCommand.push(pJsonCommand);
         m_pHCCtrllerLocker->UnLock();
         return TRUE;

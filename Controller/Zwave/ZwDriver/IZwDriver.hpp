@@ -14,8 +14,8 @@ public:
     ValueByte&  expectedCbakId;
     ValueByte&  expectedNodeId;
     ValueByte&  expectedFuncId;
-    ValueByte&  expectedCClaId;
-    ValueByte&  expectedEndpId;
+    ValueByte&  expectedCmdCId;
+    ValueByte&  expectedEndPId;
     ValueEvent& packetSignal;
 
     ValueZwDriver(
@@ -28,8 +28,8 @@ public:
         ) : expectedCbakId (byExpectedCallbackId),
             expectedNodeId (byExpectedNodeId),
             expectedFuncId (byExpectedFunctionId),
-            expectedCClaId (byExpectedCmdClassId),
-            expectedEndpId (byExpectedEndpointId),
+            expectedCmdCId (byExpectedCmdClassId),
+            expectedEndPId (byExpectedEndpointId),
             packetSignal   (evPacketSignal) {
     }
 

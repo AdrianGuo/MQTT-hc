@@ -7,7 +7,7 @@
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-31 10:15:00 (Mon, 31 Oct 2016)
  *
