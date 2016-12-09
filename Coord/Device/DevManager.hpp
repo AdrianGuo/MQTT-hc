@@ -51,6 +51,7 @@ public:
     void_t HandlerDevCmdLstDel(JsonCommand_p pJsonCommand);
 
     void_t HandlerDevCmdReset(JsonCommand_p pJsonCommand);
+    void_t HandlerDevCmdResetRes(JsonCommand_p pJsonCommand);
     void_t HandlerDevCmdRestart(JsonCommand_p pJsonCommand);
 
     void_t HandlerDevCmdInfo(JsonCommand_p pJsonCommand);

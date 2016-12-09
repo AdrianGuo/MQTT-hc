@@ -33,6 +33,7 @@ public:
 
     virtual ZwMessage_p GetValue() { return NULL; }
     virtual ZwMessage_p SetValue(ValueDevice_p pValueDevice) { return NULL; }
+    virtual void_t SetValue(ValueDevice_p pValueDevice, u8_p& pBuffer, u8_p pLength);
 
     void_t  SetNode(ZwNode* pZwNode) { m_pZwNode = pZwNode; }
     ZwNode* GetNode() { return m_pZwNode; }
@@ -46,5 +47,21 @@ public:
 
 typedef ZwCmdClass  ZwCmdClass_t;
 typedef ZwCmdClass* ZwCmdClass_p;
+
+/**
+ * @func   SetValue
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline void_t
+ZwCmdClass::SetValue(
+    ValueDevice_p pValueDevice,
+    u8_p& pBuffer,
+    u8_p pLength
+) {
+    pBuffer = NULL;
+    pLength = NULL;
+}
 
 #endif /* !CMDCLASS_HPP_ */

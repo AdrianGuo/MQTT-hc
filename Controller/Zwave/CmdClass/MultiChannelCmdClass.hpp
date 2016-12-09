@@ -41,16 +41,16 @@ public:
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_MULTI_CHANNEL_V4; }
     static const String GetZwCmdClassName() { return "COMMAND_CLASS_MULTI_CHANNEL"; }
 
-
-    virtual u8_t GetNumberOfEndpoints() const;
-    virtual u8_t GetNumberOfIndividualEndpoints() const;
-    virtual u8_t GetNumberOfAggregatedEndpoints() const;
-
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 
-    virtual ZwMessage_p GetEndpoint();
-    virtual ZwMessage_p GetCapabilitiy(u8_t byEndPoint);
-    virtual ZwMessage_p EndpointFind(u8_t byGeneric, u8_t bySpecific);
+    u8_t GetNumberOfEndpoints() const;
+    u8_t GetNumberOfIndividualEndpoints() const;
+    u8_t GetNumberOfAggregatedEndpoints() const;
+
+    ZwMessage_p Encapsulate(u8_p pData, u8_t bLen, u8_t bSrc, u8_t bDes);
+    ZwMessage_p GetEndpoint();
+    ZwMessage_p GetCapabilitiy(u8_t byEndPoint);
+    ZwMessage_p EndpointFind(u8_t byGeneric, u8_t bySpecific);
 };
 
 typedef MultiChannelCmdClass  MultiChannelCmdClass_t;

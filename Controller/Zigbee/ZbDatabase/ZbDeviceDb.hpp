@@ -36,7 +36,6 @@ public:
     int_t RealType;
     Action_t Action;
     int_t& State;
-    u8_t byMsgCount;
 
     void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();

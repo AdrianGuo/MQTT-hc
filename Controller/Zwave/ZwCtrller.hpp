@@ -79,7 +79,7 @@ private:
 
     Queue<ZwMessage_p> m_queSendZwMsg;
 
-    ZwDriver_t  m_ZwDriver;
+    ZwDriver_t m_ZwDriver;
 
     ZwDeviceValueMan_p m_pZwDeviceValueMan;
 

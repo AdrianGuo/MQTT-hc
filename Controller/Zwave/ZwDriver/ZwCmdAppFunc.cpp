@@ -1,6 +1,10 @@
 #include "LogPlus.hpp"
 #include "HelperHc.hpp"
+
 #include "String.hpp"
+
+#include "HcDevice.hpp"
+
 #include "ZwSerialAPI.hpp"
 #include "ZwCtrllerAPI.hpp"
 #include "ZwDefs.hpp"
@@ -136,13 +140,21 @@ ZwCmdAppFunc::ProcApplicationCommandHandler(
     (pbCommand[0] == MultiChannelCmdClass::GetZwCmdClassId()) ? pbCommand[2] : 0;
 
     if ((pValueDevice != NULL) && (*pZwRootNode)[byOrder] != NULL) {
+        u8_t byDeviceType = (*pZwRootNode)[byOrder]->GetDeviceType();
+
+        if (byDeviceType == DEVICE_TYPE_UNKNOW) {
+            delete pValueDevice;
+            pValueDevice = NULL;
+            return;
+        }
+
         Vector<JsonDevStt::Device_t> vecLstZwNode;
         JsonDevStt::Device_t node;
 
         node.devid = (i32_t) byNodeId;
         node.netwk = ZWAVE_NETW;
         node.order = byOrder;
-        node.type  = (*pZwRootNode)[byOrder]->GetDeviceType();
+        node.type  = byDeviceType;
         node.value = pValueDevice->CreateJson();
 
         vecLstZwNode.push_back(node);

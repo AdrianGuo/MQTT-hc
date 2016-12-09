@@ -97,6 +97,9 @@ class ZwDriver {
     void_t ConfigZwCtrller();
 
     void_t RegisterHandlers();
+
+    void_t LoadZwDevices(u32_t dwHomeId);
+    void_t LoadCmdClasses(u32_t dwKeyId, u8_t bNodeId, u8_t bEndPId);
     void_t LoadZwDatabase();
 public:
     ZwDriver(const_char_p cPathZwDriver);

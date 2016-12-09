@@ -15,6 +15,8 @@
 #ifndef HC_DEVICE_HPP_
 #define HC_DEVICE_HPP_
 
+#define DEVICE_TYPE_UNKNOW                      0
+
 #define DEVICE_TYPE_CONTACT                     1
 #define DEVICE_TYPE_DIMMER                      2
 #define DEVICE_TYPE_FAN                         3

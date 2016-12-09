@@ -9,11 +9,18 @@
 #define DEVICEINFO_HPP_
 
 #include <typedefs.h>
+
+#define READ_REQ            (0)
+#define WRITE_REQ           (1)
+
+
 using namespace std;
 /******************************************/
 /***              General               ***/
 /******************************************/
-//Action for controlling
+/*
+ * Action for controlling
+ */
 typedef enum {
     //Basic for every device
     DI_Using = 0,
@@ -45,16 +52,74 @@ typedef enum {
     DI_Daikin_Fan_Direction
 } DeviceInfo;
 
-//Details for action
+/*
+ * Details of requested content.
+ */
+
 typedef struct {
+    int_t   ReqFrom = 0;
+    bool_t  ReqType; /* READ_REQ - Read Request; WRITE_REQ - Write Req */
+    int_t   ReqValue;
+} ReqDetails;
+
+/*
+ * Details for action
+ */
+typedef struct DeviceProperty {
     u16_t       DP_ClusterID;
     u16_t       DP_AttributeID;
     u8_t        DP_AttributeDataType;
-    u8_t        DP_AttributeDataSize; //byte unit
-    int_t       DP_AttributeData; //notice data type (4 bytes)!!!
+    u8_t        DP_AttributeDataSize;
+    int_t       DP_AttributeData; //data type (4 bytes)!!!
+    int_t       DP_PreValue;
+    int_t       DP_SetValue;
     bool_t      DP_IsChanged;
+
+    bool_t      DP_IsRequested = FALSE;
+    ReqDetails  DP_ReqDetails;
+
     DeviceInfo  DP_DIName;
     string      DP_DIStringName; //for json message.
+
+    /*
+     * Overloaded operators
+     */
+    inline DeviceProperty&
+    operator=(
+        const DeviceProperty& rhs
+    ){
+        DP_ClusterID            = rhs.DP_ClusterID;
+        DP_AttributeID          = rhs.DP_AttributeID;
+        DP_AttributeDataType    = rhs.DP_AttributeDataType;
+        DP_AttributeDataSize    = rhs.DP_AttributeDataSize;
+        DP_AttributeData        = rhs.DP_AttributeData;
+        DP_PreValue             = rhs.DP_PreValue;
+        DP_SetValue             = rhs.DP_SetValue;
+        DP_IsChanged            = rhs.DP_IsChanged;
+        DP_DIName               = rhs.DP_DIName;
+        DP_DIName               = rhs.DP_DIName;
+        DP_DIStringName         = rhs.DP_DIStringName;
+        return *this;
+    }
+
+    inline bool
+    operator!=(
+        const DeviceProperty& rhs
+    ){
+        if(DP_ClusterID != rhs.DP_ClusterID) return true;
+        if(DP_AttributeID != rhs.DP_AttributeID) return true;
+        return false;
+    }
+
+    inline bool
+    operator==(
+        const DeviceProperty& rhs
+    ){
+        if(DP_ClusterID != rhs.DP_ClusterID) return false;
+        if(DP_AttributeID != rhs.DP_AttributeID) return false;
+        return true;
+    }
+
 } DeviceProperty;
 
 
@@ -139,29 +204,5 @@ typedef enum {
  FD_DirectionStop,
  FD_DirectionSwing
 } FanDirection;
-
-/******************************************/
-/***                Operator            ***/
-/******************************************/
-//Overloaded operator
-inline bool
-operator!=(
-    const DeviceProperty& lhs,
-    const DeviceProperty& rhs
-){
-    if(lhs.DP_ClusterID != rhs.DP_ClusterID) return true;
-    if(lhs.DP_AttributeID != rhs.DP_AttributeID) return true;
-    return false;
-}
-
-inline bool
-operator==(
-    const DeviceProperty& lhs,
-    const DeviceProperty& rhs
-){
-    if(lhs.DP_ClusterID != rhs.DP_ClusterID) return false;
-    if(lhs.DP_AttributeID != rhs.DP_AttributeID) return false;
-    return true;
-}
 
 #endif /* DEVICEINFO_HPP_ */

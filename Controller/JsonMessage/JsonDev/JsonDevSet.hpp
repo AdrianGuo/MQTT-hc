@@ -116,6 +116,7 @@ JsonDevSet::CreateJsonCommand(
         Json::Value jsonZwDevice;
         jsonZwDevice["devid"] = std::to_string(vecLstDev[i].devid);
         jsonZwDevice["ord"]   = std::to_string(vecLstDev[i].order);
+        jsonZwDevice["net"]   = std::to_string(vecLstDev[i].netwk);
         jsonZwDevice["type"]  = std::to_string(vecLstDev[i].type);
         jsonZwDevice["val"]   = vecLstDev[i].value;
         jsonValue["dev"].append(jsonZwDevice);

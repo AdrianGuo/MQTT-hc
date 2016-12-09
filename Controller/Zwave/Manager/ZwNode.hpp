@@ -68,6 +68,7 @@ public:
     void_t SetSpecific   (u8_t bySpecific)    { m_bySpecific = bySpecific; }
     void_t SetVersion    (u8_t byVersion)     { m_byVersion = byVersion; }
     void_t SetHomeId     (u32_t dwHomeId)     { m_dwHomeId = dwHomeId; }
+    void_t SetDeviceType (u8_t byDeviceType)  { m_byDeviceType = byDeviceType; }
     void_t SetDeviceType ();
 
     bool_t IsController() const {
@@ -150,6 +151,7 @@ private:
 public:
     static void_t MapValueToCmdClass();
     ZwMessage_p SetNodeValue(ValueDevice_p pValueDevice);
+    void_t SetNodeValue(ValueDevice_p pValueDevice, u8_p& ppBuffer, u8_p pLength);
 
     /* Statistics */
 private:
@@ -171,7 +173,7 @@ public:
     void_t  RmvEndpoint(u8_t byEndpointId);
 
     ZwNode* operator[] (u8_t byEndpointId);
-    ZwMessage_p SetEnpointValue(u8_t byEndpointId, ValueDevice_p pValueDevice);
+    ZwMessage_p SetEnpointValue(u8_t bEndpointId, ValueDevice_p pValueDevice);
     /* Encapsulate */
 private:
 public:

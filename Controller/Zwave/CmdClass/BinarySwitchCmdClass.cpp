@@ -7,7 +7,7 @@
 #include "BinarySwitchCmdClass.hpp"
 
 /**
- * @func
+ * @func   BinarySwitchCmdClass
  * @brief  None
  * @param  None
  * @retval None
@@ -24,7 +24,7 @@ BinarySwitchCmdClass::BinarySwitchCmdClass(
 }
 
 /**
- * @func
+ * @func   CreateZwCmdClass
  * @brief  None
  * @param  None
  * @retval None
@@ -38,7 +38,7 @@ BinarySwitchCmdClass::CreateZwCmdClass(
 }
 
 /**
- * @func
+ * @func   ~BinarySwitchCmdClass
  * @brief  None
  * @param  None
  * @retval None
@@ -48,7 +48,7 @@ BinarySwitchCmdClass::~BinarySwitchCmdClass() {
 }
 
 /**
- * @func
+ * @func   HandleBinarySwitchReport
  * @brief  None
  * @param  None
  * @retval None
@@ -68,7 +68,7 @@ BinarySwitchCmdClass::HandleBinarySwitchReport(
 }
 
 /**
- * @func
+ * @func   HandleMessage
  * @brief  None
  * @param  None
  * @retval None
@@ -91,7 +91,7 @@ BinarySwitchCmdClass::HandleMessage(
 }
 
 /**
- * @func
+ * @func   GetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -126,7 +126,7 @@ BinarySwitchCmdClass::GetValue() {
 }
 
 /**
- * @func
+ * @func   SetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -145,7 +145,8 @@ BinarySwitchCmdClass::SetValue(
     pbyBuffer[dwCount++] = SWITCH_BINARY_SET_V2; // Command
     pbyBuffer[dwCount++] = byValue;
 
-    ZwMessage_p pZwMessage = new ZwMessage(byZwNodeId, REQUEST, FUNC_ID_ZW_SEND_DATA, TRUE);
+    ZwMessage_p pZwMessage =
+    new ZwMessage(byZwNodeId, REQUEST, FUNC_ID_ZW_SEND_DATA, TRUE);
     pZwMessage->ResetPacket(byLength + 4);
 
     pZwMessage->Push(byZwNodeId);
@@ -163,7 +164,7 @@ BinarySwitchCmdClass::SetValue(
 }
 
 /**
- * @func
+ * @func   SetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -178,37 +179,72 @@ BinarySwitchCmdClass::SetValue(
     u8_t byZwNodeId = GetNodeId();
     u8_t byData     = byValue;
     u8_t byLength   = 3;
-    u8_p pbyBuffer  = new u8_t[byLength];
+    u8_p pbBuffer  = new u8_t[byLength];
 
     if (byValue == 0) {
         byData = 0;
     } else if ((byValue < 0x64) || (byValue = 0xFF)) {
         byData = 0xFF;
     } else {
-        if (pbyBuffer != NULL) {
-            delete[] pbyBuffer;
-            pbyBuffer = NULL;
+        if (pbBuffer != NULL) {
+            delete[] pbBuffer;
+            pbBuffer = NULL;
         }
         return NULL;
     }
 
-    pbyBuffer[dwCount++] = GetZwCmdClassId(); // Comand Class
-    pbyBuffer[dwCount++] = SWITCH_BINARY_SET_V2; // Command
-    pbyBuffer[dwCount++] = byData;
+    pbBuffer[dwCount++] = GetZwCmdClassId(); // Comand Class
+    pbBuffer[dwCount++] = SWITCH_BINARY_SET_V2; // Command
+    pbBuffer[dwCount++] = byData;
 
-    ZwMessage_p pZwMessage = new ZwMessage(byZwNodeId, REQUEST, FUNC_ID_ZW_SEND_DATA, TRUE);
+    ZwMessage_p pZwMessage =
+    new ZwMessage(byZwNodeId, REQUEST, FUNC_ID_ZW_SEND_DATA, TRUE);
     pZwMessage->ResetPacket(byLength + 4);
 
     pZwMessage->Push(byZwNodeId);
     pZwMessage->Push(byLength); // length
-    pZwMessage->Push(pbyBuffer, byLength);
+    pZwMessage->Push(pbBuffer, byLength);
     pZwMessage->Push(m_byTransmitOptions);
     pZwMessage->Push(pZwMessage->GetNextCallbackId());
 
-    if (pbyBuffer != NULL) {
-        delete[] pbyBuffer;
-        pbyBuffer = NULL;
+    if (pbBuffer != NULL) {
+        delete[] pbBuffer;
+        pbBuffer = NULL;
     }
 
     return pZwMessage;
+}
+
+/**
+ * @func   SetValue
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+BinarySwitchCmdClass::SetValue(
+    ValueDevice_p pValueDevice,
+    u8_p& pBuffer,
+    u8_p pLength
+) {
+    ValueSwitch_p pValueSwitch = (ValueSwitch_p) pValueDevice;
+
+    u8_t byValue    = pValueSwitch->Level();
+    u8_t byData     = byValue;
+    u32_t dwCount   = 0;
+
+    if (byValue == 0) {
+        byData = 0;
+    } else if ((byValue < 0x64) || (byValue = 0xFF)) {
+        byData = 0xFF;
+    } else {
+        pBuffer = NULL;
+        pLength = NULL;
+        return ;
+    }
+    *pLength = 3;
+    pBuffer = new u8_t[3];
+    pBuffer[dwCount++] = GetZwCmdClassId(); // Comand Class
+    pBuffer[dwCount++] = SWITCH_BINARY_SET_V2; // Command
+    pBuffer[dwCount++] = byData;
 }

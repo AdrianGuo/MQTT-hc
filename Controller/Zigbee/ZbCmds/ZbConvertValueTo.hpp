@@ -34,7 +34,7 @@ ForwardSetValueToDevice (
     Device_t    device,
     Json::Value jsonVal
 ) {
-    if(!jsonVal.isMember("level")) { return; }
+    if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
     u8_t val = atoi(jsonVal["level"].asCString());
     ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
 }
@@ -55,24 +55,32 @@ ForwardSetValueToDimmerCurtain (
     if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
     u8_t val = atoi(jsonVal["level"].asCString());
 
-    if(val <= 55)
-        val *= 3;
-    else if(val > 55)
-        val = 165 + (val - 55) * 2;
-    else
-        val = 0;
-
-    if (jsonVal["state"].asString() == std::string("off")) {
-        val = 0;
-    } else if (jsonVal["state"].asString() == std::string("inc")) {
-        val = device->State;
-        if(val < 253)  val += 3;
-    } else if (jsonVal["state"].asString() == std::string("dec")) {
-        val = device->State;
-        if(val > 2)  val -= 3;
+    if(jsonVal["state"].asString() == std::string("off")) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, 0);
+        return;
     }
-    device.Modify()->Action[DeviceInfo::DI_State].DP_AttributeData = val;
-    ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
+    if (jsonVal["state"].asString() == std::string("on") && (jsonVal["level"].asString() == std::string("-1"))) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+    } else {
+        if(val <= 55)
+            val *= 3;
+        else if(val > 55)
+            val = 165 + (val - 55) * 2;
+        else
+            val = 0;
+
+        if (jsonVal["state"].asString() == std::string("off")) {
+            val = 0;
+        } else if (jsonVal["state"].asString() == std::string("inc")) {
+            val = device->State;
+            if(val < 253)  val += 3;
+        } else if (jsonVal["state"].asString() == std::string("dec")) {
+            val = device->State;
+            if(val > 2)  val -= 3;
+        }
+        device.Modify()->Action[DI_State].DP_SetValue = val;
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
+    }
 }
 
 
@@ -92,20 +100,29 @@ ForwardSetValueToFan (
     if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
     u8_t rcvVal = atoi(jsonVal["level"].asCString());
 
-    if (jsonVal["state"].asString() == std::string("off")) {
-        rcvVal = 0;
-    } else if (jsonVal["state"].asString() == std::string("inc")) {
-        rcvVal = device->State;
-        if(rcvVal/63 < 4)  rcvVal = (rcvVal/63 + 1) * 63;
-    } else if (jsonVal["state"].asString() == std::string("dec")) {
-        rcvVal = device->State;
-        if(rcvVal/63 > 0)  rcvVal = (rcvVal/63 -1)*63;
+    if(jsonVal["state"].asString() == std::string("off")) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, 0);
+        return;
     }
 
-    if(rcvVal > 0xFF) rcvVal = 0xFF;
-    if(rcvVal < 0) rcvVal = 0x00;
+    if ((jsonVal["state"].asString() == std::string("on")) && (jsonVal["level"].asString() == std::string("-1"))) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+    } else {
+        if (jsonVal["state"].asString() == std::string("off")) {
+            rcvVal = 0;
+        } else if (jsonVal["state"].asString() == std::string("inc")) {
+            rcvVal = device->State;
+            if(rcvVal/63 < 4)  rcvVal = (rcvVal/63 + 1) * 63;
+        } else if (jsonVal["state"].asString() == std::string("dec")) {
+            rcvVal = device->State;
+            if(rcvVal/63 > 0)  rcvVal = (rcvVal/63 -1)*63;
+        }
 
-    ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, rcvVal * 63);
+        if(rcvVal > 0xFF) rcvVal = 0xFF;
+        if(rcvVal < 0) rcvVal = 0x00;
+
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, rcvVal * 63);
+    }
 }
 
 
@@ -187,43 +204,58 @@ ForwardSetValueToRGB (
     if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
     std::string temp = jsonVal["level"].asString();
 
-    size_t pos1stCol = temp.find(":");
-    if (pos1stCol == std::string::npos) { return; }
-    int_t red = atoi(temp.substr(0, pos1stCol).c_str());
-
-    temp = temp.substr(pos1stCol +1 , temp.size() - pos1stCol);
-    size_t pos2ndCol = temp.find(":");
-    if (pos2ndCol == std::string::npos) { return; }
-    int_t green = atoi(temp.substr(0, pos2ndCol).c_str());
-
-    temp = temp.substr(pos2ndCol +1, temp.size() - pos2ndCol);
-    if (temp.size() == 0) { return; }
-    int_t blue = atoi(temp.c_str());
-
-    int_t state;
-    if(jsonVal["state"].asString() == std::string("on")) {
-        state = 1;
-    } else if (jsonVal["state"].asString() == std::string("off")){
-        state = 0;
-    }
 
     DeviceProperties vDP;
     DeviceProperty dpRed, dpGreen, dpBlue, dpState, dpTime;
-    dpRed.DP_AttributeData = red;
-    dpRed.DP_ClusterID = ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL;
-    dpRed.DP_DIName = DeviceInfo::DI_RGB_Red;
 
-    dpGreen.DP_AttributeData = green;
-    dpGreen.DP_ClusterID = ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL;
-    dpGreen.DP_DIName = DeviceInfo::DI_RGB_Green;
+    if(jsonVal["state"].asString() == std::string("off")) {
+        dpState = device.Modify()->Action[DI_State];
+        dpState.DP_AttributeData = 0;
+        vDP.push_back(dpState);
+        ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, vDP);
+        return;
+    }
 
-    dpBlue.DP_AttributeData = blue;
-    dpBlue.DP_ClusterID = ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL;
-    dpBlue.DP_DIName = DeviceInfo::DI_RGB_Blue;
+    if ((jsonVal["state"].asString() == std::string("on")) && (jsonVal["level"].asString() == std::string("-1"))) {
+        dpRed   = device.Modify()->Action[DI_RGB_Red];
+        dpRed.DP_AttributeData      = dpRed.DP_PreValue;
+        dpGreen = device.Modify()->Action[DI_RGB_Green];
+        dpGreen.DP_AttributeData    = dpGreen.DP_PreValue;
+        dpBlue  = device.Modify()->Action[DI_RGB_Blue];
+        dpBlue.DP_AttributeData     = dpBlue.DP_PreValue;
+        dpState = device.Modify()->Action[DI_State];
+        dpState.DP_AttributeData = 1;
 
-    dpState.DP_AttributeData = state;
-    dpState.DP_ClusterID = ZCL_CLUSTER_ID_GEN_ON_OFF;
-    dpState.DP_DIName = DeviceInfo::DI_State;
+    } else {
+        size_t pos1stCol = temp.find(":");
+        if (pos1stCol == std::string::npos) { return; }
+        int_t red = atoi(temp.substr(0, pos1stCol).c_str());
+
+        temp = temp.substr(pos1stCol +1 , temp.size() - pos1stCol);
+        size_t pos2ndCol = temp.find(":");
+        if (pos2ndCol == std::string::npos) { return; }
+        int_t green = atoi(temp.substr(0, pos2ndCol).c_str());
+
+        temp = temp.substr(pos2ndCol +1, temp.size() - pos2ndCol);
+        if (temp.size() == 0) { return; }
+        int_t blue = atoi(temp.c_str());
+
+        int_t state;
+        if(jsonVal["state"].asString() == std::string("on")) {
+            state = 1;
+        } else if (jsonVal["state"].asString() == std::string("off")){
+            state = 0;
+        }
+
+        dpRed   = device.Modify()->Action[DI_RGB_Red];
+        dpRed.DP_AttributeData      = red;
+        dpGreen = device.Modify()->Action[DI_RGB_Green];
+        dpGreen.DP_AttributeData    = green;
+        dpBlue  = device.Modify()->Action[DI_RGB_Blue];
+        dpBlue.DP_AttributeData     = blue;
+        dpState = device.Modify()->Action[DI_State];
+        dpState.DP_AttributeData    = state;
+    }
 
     vDP.push_back(dpRed);
     vDP.push_back(dpGreen);
@@ -291,7 +323,7 @@ void_t
 ForwardGetRequestToDevice(
     Device_t    device
 ) {
-    ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(device, DeviceInfo::DI_State);
+    ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(device, DI_State);
 }
 
 /**
@@ -306,7 +338,7 @@ ForwardGetRequestsToDevice(
 ) {
     Vector<DeviceInfo> vDI;
     for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
-        if((it->first != DeviceInfo::DI_Model) && (it->first != DeviceInfo::DI_Model)) {
+        if((it->first != DI_Model) && (it->first != DI_Model)) {
             vDI.push_back(it->first);
         }
     }

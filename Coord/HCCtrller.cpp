@@ -223,6 +223,8 @@ HCCtrller::RegisterHandler() {
     makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdStt));
     RegisterHandler(JsonDevReset::GetStrCmd(),
     makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdReset));
+    RegisterHandler(JsonDevResetRes::GetStrCmd(),
+    makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdResetRes));
     RegisterHandler(JsonDevInfo::GetStrCmd(),
     makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdInfo));
     RegisterHandler(JsonDevLstRes::GetStrCmd(),

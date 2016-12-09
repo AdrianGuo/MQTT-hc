@@ -27,6 +27,7 @@ public:
 
     virtual ZwMessage_p SetValue(bool_t boValue);
     virtual ZwMessage_p SetValue(ValueDevice_p pValueDevice);
+    void_t SetValue(ValueDevice_p pValueDevice, u8_p& pBuffer, u8_p pLength);
 };
 
 typedef BinarySwitchCmdClass  BinarySwitchCmdClass_t;

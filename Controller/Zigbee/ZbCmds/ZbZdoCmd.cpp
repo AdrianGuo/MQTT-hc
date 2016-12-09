@@ -334,8 +334,8 @@ ZbZdoCmd::NodeDescriptionResponse(
             }
             if(!boCheck) { return; }
             Vector<DeviceInfo> vDI;
-            vDI.push_back(DeviceInfo::DI_Model);
-            vDI.push_back(DeviceInfo::DI_Manufacturer);
+            vDI.push_back(DI_Model);
+            vDI.push_back(DI_Manufacturer);
             ZbZclGlobalCmd::s_pInstance->ReadAttributeRequest(device, vDI);
         }
 

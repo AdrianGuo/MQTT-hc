@@ -442,6 +442,20 @@ DevManager::HandlerDevCmdReset(
 }
 
 /**
+ * @func   HandlerDevCmdResetRes
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+DevManager::HandlerDevCmdResetRes(
+    JsonCommand_p pJsonCommand
+) {
+    pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
+    PushJsonCommand(pJsonCommand);
+}
+
+/**
  * @func   HandlerDevCmdRestart
  * @brief  None
  * @param  None

@@ -584,11 +584,8 @@ ZwCtrller::HandlerZwaveCmdSet(
 
         if ((pZwaveRootNode == NULL) || (pValueDevice == NULL)) { return; }
 
-        ZwNode_p pZwaveEndPNode = (*pZwaveRootNode)[byOrder];
-
-        if (pZwaveEndPNode == NULL) { return; }
-
-        ZwMessage_p pZwMessage = pZwaveEndPNode->SetNodeValue(pValueDevice);
+        ZwMessage_p pZwMessage =
+        pZwaveRootNode->SetEnpointValue(byOrder, pValueDevice);
 
         m_pZwCtrllerLocker->Lock();
         if (pZwMessage != NULL) { m_queSendZwMsg.push(pZwMessage); }

@@ -81,8 +81,8 @@ ZbZclCmd::SetDevice(
     pZbPacket->Push(wNwk >> 8);
     pZbPacket->Push(wNwk & 0xFF);
     pZbPacket->Push((u8_t) device->Endpoint.GetValue());
-    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID >> 8);
-    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID & 0xFF);
+    pZbPacket->Push(device.Modify()->Action[DI_State].DP_ClusterID >> 8);
+    pZbPacket->Push(device.Modify()->Action[DI_State].DP_ClusterID & 0xFF);
     switch (device->RealType) {
         case LUMI_DEVICE_SWITCH:
             pZbPacket->Push(0x01);    //Payload's length
@@ -122,8 +122,8 @@ ZbZclCmd::SetIR(
     pZbPacket->Push(wNwk >> 8);
     pZbPacket->Push(wNwk & 0xFF);
     pZbPacket->Push((u8_t) device->Endpoint.GetValue());
-    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID >> 8);
-    pZbPacket->Push(device.Modify()->Action[DeviceInfo::DI_State].DP_ClusterID & 0xFF);
+    pZbPacket->Push(device.Modify()->Action[DI_State].DP_ClusterID >> 8);
+    pZbPacket->Push(device.Modify()->Action[DI_State].DP_ClusterID & 0xFF);
     if((irCommand == IrCommand::IRCMD_Active) || (irCommand == IrCommand::IRCMD_Delete)) {
         pZbPacket->Push(0x03);                //Payload's length
         pZbPacket->Push((u8_t) irCommand);    //CMD ID

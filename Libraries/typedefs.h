@@ -65,6 +65,7 @@ typedef signed int              int_t;
 typedef signed int*             int_p;
 
 typedef unsigned char*          u8_p;       // 1 byte
+typedef unsigned char**         u8_pp;
 typedef unsigned short*         u16_p;      // 2 byte
 
 //#if __WORDSIZE == 64

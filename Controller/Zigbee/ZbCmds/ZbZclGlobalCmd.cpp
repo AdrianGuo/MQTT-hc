@@ -350,49 +350,49 @@ void_t ZbZclGlobalCmd::WriteAttributeResponse(
 ) {
 //    u8_t byStatus       = *pbyBuffer++;
 //    u16_t wAttributeID  =  LittleWord(&pbyBuffer);
-//    device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID = wAttributeID;
+//    device.Modify()->Action[DI_Using].DP_AttributeID = wAttributeID;
 //    device.Modify()->SyncDeviceAction();
 //    switch (byStatus) {
 //        case ZCL_STATUS_SUCCESS:
 //            DEBUG2("Write attribute %04X of cluster %04X on device %08d.",
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID,
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID,
+//                device.Modify()->Action[DI_Using].DP_AttributeID,
+//                device.Modify()->Action[DI_Using].DP_ClusterID,
 //                device->DeviceID.GetValue());
 //        break;
 //
 //        case ZCL_STATUS_UNSUPPORTED_ATTRIBUTE:
 //            DEBUG2("Attribute %04X of cluster %04X is not supported on device %08d.",
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID,
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID,
+//                device.Modify()->Action[DI_Using].DP_AttributeID,
+//                device.Modify()->Action[DI_Using].DP_ClusterID,
 //                device->DeviceID.GetValue());
 //            break;
 //
 //        case ZCL_STATUS_READ_ONLY:
 //        case ZCL_STATUS_NOT_AUTHORIZED:
 //            DEBUG2("Permission denied to write to attribute %04X of cluster %04X on device %08d.",
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID,
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID,
+//                device.Modify()->Action[DI_Using].DP_AttributeID,
+//                device.Modify()->Action[DI_Using].DP_ClusterID,
 //                device->DeviceID.GetValue());
 //            break;
 //
 //        case ZCL_STATUS_INVALID_DATA_TYPE:
 //            DEBUG2("Invalid datatype to write to attribute %04X of cluster %04X on device %08d.",
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID,
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID,
+//                device.Modify()->Action[DI_Using].DP_AttributeID,
+//                device.Modify()->Action[DI_Using].DP_ClusterID,
 //                device->DeviceID.GetValue());
 //            break;
 //
 //        case ZCL_STATUS_INVALID_VALUE:
 //            DEBUG2("Invalid data to write to attribute %04X of cluster %04X on device %08d.",
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID,
-//                device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID,
+//                device.Modify()->Action[DI_Using].DP_AttributeID,
+//                device.Modify()->Action[DI_Using].DP_ClusterID,
 //                device->DeviceID.GetValue());
 //            break;
 //
 //        default:
 //            DEBUG2("Error on write to attribute %04X of cluster %04X on device %08d.\nThe status result: %02X.",
-//                    device.Modify()->Action[DeviceInfo::DI_Using].DP_AttributeID,
-//                    device.Modify()->Action[DeviceInfo::DI_Using].DP_ClusterID,
+//                    device.Modify()->Action[DI_Using].DP_AttributeID,
+//                    device.Modify()->Action[DI_Using].DP_ClusterID,
 //                    device->DeviceID.GetValue(),
 //                    byStatus);
 //            break;

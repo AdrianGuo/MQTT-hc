@@ -5,7 +5,7 @@
 #include "ZwCmdTransport.hpp"
 
 /**
- * @func
+ * @func   ZwCmdTransport
  * @brief  None
  * @param  None
  * @retval None

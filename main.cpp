@@ -27,7 +27,6 @@
 #include "ZwCtrller.hpp"
 #include "ZbCtrller.hpp"
 #include "HCCtrller.hpp"
-#include "ZbBasicCmd.hpp"
 #include "LogPlus.hpp"
 
 /******************************************************************************/
@@ -99,11 +98,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (pZwController != NULL) {
-//        pZwController->Debug();
         pZwController->Connect();
         pZwController->Start();
         pZwController->Init();
-        ZbBasicCmd::GetInstance()->NwkInfoReq();
     }
 
     if (pZbController != NULL) {

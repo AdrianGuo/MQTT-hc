@@ -127,6 +127,51 @@ MultiChannelCmdClass::HandleMessage(
 }
 
 /**
+ * @func   Encapsulate
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ZwMessage_p
+MultiChannelCmdClass::Encapsulate(
+    u8_p pData,
+    u8_t bLen,
+    u8_t bSrc,
+    u8_t bDes
+) {
+    u32_t dwCount   = 0;
+    u8_t byZwNodeId = GetNodeId();
+    u8_t byLength   = 4 + bLen;
+    u8_p pbyBuffer  = new u8_t[byLength];
+
+    pbyBuffer[dwCount++] = GetZwCmdClassId(); // Comand Class
+    pbyBuffer[dwCount++] = MULTI_CHANNEL_CMD_ENCAP_V4; // Command
+    pbyBuffer[dwCount++] = bSrc;
+    pbyBuffer[dwCount++] = bDes;
+    for (u8_t i = 0; i < bLen; i++) {
+        pbyBuffer[dwCount++] = pData[i];
+    }
+
+    ZwMessage_p pZwMessage =
+    new ZwMessage(byZwNodeId, REQUEST, FUNC_ID_ZW_SEND_DATA, TRUE);
+
+    pZwMessage->ResetPacket(byLength + 4);
+
+    pZwMessage->Push(byZwNodeId);
+    pZwMessage->Push(byLength); // length
+    pZwMessage->Push(pbyBuffer, byLength);
+    pZwMessage->Push(m_byTransmitOptions);
+    pZwMessage->Push(pZwMessage->GetNextCallbackId());
+
+    if (pbyBuffer != NULL) {
+        delete[] pbyBuffer;
+        pbyBuffer = NULL;
+    }
+
+    return pZwMessage;
+}
+
+/**
  * @func   GetEndpoint
  * @brief  None
  * @param  None

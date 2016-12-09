@@ -73,15 +73,49 @@ ZwDriver::ZwDriver(
     m_vecZwCommand.push_back(m_pZwCmdTransport);
 
     m_pZwDriverLocker = new Locker();
+    LoadZwDatabase();
 }
 
 /**
- * @func
+ * @func   ~ZwDriver
  * @brief  None
  * @param  None
  * @retval None
  */
 ZwDriver::~ZwDriver() {
+    if (m_pZwCmdAppFunc != NULL) {
+        delete m_pZwCmdAppFunc;
+        m_pZwCmdAppFunc = NULL;
+    }
+    if (m_pZwCmdBasic != NULL) {
+        delete m_pZwCmdBasic;
+        m_pZwCmdBasic = NULL;
+    }
+
+    if (m_pZwCmdCtrller != NULL) {
+        delete m_pZwCmdCtrller;
+        m_pZwCmdCtrller = NULL;
+    }
+
+    if (m_pZwCmdFirmware != NULL) {
+        delete m_pZwCmdFirmware;
+        m_pZwCmdFirmware = NULL;
+    }
+
+    if (m_pZwCmdNvm != NULL) {
+        delete m_pZwCmdNvm;
+        m_pZwCmdNvm = NULL;
+    }
+
+    if (m_pZwCmdPower != NULL) {
+        delete m_pZwCmdPower;
+        m_pZwCmdPower = NULL;
+    }
+
+    if (m_pZwCmdTransport != NULL) {
+        delete m_pZwCmdTransport;
+        m_pZwCmdTransport = NULL;
+    }
 }
 
 /**
@@ -407,9 +441,6 @@ ZwDriver::Close() {
  */
 void_t
 ZwDriver::Debug() {
-//    ZwDbDevice devicefind = m_pZwDbModel->Find<ZwDbDeviceItem>().
-//    Where("NodeId = ?").Bind(25).Where("Position = ?").Bind(0);
-//    ZwDbController controllerfind = m_pZwDbModel->Find<ZwDbCtrllerItem>();
 }
 
 /**
@@ -683,6 +714,66 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
 }
 
 /**
+ * @func   LoadCmdClasses
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwDriver::LoadCmdClasses(
+    u32_t dwKeyId,
+    u8_t bNodeId,
+    u8_t bEndPId
+) {
+    ZwDbCommandClasses cmdClasses = m_pZwDbModel->Find<ZwDbCmdClassItem>().
+    Where("DevId = ?").Bind((int_t)dwKeyId);
+    for (ZwDbCommandClasses::const_iterator it = cmdClasses.begin();
+            it != cmdClasses.end(); it++) {
+        u8_t byCmdClass = (u8_t) (*it)->CmdId;
+        if (bEndPId == 0) {
+            m_ValueLstNode[bNodeId - 1][bEndPId].AddZwCmdClass(byCmdClass);
+        }
+    }
+}
+
+/**
+ * @func   LoadZwDevices
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwDriver::LoadZwDevices(
+    u32_t dwHomeId
+) {
+    for (ZwDbDevices::const_iterator it = m_pZwDbModel->Devices.begin();
+            it != m_pZwDbModel->Devices.end(); it++) {
+        ZwNode_p pZwNode = NULL;
+        u8_t byKeyId = (u8_t) it->Id();
+        u8_t byDevTy = (u8_t) (*it)->DevType;
+        u8_t byNodeId = (u8_t) (*it)->NodeId;
+        u8_t byEndPId = (u8_t) (*it)->Position;
+
+        LOG_DEBUG("load nodeid %2d ep %2d tp %2d", byNodeId, byEndPId, byDevTy);
+
+        if (-1 == (*it)->ParId) {
+            pZwNode = new ZwNode(dwHomeId, byNodeId);
+            m_ValueLstNode[byNodeId - 1] = pZwNode;
+
+        } else {
+            if (m_ValueLstNode[byNodeId - 1] != NULL) {
+                pZwNode = m_ValueLstNode[byNodeId - 1]->AddEndpoint(byEndPId);
+            }
+        }
+
+        if (pZwNode != NULL) {
+            pZwNode->SetDeviceType(byDevTy);
+            LoadCmdClasses(byKeyId, byNodeId, byEndPId);
+        }
+    }
+}
+
+/**
  * @func   LoadZwDatabase
  * @brief  None
  * @param  None
@@ -691,8 +782,13 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
 void_t
 ZwDriver::LoadZwDatabase() {
     if (m_pZwDbModel->Controller.get() != NULL) {
+        u32_t dwHomeId = m_pZwDbModel->Controller->HomeId;
+        if (-1 != (i32_t) dwHomeId) {
+            LoadZwDevices(dwHomeId);
+        }
     }
 }
+
 
 /**
  * @func   ConfigZwCtrller
@@ -748,5 +844,4 @@ ZwDriver::ProcessFunctor(
     if (m_pZwCtrllerRecvFunctor != NULL) {
         (*m_pZwCtrllerRecvFunctor)(event, pBuffer);
     }
-
 }

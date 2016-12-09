@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include "LogPlus.hpp"
 
+#include "HcDevice.hpp"
 #include "ZwSerialAPI.hpp"
 
 #include "ValueByte.hpp"
@@ -57,7 +58,7 @@ ZwNode::ZwNode(
     m_byBasic (4),
     m_byGeneric (0),
     m_bySpecific (0),
-    m_byDeviceType (0),
+    m_byDeviceType (DEVICE_TYPE_UNKNOW),
     m_byVersion (0),
     m_dwHomeId (dwHomeId),
     m_strManufactureName (String()),
@@ -103,9 +104,11 @@ ZwNode::SetNodeValue(
 ) {
     Map<Value::Type_t, u8_t>::const_iterator_t it =
     m_mapValueToCmdClass.find(pValueDevice->GetType());
+
     if (it != m_mapValueToCmdClass.end()) {
         ZwCmdClass_p pZwCmdClass =
         m_pZwCmdClassManager->CreateCmdClass(it->second, m_dwHomeId, m_byNodeId);
+
         ZwMessage_p pZwMessage = pZwCmdClass->SetValue(pValueDevice);
 
         delete pZwCmdClass;
@@ -114,6 +117,32 @@ ZwNode::SetNodeValue(
         return pZwMessage;
     }
     return NULL;
+}
+
+/**
+ * @func   SetNodeValue
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwNode::SetNodeValue(
+    ValueDevice_p pValueDevice,
+    u8_p& pBuffer,
+    u8_p pLength
+) {
+    Map<Value::Type_t, u8_t>::const_iterator_t it =
+   m_mapValueToCmdClass.find(pValueDevice->GetType());
+
+   if (it != m_mapValueToCmdClass.end()) {
+       ZwCmdClass_p pZwCmdClass =
+       m_pZwCmdClassManager->CreateCmdClass(it->second, m_dwHomeId, m_byNodeId);
+
+       pZwCmdClass->SetValue(pValueDevice, pBuffer, pLength);
+
+       delete pZwCmdClass;
+       pZwCmdClass = NULL;
+   }
 }
 
 /**
@@ -334,6 +363,7 @@ ZwNode::AddEndpoint(
 
     ZwNode_p pZwaveNode = new ZwNode();
     m_ZwEndpoints[byEndpointId] = pZwaveNode;
+    m_byNbrOfEndpoints++;
     return pZwaveNode;
 }
 
@@ -379,13 +409,24 @@ ZwNode::operator[] (
  */
 ZwMessage_p
 ZwNode::SetEnpointValue(
-   u8_t byEndpointId,
+   u8_t bEndpointId,
    ValueDevice_p pValueDevice
 ) {
-    ZwNode_p pZwaveEndP = GetEndpoint(byEndpointId);
-    if (pZwaveEndP != NULL) {
-        pZwaveEndP->SetNodeValue(pValueDevice);
+    if (bEndpointId == 0) {
+        return SetNodeValue(pValueDevice);
     }
+
+    ZwNode_p pZwaveEndP = GetEndpoint(bEndpointId);
+
+    if (pZwaveEndP != NULL) {
+        u8_p pBuffer = NULL;
+        u8_t bLength = 0;
+        pZwaveEndP->SetNodeValue(pValueDevice, pBuffer, &bLength);
+        MultiChannelCmdClass_p pCommandClass =
+        (MultiChannelCmdClass_p) GetZwCmdClass(MultiChannelCmdClass::GetZwCmdClassId());
+        return pCommandClass->Encapsulate(pBuffer, bLength, bEndpointId, bEndpointId);
+    }
+
     return NULL;
 }
 

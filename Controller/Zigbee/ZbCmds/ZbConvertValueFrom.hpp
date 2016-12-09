@@ -14,7 +14,6 @@
 #include <ZbModelDb.hpp>
 #include <ZbDriver.hpp>
 #include <json.h>
-#include <LogPlus.hpp>
 
 
 /*****************************************************************************/
@@ -48,7 +47,7 @@ ForwardStateToOutside(
  * @retval None
  */
 void_t
-ForwardDimmerOrCurtainStateToOutside(
+ForwardDimmerStateToOutside(
     const ZbDeviceDb_p device
 ) {
     int_t iLevel = device->State;
@@ -59,12 +58,41 @@ ForwardDimmerOrCurtainStateToOutside(
     else
         iLevel = 0;
     Json::Value val;
-    int_t state = device->Action[DeviceInfo::DI_OnOff].DP_AttributeData;
+    int_t state = device->Action[DI_OnOff].DP_AttributeData;
     val["level"] = std::to_string(iLevel);
-    if(state > 0) {
-        val["state"] = std::string("on");
-    } else {
+    if((state == 0) || (iLevel == 0)) {
         val["state"] = std::string("off");
+    } else {
+        val["state"] = std::string("on");
+    }
+
+    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ForwardCurtainStateToOutside(
+    const ZbDeviceDb_p device
+) {
+    int_t iLevel = device->State;
+    if (iLevel <= 165)
+        iLevel /= 3;
+    else if (iLevel > 165)
+        iLevel = 55 + (iLevel - 165) / 2;
+    else
+        iLevel = 0;
+    Json::Value val;
+//    int_t state = device->Action[DI_OnOff].DP_AttributeData;
+    val["level"] = std::to_string(iLevel);
+    if(iLevel == 100) {
+        val["state"] = std::string("off");
+    } else {
+        val["state"] = std::string("on");
     }
 
     ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
@@ -150,7 +178,7 @@ ForwardDaikinStateToOutside(
     Json::Value val;
     for(Action_t::const_iterator_t it = device->Action.begin(); it != device->Action.end(); it++) {
         if(it->second.DP_IsChanged == TRUE) {
-           if(it->first == DeviceInfo::DI_State) {
+           if(it->first == DI_State) {
                if(it->second.DP_AttributeData == 1) val[it->second.DP_DIStringName] = std::string("on");
                else val[it->second.DP_DIStringName] = std::string("off");
            } else {
@@ -173,7 +201,7 @@ ForwardIrState(
     ZbDeviceDb_p device
 ){
     Json::Value jsonRetVal;
-    LOG_DEBUG("Received IR State: %d", device->State);
+    DEBUG2("Received IR State: %d", device->State);
     switch (device->State) {
         case 0x00:
             jsonRetVal["state"] = std::to_string(6);
@@ -188,16 +216,16 @@ ForwardIrState(
             break;
 
         case 0x03: {
-            LOG_DEBUG("Add new IrCmd %04X,", device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            DEBUG2("Add new IrCmd %04X,", device->Action[DI_State].DP_AttributeID);
             Device_t pdevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
                     Bind(device->Network.GetValue()).Bind(device->Endpoint.GetValue());
             if(pdevice.Modify() == NULL) { return; }
 
             Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
-                    Bind(device->Action[DeviceInfo::DI_State].DP_AttributeID).Bind(device->Network.GetValue());
+                    Bind(device->Action[DI_State].DP_AttributeID).Bind(device->Network.GetValue());
             if(ircmd.Modify() == NULL) {
                     ZbDeviceDb_p pZbDevice = new ZbDeviceDb();
-                    pZbDevice->DeviceID  = device->Action[DeviceInfo::DI_State].DP_AttributeID;
+                    pZbDevice->DeviceID  = device->Action[DI_State].DP_AttributeID;
                     pZbDevice->Network = device->Network.GetValue();
                     pZbDevice->Model = String("IR-CMD");
                     pZbDevice->Endpoint = 1;
@@ -211,7 +239,7 @@ ForwardIrState(
                 ZbDriver::s_pZbModel->UpdateChanges();
             }
             jsonRetVal["state"] = std::to_string(0);
-            jsonRetVal["irid"] = std::to_string(device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_AttributeID);
         }
             break;
 
@@ -222,10 +250,10 @@ ForwardIrState(
         case 0x05:
         case 0x06: {
             jsonRetVal["state"] = std::to_string(0);
-            jsonRetVal["irid"] = std::to_string(device->Action[DeviceInfo::DI_State].DP_AttributeID);
+            jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_AttributeID);
             if(device->State == 0x06) {
                 Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
-                        Bind(device->Action[DeviceInfo::DI_State].DP_AttributeID).Bind(device->Network.GetValue());
+                        Bind(device->Action[DI_State].DP_AttributeID).Bind(device->Network.GetValue());
                 if(ircmd.Modify() != NULL) {
                     ircmd.Remove();
                     ZbDriver::s_pZbModel->UpdateChanges();
