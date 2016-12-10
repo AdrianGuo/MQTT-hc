@@ -33,9 +33,10 @@ public:
     DbPtr<ZbDeviceDb> ParentDevice;
     Collection<DbPtr<ZbDeviceDb>> IrCmd;
 
-    int_t RealType;
-    Action_t Action;
-    int_t& State;
+    int_t       RealType;
+    Action_t    Action;
+    int_t&      State;
+    int_t       ReqFrom;
 
     void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();

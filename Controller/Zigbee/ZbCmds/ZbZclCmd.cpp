@@ -11,6 +11,7 @@
 #include <zcl_ha.hpp>
 #include <zcl_lumi.hpp>
 #include <ZbHelper.hpp>
+#include <LogPlus.hpp>
 
 #include <ZbZclCmd.hpp>
 
@@ -102,6 +103,13 @@ ZbZclCmd::SetDevice(
         default:
             break;
     }
+
+//                device.Modify()->Action[DI_State].DP_ReqDetails.ReqFrom = ;
+    Request tmpReq;
+    tmpReq.ReqValue = SET_REQ;
+    tmpReq.ReqValue   = byValue;
+    device.Modify()->Action[DI_State].DP_PendingReqs.push(tmpReq);
+
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }
 
@@ -133,5 +141,12 @@ ZbZclCmd::SetIR(
         pZbPacket->Push(0x01);                //Payload's length
         pZbPacket->Push((u8_t) irCommand);    //CMD ID
     }
+
+//    device.Modify()->Action[DI_State].DP_RequestedNo           = TRUE;
+////                device.Modify()->Action[DI_State].DP_ReqDetails.ReqFrom = ;
+//    device.Modify()->Action[DI_State].DP_ReqDetails.ReqType    = SET_REQ;
+//    device.Modify()->Action[DI_State].DP_ReqDetails.ReqValue   = irCommand;
+//    device.Modify()->Action[DI_State].DP_ReqDetails.ReqReserve = irID;
+
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }

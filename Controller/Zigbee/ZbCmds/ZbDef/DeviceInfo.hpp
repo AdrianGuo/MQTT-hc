@@ -9,9 +9,11 @@
 #define DEVICEINFO_HPP_
 
 #include <typedefs.h>
+#include <Queue.hpp>
 
 #define READ_REQ            (0)
 #define WRITE_REQ           (1)
+#define SET_REQ             (2)
 
 
 using namespace std;
@@ -58,28 +60,30 @@ typedef enum {
 
 typedef struct {
     int_t   ReqFrom = 0;
-    bool_t  ReqType; /* READ_REQ - Read Request; WRITE_REQ - Write Req */
+    u8_t    ReqType; /* READ_REQ; WRITE_REQ; SET_REQ */
     int_t   ReqValue;
-} ReqDetails;
+    int_t   ReqReserve;
+} Request;
+
+typedef Queue<Request> PendingReqs_t;
 
 /*
  * Details for action
  */
 typedef struct DeviceProperty {
-    u16_t       DP_ClusterID;
-    u16_t       DP_AttributeID;
-    u8_t        DP_AttributeDataType;
-    u8_t        DP_AttributeDataSize;
-    int_t       DP_AttributeData; //data type (4 bytes)!!!
-    int_t       DP_PreValue;
-    int_t       DP_SetValue;
-    bool_t      DP_IsChanged;
+    u32_t           DP_RequestedNo = 0;
+    bool_t          DP_IsResponsed = FALSE;
+    PendingReqs_t   DP_PendingReqs;
 
-    bool_t      DP_IsRequested = FALSE;
-    ReqDetails  DP_ReqDetails;
+    u16_t           DP_ClusterID;
+    u16_t           DP_AttributeID;
+    u8_t            DP_AttributeDataType;
+    u8_t            DP_AttributeDataSize;
+    int_t           DP_AttributeData; //data type (4 bytes)!!!
+    int_t           DP_PreValue;
 
-    DeviceInfo  DP_DIName;
-    string      DP_DIStringName; //for json message.
+    DeviceInfo      DP_DIName;
+    string          DP_DIStringName; //for json message.
 
     /*
      * Overloaded operators
@@ -92,11 +96,6 @@ typedef struct DeviceProperty {
         DP_AttributeID          = rhs.DP_AttributeID;
         DP_AttributeDataType    = rhs.DP_AttributeDataType;
         DP_AttributeDataSize    = rhs.DP_AttributeDataSize;
-        DP_AttributeData        = rhs.DP_AttributeData;
-        DP_PreValue             = rhs.DP_PreValue;
-        DP_SetValue             = rhs.DP_SetValue;
-        DP_IsChanged            = rhs.DP_IsChanged;
-        DP_DIName               = rhs.DP_DIName;
         DP_DIName               = rhs.DP_DIName;
         DP_DIStringName         = rhs.DP_DIStringName;
         return *this;

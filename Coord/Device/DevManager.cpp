@@ -31,6 +31,7 @@
 #include "JsonDevLstDelRes.hpp"
 #include "JsonDevSync.hpp"
 #include "JsonDevSyncRes.hpp"
+#include "LogPlus.hpp"
 
 #include "DevManager.hpp"
 
@@ -190,7 +191,7 @@ DevManager::HandlerDevCmdSet(
         m_pJsonSendDevSession->GetJsonMapping<JsonDevSet>();
 
         JsonCommand_p pJsonCommandRes =
-        jsonZbDeviceSet->CreateJsonCommand(lstSetZwDevice);
+        jsonZbDeviceSet->CreateJsonCommand(lstSetZbDevice);
 
         pJsonCommandRes->SetDesFlag(JsonCommand::Flag::Zigbee);
 

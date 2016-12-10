@@ -86,7 +86,7 @@ public:
     void_t PushJsonCommand(EvAct evAction, void_p pBuffer);
     void_p ZbCtrlllerThreadProc(void_p pInBuffer);
 
-    void_t IniZbCtrller();
+    void_t Init();
 };
 
 typedef ZbCtrller  ZbCtrller_t;

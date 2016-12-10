@@ -12,6 +12,7 @@
 #include <JsonDevLstDel.hpp>
 #include <JsonDevStt.hpp>
 #include <JsonDevResetRes.hpp>
+#include <LogPlus.hpp>
 #include <ZbSocketCmd.hpp>
 
 ZbSocketCmd* ZbSocketCmd::s_pInstance = NULL;
@@ -82,13 +83,15 @@ ZbSocketCmd::SendLstAdd(
 ) {
     Vector<JsonDevLstAdd::Device_t> vecLstDev;
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-        JsonDevLstAdd::Device_t temp;
-        temp.devid = (*it)->DeviceID.GetValue();
-        temp.netwk = 1;
-        temp.type = (*it)->RealType;
-        temp.order = (*it)->Endpoint.GetValue();
-        temp.mac = (*it)->MAC.GetValue();
-        vecLstDev.push_back(temp);
+        if((*it).Modify()->IsInterested()) {
+            JsonDevLstAdd::Device_t temp;
+            temp.devid = (*it)->DeviceID.GetValue();
+            temp.netwk = 1;
+            temp.type = (*it)->RealType;
+            temp.order = (*it)->Endpoint.GetValue();
+            temp.mac = (*it)->MAC.GetValue();
+            vecLstDev.push_back(temp);
+        }
     }
     if(vecLstDev.size() > 0) {
         JsonMessagePtr<JsonDevLstAdd> jsonZbLstAdd = m_pJsonSendSession->GetJsonMapping<JsonDevLstAdd>();

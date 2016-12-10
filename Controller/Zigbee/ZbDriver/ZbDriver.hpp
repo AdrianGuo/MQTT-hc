@@ -50,7 +50,7 @@ public:
     void_t      SendDriverFunctor();
     void_t      ZbDriverRecvFunctor(ZbCtrllerFunctor_p);
 
-    void_t      InitDriver();
+    void_t      Init();
     bool_t      Start();
     bool_t      Connect();
     bool_t      Close();

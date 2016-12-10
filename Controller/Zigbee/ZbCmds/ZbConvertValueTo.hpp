@@ -16,6 +16,7 @@
 #include <ZbZclCmd.hpp>
 #include <ZbZclGlobalCmd.hpp>
 #include <DeviceInfo.hpp>
+#include <LogPlus.hpp>
 
 /*****************************************************************************/
 /***                           From Outside                                ***/
@@ -78,7 +79,7 @@ ForwardSetValueToDimmerCurtain (
             val = device->State;
             if(val > 2)  val -= 3;
         }
-        device.Modify()->Action[DI_State].DP_SetValue = val;
+
         ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
     }
 }

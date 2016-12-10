@@ -168,7 +168,7 @@ SZbSerial::ParseData(
 
             if (m_pDriverRecvFunctor != NULL) {
 
-                printf("Received packet: ");
+                printf("Received from Zb: ");
                 for (u32_t i = 0; i < m_pZbPacket->GetFullPacket()->Length(); i++)
                     printf("%02X ", m_pZbPacket->GetFullPacket()->GetBuffer()[i]);
                 printf("\n");
@@ -243,6 +243,12 @@ SZbSerial::PushZbPacket(
 ) {
     m_boIsACKNeeded = FALSE;
     m_bySendAttempts = 0;
+
+    printf("Sent to Zb: ");
+    for (u32_t i = 0; i < pZbPacket->GetFullPacket()->Length(); i++)
+        printf("%02X ", pZbPacket->GetFullPacket()->GetBuffer()[i]);
+    printf("\n");
+
     SendZbPacket(pZbPacket);
 }
 

@@ -116,6 +116,10 @@ ZbZclGlobalCmd::ReadAttributeRequest(
             for (u8_t j = 0; j < (u8_t) (it->second).size(); j++) {
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID & 0xFF);
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID >> 8);
+
+//                device.Modify()->Action[(it->second)[j]].DP_IsRequested         = TRUE;
+////                device.Modify()->Action[(it->second)[j]].DP_ReqDetails.ReqFrom = ;
+//                device.Modify()->Action[(it->second)[j]].DP_ReqDetails.ReqType  = READ_REQ;
             }
            ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
            delete pZbPacket;
@@ -156,6 +160,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     if(ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()){ // ||
             //(ZbZdoCmd::s_mapEPInfor[wNwk].byEPCount != ZbZdoCmd::s_mapEPInfor[wNwk].byTotalEP)) {
         ZbZdoCmd::GetInstance()->LeaveRequest(wNwk);
+        return;
     }
 
 
@@ -209,9 +214,9 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
             if(temp == it->second) {
                 temp.DP_DIName = it->first;
+                vResponseDP.push_back(temp);
             }
         }
-        vResponseDP.push_back(temp);
 
         temp = {};
         if(byLength > 0) {
@@ -246,9 +251,12 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                         ZbDriver::s_pZbModel->UpdateChanges();
 
                         //Request State
-                        Json::Value jsonVal;
-                        jsonVal["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
-                        jsonVal["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
+                        Json::Value jsonDev, jsonVal;
+                        jsonDev["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
+                        jsonDev["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
+                        jsonDev["net"] = std::to_string(1);
+                        jsonDev["type"] = std::to_string(tempDevice->RealType);
+                        jsonVal["dev"].append(jsonDev);
                         JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
                         pJsonCommand->SetJsonObject(jsonVal);
                         JsonDevGet_p pJsonDevGet = new JsonDevGet();
@@ -268,7 +276,6 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         }
         vpData.clear();
     } else {
-
         device.Modify()->ReceiveInforFromDevice(vResponseDP, vpData);
     }
 
@@ -316,6 +323,11 @@ ZbZclGlobalCmd::WriteAttributeRequest(
             for(u8_t k = 0; k < device.Modify()->Action[(it->second)[j].DP_DIName].DP_AttributeDataSize; k++) {
                 pZbPacket->Push((it->second)[j].DP_AttributeData >> (8*k));
             }
+
+//            device.Modify()->Action[(it->second)[j].DP_DIName].DP_IsRequested           = TRUE;
+////                device.Modify()->Action[(it->second)[j].DP_DIName].DP_ReqDetails.ReqFrom = ;
+//            device.Modify()->Action[(it->second)[j].DP_DIName].DP_ReqDetails.ReqType    = READ_REQ;
+//            device.Modify()->Action[(it->second)[j].DP_DIName].DP_ReqDetails.ReqValue   = (it->second)[j].DP_AttributeData;
         }
 
         ZbDriver::GetInstance()->SendZbPacket(pZbPacket);

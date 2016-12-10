@@ -177,14 +177,14 @@ ForwardDaikinStateToOutside(
 ) {
     Json::Value val;
     for(Action_t::const_iterator_t it = device->Action.begin(); it != device->Action.end(); it++) {
-        if(it->second.DP_IsChanged == TRUE) {
+        if(it->second.DP_IsResponsed == TRUE) {
            if(it->first == DI_State) {
                if(it->second.DP_AttributeData == 1) val[it->second.DP_DIStringName] = std::string("on");
                else val[it->second.DP_DIStringName] = std::string("off");
            } else {
                val[it->second.DP_DIStringName] = std::to_string(it->second.DP_AttributeData);
            }
-            device->Action[it->first].DP_IsChanged = FALSE;
+            device->Action[it->first].DP_IsResponsed = FALSE;
         }
     }
     ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);

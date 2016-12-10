@@ -595,6 +595,6 @@ ZbCtrller::ProcCmdRestart(
  * @retval None
  */
 void_t
-ZbCtrller::IniZbCtrller() {
-    m_pZbDriver->InitDriver();
+ZbCtrller::Init() {
+    m_pZbDriver->Init();
 }

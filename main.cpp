@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     if (pZbController != NULL) {
         pZbController->Connect();
         pZbController->Start();
-        pZbController->IniZbCtrller();
+        pZbController->Init();
     }
 
     while (TRUE) {

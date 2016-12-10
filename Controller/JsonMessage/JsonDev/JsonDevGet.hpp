@@ -21,6 +21,7 @@
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"
+#include "LogPlus.hpp"
 
 class JsonDevGet : public JsonMessageBase {
 public:
@@ -74,7 +75,6 @@ JsonDevGet::ParseJsonValue(
     Json::Value& jsonValue
 ) {
     if (!jsonValue.isMember("dev")) { return FALSE; }
-
     Json::Value lstdev = jsonValue["dev"];
 
     for (u32_t i = 0; i < lstdev.size(); i++) {
