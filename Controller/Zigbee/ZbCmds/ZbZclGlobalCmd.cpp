@@ -117,12 +117,14 @@ ZbZclGlobalCmd::ReadAttributeRequest(
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID & 0xFF);
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID >> 8);
 
-//                device.Modify()->Action[(it->second)[j]].DP_IsRequested         = TRUE;
-////                device.Modify()->Action[(it->second)[j]].DP_ReqDetails.ReqFrom = ;
-//                device.Modify()->Action[(it->second)[j]].DP_ReqDetails.ReqType  = READ_REQ;
+                Request   tmpReq;
+                tmpReq.ReqFrom  = device->OwnersReq.front();
+                tmpReq.ReqType  = READ_REQ;
+                device.Modify()->PendingReqs((it->second)[j]).push(tmpReq);
             }
-           ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
-           delete pZbPacket;
+            device.Modify()->OwnersReq.pop();
+            ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+            delete pZbPacket;
         }
     }
 }
@@ -324,12 +326,13 @@ ZbZclGlobalCmd::WriteAttributeRequest(
                 pZbPacket->Push((it->second)[j].DP_AttributeData >> (8*k));
             }
 
-//            device.Modify()->Action[(it->second)[j].DP_DIName].DP_IsRequested           = TRUE;
-////                device.Modify()->Action[(it->second)[j].DP_DIName].DP_ReqDetails.ReqFrom = ;
-//            device.Modify()->Action[(it->second)[j].DP_DIName].DP_ReqDetails.ReqType    = READ_REQ;
-//            device.Modify()->Action[(it->second)[j].DP_DIName].DP_ReqDetails.ReqValue   = (it->second)[j].DP_AttributeData;
+            Request   tmpReq;
+            tmpReq.ReqFrom  = device->OwnersReq.front();
+            tmpReq.ReqType  = WRITE_REQ;
+            tmpReq.ReqValue = (it->second)[j].DP_AttributeData;
+            device.Modify()->PendingReqs((it->second)[j].DP_DIName).push(tmpReq);
         }
-
+        device.Modify()->OwnersReq.pop();
         ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
         delete pZbPacket;
     }

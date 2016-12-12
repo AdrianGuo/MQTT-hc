@@ -30,6 +30,7 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.1907756284" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.237776694" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Coord}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Drivers/IO}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/JsonMessage}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/Zwave}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/Zwave/CmdClass}&quot;"/>
@@ -116,6 +117,7 @@
 									<listOptionValue builtIn="false" value="DEBUG_TESTZWDRIVER"/>
 									<listOptionValue builtIn="false" value="DEBUG_ZWCMDCTRLLER"/>
 								</option>
+								<option id="gnu.c.compiler.option.dialect.std.230218744" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.251636359" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1490514705" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
@@ -153,7 +155,7 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="Controller/ZWave/" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="Drivers/IO/" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -279,7 +281,8 @@
 									<listOptionValue builtIn="false" value="DEBUG_ZWCMDCTRLLER"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.include.paths.973426719" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/taho/source_code/org/staging_dir/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include"/>
+									<listOptionValue builtIn="false" value="/home/taho/Linux/Sdk/OpenWrt/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Drivers/IO}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/ValueDevice}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/Zwave}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/Zwave/CmdClass}&quot;"/>
@@ -336,7 +339,7 @@
 								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.685351567" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.release.option.debugging.level.786365376" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.585421001" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/taho/source_code/org/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include"/>
+									<listOptionValue builtIn="false" value="/home/taho/Linux/Sdk/OpenWrt/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1436228594" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -344,10 +347,11 @@
 							<tool command="/home/taho/source_code/org/staging_dir/toolchain-mipsel_24kec+dsp_gcc-4.8-linaro_uClibc-0.9.33.2/bin/mipsel-openwrt-linux-g++" id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.164638523" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.libs.1320805385" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="dl"/>
+									<listOptionValue builtIn="false" value="mraa"/>
 									<listOptionValue builtIn="false" value="pthread"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1442369216" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/home/taho/source_code/org/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/lib"/>
+									<listOptionValue builtIn="false" value="/home/taho/Linux/Sdk/OpenWrt/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/lib"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1343513827" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

@@ -11,8 +11,24 @@
 #include "ValueIntDb.hpp"
 #include "Locker.hpp"
 #include "Map.hpp"
+#include "Queue.hpp"
 
-typedef Vector<DeviceProperty>     DeviceProperties;
+#define IsResponsed(x)                      Action[x].DP_IsResponsed
+#define PendingReqs(x)                      Action[x].DP_PendingReqs
+#define ClusterID(x)                        Action[x].DP_ClusterID
+#define AttributeID(x)                      Action[x].DP_AttributeID
+#define AttributeDataType(x)                Action[x].AttributeDataType
+#define AttributeDataSize(x)                Action[x].AttributeDataSize
+#define AttributeData(x)                    Action[x].DP_AttributeData
+#define PreValue(x)                         Action[x].DP_PreValue
+#define DIName(x)                           Action[x].DP_DIName
+#define DIStringName(x)                     Action[x].DP_DIStringName
+
+#define Backup(x)                           {PreValue(x) = AttributeData(x);}
+#define PopReq(x)                           {if(Action[x].DP_PendingReqs.size() > 0) \
+                                              {Action[x].DP_PendingReqs.pop();}}
+
+typedef Vector<DeviceProperty>              DeviceProperties;
 
 class ZbDeviceDb {
 public:
@@ -33,10 +49,10 @@ public:
     DbPtr<ZbDeviceDb> ParentDevice;
     Collection<DbPtr<ZbDeviceDb>> IrCmd;
 
-    int_t       RealType;
-    Action_t    Action;
-    int_t&      State;
-    int_t       ReqFrom;
+    int_t           RealType;
+    Action_t        Action;
+    int_t&          State;
+    Queue<u32_t>    OwnersReq;
 
     void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();

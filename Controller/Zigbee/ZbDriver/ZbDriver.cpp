@@ -113,6 +113,7 @@ ZbDriver::ProcSendMessage(
             for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
                 Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
                 if(device.Modify() == NULL) { continue; }
+                device.Modify()->OwnersReq.push(pZbMessage->GetClientId());
                 switch (device->RealType) {
                     case LUMI_DEVICE_SWITCH:
                     case LUMI_DEVICE_INPUT:
@@ -160,7 +161,7 @@ ZbDriver::ProcSendMessage(
             for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
                 Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
                 if(device.Modify() == NULL) { continue; }
-
+                device.Modify()->OwnersReq.push(pZbMessage->GetClientId());
                 switch (device->RealType) {
                     case LUMI_DEVICE_SWITCH:
                     case LUMI_DEVICE_INPUT:

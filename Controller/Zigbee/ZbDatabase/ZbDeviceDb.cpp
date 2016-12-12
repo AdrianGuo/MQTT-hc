@@ -12,13 +12,9 @@
 #include <zcl_lumi.hpp>
 #include <ZbConvertValueFrom.hpp>
 #include <ZbHelper.hpp>
-#include <LogPlus.hpp>
 
 #include <ZbDeviceDb.hpp>
 
-#define Pendings(x)                 Action[x].DP_PendingReqs
-#define PopReq(x)                   if(Action[x].DP_PendingReqs.size() > 0) \
-                                      {Action[x].DP_PendingReqs.pop();}
 /**
  * @func
  * @brief  None
@@ -38,7 +34,6 @@ ZbDeviceDb::ZbDeviceDb() :
     State           (Action[DI_State].DP_AttributeData)
 {
     RealType    =   0;
-    ReqFrom     =   0;
     m_pLocker   =   new Locker();
 
     SyncDeviceAction(DI_Model,           ZCL_CLUSTER_ID_GEN_BASIC, ATTRID_BASIC_MODEL_ID);
@@ -115,17 +110,17 @@ ZbDeviceDb::IsInterested() {
  */
 void_t
 ZbDeviceDb::ReceiveInforFromDevice(
-    DeviceProperties vResDP,
+    DeviceProperties vDP,
     Vector<u8_p> vpData
 ){
-    u8_t byLimit = vResDP.size();
+    u8_t byLimit = vDP.size();
 
     switch (RealType) {
         case LUMI_DEVICE_SWITCH:
         case LUMI_DEVICE_INPUT: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Action[vResDP[i].DP_DIName].DP_PreValue = Action[vResDP[i].DP_DIName].DP_AttributeData;
-                Action[DI_State].DP_AttributeData = *vpData[i];
+                Backup(vDP[i].DP_DIName);
+                AttributeData(vDP[i].DP_DIName) = *vpData[i];
                 ForwardStateToOutside(this);
             }
         }
@@ -138,28 +133,27 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_CURTAIN:
         case LUMI_DEVICE_FAN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Action[vResDP[i].DP_DIName].DP_PreValue = Action[vResDP[i].DP_DIName].DP_AttributeData;
-                if(vResDP[i].DP_DIName == DI_State) {
-                    if(((Pendings(DI_State).front().ReqValue - *vpData[i]) > 3) ||
-                            ((Pendings(DI_State).front().ReqValue - *vpData[i]) < -3)) {
-                                Action[vResDP[i].DP_DIName].DP_AttributeData = *vpData[i];
+                Backup(vDP[i].DP_DIName);
+                if(vDP[i].DP_DIName == DI_State) {
+                    if(((PendingReqs(DI_State).front().ReqValue - *vpData[i]) > 3) ||
+                            ((PendingReqs(DI_State).front().ReqValue - *vpData[i]) < -3)) {
+                                AttributeData(vDP[i].DP_DIName) = *vpData[i];
                             } else {
-                                Action[vResDP[i].DP_DIName].DP_AttributeData = Pendings(DI_State).front().ReqValue;
+                                AttributeData(vDP[i].DP_DIName) = PendingReqs(DI_State).front().ReqValue;
                             }
-
                 } else {
-                    Action[vResDP[i].DP_DIName].DP_AttributeData = *vpData[i];
+                    AttributeData(vDP[i].DP_DIName) = *vpData[i];
                 }
-                Action[vResDP[i].DP_DIName].DP_IsResponsed = TRUE;
-                PopReq(vResDP[i].DP_DIName);
+                IsResponsed(vDP[i].DP_DIName) = TRUE;
+                PopReq(vDP[i].DP_DIName);
             }
-            if(Action[DI_State].DP_IsResponsed && Action[DI_OnOff].DP_IsResponsed) {
+            if(IsResponsed(DI_State) && IsResponsed(DI_OnOff)) {
                 if(RealType == LUMI_DEVICE_FAN) ForwardFanStateToOutside(this);
                 else if (RealType == LUMI_DEVICE_CURTAIN) ForwardCurtainStateToOutside(this);
                 else ForwardDimmerStateToOutside(this);
 
-                Action[DI_State].DP_IsResponsed = FALSE;
-                Action[DI_OnOff].DP_IsResponsed = FALSE;
+                IsResponsed(DI_State) = FALSE;
+                IsResponsed(DI_OnOff) = FALSE;
             }
         }
             break;
@@ -168,15 +162,18 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_IR: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Action[vResDP[i].DP_DIName].DP_PreValue = Action[vResDP[i].DP_DIName].DP_AttributeData;
-                if (vResDP[i].DP_DIName == DI_IR_Data) {
+                Backup(vDP[i].DP_DIName);
+                if (vDP[i].DP_DIName == DI_IR_Data) {
                     u8_p pbyData = vpData[i];
                     State = *pbyData;
                     ++pbyData;
-                    Action[DI_State].DP_AttributeID = LittleWord(&pbyData, false);
+                    AttributeID(DI_State) = LittleWord(&pbyData, false);
+                    IsResponsed(vDP[i].DP_DIName) = TRUE;
                     ForwardIrState(this);
                     pbyData = NULL;
+                    IsResponsed(vDP[i].DP_DIName) = FALSE;
                 }
+                PopReq(vDP[i].DP_DIName);
             }
         }
             break;
@@ -189,20 +186,18 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_HUMIDITY:
         case LUMI_DEVICE_ILLUMINANCE: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Action[vResDP[i].DP_DIName].DP_PreValue = Action[vResDP[i].DP_DIName].DP_AttributeData;
-                if (vResDP[i].DP_DIName == DI_State) {
+                Backup(vDP[i].DP_DIName);
+                if (vDP[i].DP_DIName == DI_State) {
                     if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
                     else if((RealType == LUMI_DEVICE_PIR) || (RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
-                    else State = *vpData[i];
-                } else if (vResDP[i].DP_DIName == DI_Power) {
-                    Action[DI_Power].DP_AttributeData = *vpData[i];
-//                    Action[DI_Power].DP_IsChanged = TRUE;
+                    else AttributeData(DI_State) = *vpData[i];
+                } else if (vDP[i].DP_DIName == DI_Power) {
+                    AttributeData(DI_Power) = *vpData[i];
                 }
-
+                PopReq(vDP[i].DP_DIName);
             }
             ForwardSensorStateToOutside(this);
-//            if(Action[DI_Power].DP_IsChanged) { ForwardSensorStateToOutside(this); }
-//            Action[DI_Power].DP_IsChanged = FALSE;
+
         }
             break;
 /*
@@ -210,16 +205,17 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_RGB: {
             for (u8_t i = 0; i < byLimit; i++) {
-                Action[vResDP[i].DP_DIName].DP_PreValue = Action[vResDP[i].DP_DIName].DP_AttributeData;
-                Action[vResDP[i].DP_DIName].DP_AttributeData = *vpData[i];
-                Action[vResDP[i].DP_DIName].DP_IsResponsed = TRUE;
+                Backup(vDP[i].DP_DIName);
+                AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                IsResponsed(vDP[i].DP_DIName) = TRUE;
+                PopReq(vDP[i].DP_DIName);
             }
-            if (Action[DI_RGB_Red].DP_IsResponsed &&
-                    Action[DI_RGB_Red].DP_IsResponsed &&
-                    Action[DI_RGB_Blue].DP_IsResponsed) {
-                Action[DI_RGB_Red].DP_IsResponsed     = FALSE;
-                Action[DI_RGB_Green].DP_IsResponsed   = FALSE;
-                Action[DI_RGB_Blue].DP_IsResponsed    = FALSE;
+            if (IsResponsed(DI_RGB_Red) &&
+                    IsResponsed(DI_RGB_Green) &&
+                    IsResponsed(DI_RGB_Blue)) {
+                IsResponsed(DI_RGB_Red)     = FALSE;
+                IsResponsed(DI_RGB_Green)   = FALSE;
+                IsResponsed(DI_RGB_Blue)    = FALSE;
                 ForwardRGBStateToOutside(this);
             }
         }
@@ -229,18 +225,19 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_DAIKIN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Action[vResDP[i].DP_DIName].DP_PreValue = Action[vResDP[i].DP_DIName].DP_AttributeData;
-                if ((vResDP[i].DP_DIName == DI_Daikin_Control_Seq_Operation) ||
-                        (vResDP[i].DP_DIName == DI_Daikin_System_Mode) ||
-                        (vResDP[i].DP_DIName == DI_Daikin_Fan_Mode) ||
-                        (vResDP[i].DP_DIName == DI_Daikin_Fan_Direction))
+                Backup(vDP[i].DP_DIName);
+                if ((vDP[i].DP_DIName == DI_Daikin_Control_Seq_Operation) ||
+                        (vDP[i].DP_DIName == DI_Daikin_System_Mode) ||
+                        (vDP[i].DP_DIName == DI_Daikin_Fan_Mode) ||
+                        (vDP[i].DP_DIName == DI_Daikin_Fan_Direction))
                 {
-                    Action[vResDP[i].DP_DIName].DP_AttributeData = *vpData[i];
+                    AttributeData(vDP[i].DP_DIName) = *vpData[i];
                 } else {
-                    Action[vResDP[i].DP_DIName].DP_AttributeData = *((i16_p) vpData[i]);
+                    AttributeData(vDP[i].DP_DIName) = *((i16_p) vpData[i]);
 
                 }
-                Action[vResDP[i].DP_DIName].DP_IsResponsed = TRUE;
+                IsResponsed(vDP[i].DP_DIName) = TRUE;
+                PopReq(vDP[i].DP_DIName);
             }
             ForwardDaikinStateToOutside(this);
         }

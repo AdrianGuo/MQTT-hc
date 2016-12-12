@@ -24,7 +24,7 @@ ZbMessage::ZbMessage(
     m_pJsonMessage  = pJsonMessage;
     m_ZbCommand     = zbCommand;
 
-    m_boIsEncrypted = FALSE;
+    m_dwClientId   = 0;
 
     Classify(zbCommand);
 }
@@ -97,6 +97,16 @@ ZbMessage::GetZbCommad() const {
 void_p
 ZbMessage::GetJsonMessageObject() const {
     return m_pJsonMessage;
+}
+
+void_t
+ZbMessage::SetClientId(u32_t dwClientId) {
+    m_dwClientId = dwClientId;
+}
+
+u32_t
+ZbMessage::GetClientId() const {
+    return m_dwClientId;
 }
 
 void_t

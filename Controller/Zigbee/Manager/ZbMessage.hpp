@@ -37,7 +37,7 @@ private:
     void_p  m_pJsonMessage;
     Command m_ZbCommand;
 
-    bool_t  m_boIsEncrypted;
+    u32_t   m_dwClientId;
 
 public:
     ZbMessage(void_p pJsonMessage = NULL,
@@ -63,6 +63,9 @@ public:
     Command GetZbCommad() const;
 
     void_p  GetJsonMessageObject() const;
+
+    void_t  SetClientId(u32_t);
+    u32_t   GetClientId() const;
 };
 
 typedef ZbMessage ZbMessage_t;

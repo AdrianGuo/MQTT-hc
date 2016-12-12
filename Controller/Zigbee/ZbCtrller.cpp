@@ -368,6 +368,7 @@ ZbCtrller::HandlerCmdSet(
 
     ZbMessage_p pZbMessage = new ZbMessage(pJsonDevSet,
             ZbMessage::Command::SetDevice);
+    pZbMessage->SetClientId(pJsonCommand->GetClientId());
 
     m_pZbCtrllerLocker->Lock();
     m_queSendZbMsg.push(pZbMessage);
@@ -393,6 +394,7 @@ ZbCtrller::HandlerCmdGet(
 
     ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet,
             ZbMessage::Command::GetDevice);
+    pZbMessage->SetClientId(pJsonCommand->GetClientId());
 
     m_pZbCtrllerLocker->Lock();
     m_queSendZbMsg.push(pZbMessage);
@@ -434,6 +436,7 @@ ZbCtrller::HandlerCmdReset(
 ) {
     ZbMessage_p pZbMessage = new ZbMessage(NULL,
             ZbMessage::Command::ResetReq);
+
     m_pZbCtrllerLocker->Lock();
     m_queSendZbMsg.push(pZbMessage);
     m_pZbCtrllerLocker->UnLock();

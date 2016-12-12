@@ -59,7 +59,7 @@ typedef enum {
  */
 
 typedef struct {
-    int_t   ReqFrom = 0;
+    u32_t   ReqFrom = 0;
     u8_t    ReqType; /* READ_REQ; WRITE_REQ; SET_REQ */
     int_t   ReqValue;
     int_t   ReqReserve;
@@ -71,16 +71,15 @@ typedef Queue<Request> PendingReqs_t;
  * Details for action
  */
 typedef struct DeviceProperty {
-    u32_t           DP_RequestedNo = 0;
-    bool_t          DP_IsResponsed = FALSE;
-    PendingReqs_t   DP_PendingReqs;
-
     u16_t           DP_ClusterID;
     u16_t           DP_AttributeID;
     u8_t            DP_AttributeDataType;
     u8_t            DP_AttributeDataSize;
     int_t           DP_AttributeData; //data type (4 bytes)!!!
     int_t           DP_PreValue;
+
+    PendingReqs_t   DP_PendingReqs;
+    bool_t          DP_IsResponsed = FALSE;
 
     DeviceInfo      DP_DIName;
     string          DP_DIStringName; //for json message.

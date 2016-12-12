@@ -104,11 +104,12 @@ ZbZclCmd::SetDevice(
             break;
     }
 
-//                device.Modify()->Action[DI_State].DP_ReqDetails.ReqFrom = ;
-    Request tmpReq;
-    tmpReq.ReqValue = SET_REQ;
-    tmpReq.ReqValue   = byValue;
-    device.Modify()->Action[DI_State].DP_PendingReqs.push(tmpReq);
+    Request   tmpReq;
+    tmpReq.ReqFrom  = device->OwnersReq.front();
+    tmpReq.ReqType  = SET_REQ;
+    tmpReq.ReqValue = byValue;
+    device.Modify()->PendingReqs(DI_State).push(tmpReq);
+    device.Modify()->OwnersReq.pop();
 
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }
@@ -142,11 +143,13 @@ ZbZclCmd::SetIR(
         pZbPacket->Push((u8_t) irCommand);    //CMD ID
     }
 
-//    device.Modify()->Action[DI_State].DP_RequestedNo           = TRUE;
-////                device.Modify()->Action[DI_State].DP_ReqDetails.ReqFrom = ;
-//    device.Modify()->Action[DI_State].DP_ReqDetails.ReqType    = SET_REQ;
-//    device.Modify()->Action[DI_State].DP_ReqDetails.ReqValue   = irCommand;
-//    device.Modify()->Action[DI_State].DP_ReqDetails.ReqReserve = irID;
+    Request   tmpReq;
+    tmpReq.ReqFrom      = device->OwnersReq.front();
+    tmpReq.ReqType      = SET_REQ;
+    tmpReq.ReqValue     = irCommand;
+    tmpReq.ReqReserve   = irID;
+    device.Modify()->PendingReqs(DI_State).push(tmpReq);
+    device.Modify()->OwnersReq.pop();
 
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
 }
