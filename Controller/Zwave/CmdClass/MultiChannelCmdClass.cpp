@@ -7,7 +7,7 @@
 #include "ZwTransportAPI.hpp"
 #include "ZwNode.hpp"
 #include "JsonDevLstAdd.hpp"
-#include "ValuePtr.hpp"
+#include "HcDevice.hpp"
 #include "MultiChannelCmdClass.hpp"
 /**
  * @func

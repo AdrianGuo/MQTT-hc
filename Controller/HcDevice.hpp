@@ -15,6 +15,11 @@
 #ifndef HC_DEVICE_HPP_
 #define HC_DEVICE_HPP_
 
+#define ROOT_ORDER                              0
+#define ZWAVE_NETW                              0
+#define ZIGBEE_NETW                             1
+#define WIFI_NETW                               2
+
 #define DEVICE_TYPE_UNKNOW                      0
 
 #define DEVICE_TYPE_CONTACT                     1

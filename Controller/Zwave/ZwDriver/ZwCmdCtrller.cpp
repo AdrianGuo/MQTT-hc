@@ -17,6 +17,7 @@
 
 #include "ZwMessage.hpp"
 #include "ValuePtr.hpp"
+#include "HcDevice.hpp"
 #include "ZwCmdCtrller.hpp"
 
 /**

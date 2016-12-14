@@ -20,6 +20,7 @@
 #include "MultiChannelCmdClass.hpp"
 #include "ZwNode.hpp"
 #include "ValuePtr.hpp"
+#include "HcDevice.hpp"
 #include "ZwCmdAppFunc.hpp"
 
 /**
