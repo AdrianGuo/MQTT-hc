@@ -4,9 +4,10 @@
 #include "typedefs.h"
 #include "Value.hpp"
 #include "ZwDefs.hpp"
-#include "ZwCmdClass.hpp"
-#include "ZwDbModel.hpp"
 #include "ZwNode.hpp"
+#include "ZwDbModel.hpp"
+#include "ZwCmdClass.hpp"
+#include "ZwCmdClassMap.hpp"
 
 class MultiChannelCmdClass : public ZwCmdClass {
 private:
@@ -19,6 +20,8 @@ private:
     u8_t m_byTransmitOptions;
 
     ZwDbModel_p m_pDbModel;
+    ZwCmdClassMap_t& m_ZwCmdClassMap;
+
     MultiChannelCmdClass(u32_t dwHomeId, u8_t byNodeId);
 
     void_t ProcGetCapability(ZwNode_p pZwNode, u8_t byEndpoint);

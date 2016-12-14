@@ -11,7 +11,7 @@
  */
 DbContext::DbContext(
     const String& strDbName
-) : m_strRamFileName (PATH_RAM ),
+) : m_strRamFileName (PATH_RAM),
     m_strFlashFileName(PATH_FLASH) {
     m_strRamFileName += strDbName;
     m_strFlashFileName += strDbName;

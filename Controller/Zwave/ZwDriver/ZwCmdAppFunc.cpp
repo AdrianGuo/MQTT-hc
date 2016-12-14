@@ -151,8 +151,7 @@ ZwCmdAppFunc::ProcApplicationCommandHandler(
     (pbCommand[0] == MultiChannelCmdClass::GetZwCmdClassId()) ? pbCommand[2] : 0;
 
     if ((pValueDevice != NULL) && (*pZwRootNode)[byOrder] != NULL) {
-        u8_t byDeviceType = (*pZwRootNode)[byOrder]->GetDeviceType();
-        LOG_DEBUG("type %d", byDeviceType);
+        u8_t byDeviceType = (*pZwRootNode)[byOrder]->GetDevType();
 
         if (byDeviceType == DEVICE_TYPE_UNKNOW) {
             delete pValueDevice;
@@ -227,14 +226,14 @@ ZwCmdAppFunc::HandleApplicationCommandHandlerRequest(
             m_ValueZwDriver.packetSignal->Set();
         }
     } else {
-        m_ValueLstNode[byNodeId - 1]->IncrementUnsolicitedCount();
+        m_ValueLstNode[byNodeId - 1]->IncUnsolicitedCount();
     }
 
     ProcApplicationCommandHandler(byNodeId, pbCommand, byLength - 3);
 }
 
 /**
- * @func
+ * @func   HandleApplicationNodeInformationRequest
  * @brief  None
  * @param  None
  * @retval None
@@ -321,9 +320,12 @@ ZwCmdAppFunc::HandleApplicationControllerUpdateRequest(
 void_t
 ZwCmdAppFunc::RegisterHandlers() {
     m_pHandlerRequest->RegisterHandler(FUNC_ID_APPLICATION_COMMAND_HANDLER,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdAppFunc::HandleApplicationCommandHandlerRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdAppFunc::HandleApplicationCommandHandlerRequest));
     m_pHandlerRequest->RegisterHandler(FUNC_ID_SERIAL_API_APPL_NODE_INFORMATION,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdAppFunc::HandleApplicationNodeInformationRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdAppFunc::HandleApplicationNodeInformationRequest));
     m_pHandlerRequest->RegisterHandler(FUNC_ID_ZW_APPLICATION_UPDATE,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdAppFunc::HandleApplicationSlaveUpdateRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdAppFunc::HandleApplicationSlaveUpdateRequest));
 }

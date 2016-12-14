@@ -53,7 +53,7 @@ private:
 };
 
 /**
- * @func
+ * @func   CreateSelectColumns
  * @brief  None
  * @param  None
  * @retval None
@@ -76,7 +76,7 @@ CreateSelectColumns(
 }
 
 /**
- * @func
+ * @func   CreateQuerySelect
  * @brief  None
  * @param  None
  * @retval None
@@ -95,7 +95,7 @@ CreateQuerySelect(
 }
 
 /**
- * @func
+ * @func   CreateCompleteQuerySelect
  * @brief  None
  * @param  None
  * @retval None
@@ -113,7 +113,7 @@ CreateCompleteQuerySelect(
 }
 
 /**
- * @func
+ * @func   CreateCountQuerySelect
  * @brief  None
  * @param  None
  * @retval None
@@ -169,7 +169,7 @@ public:
 };
 
 /**
- * @func
+ * @func   Query
  * @brief  None
  * @param  None
  * @retval None
@@ -186,7 +186,7 @@ inline Query<R>::Query(
 }
 
 /**
- * @func
+ * @func   Query
  * @brief  None
  * @param  None
  * @retval None
@@ -204,7 +204,7 @@ inline Query<R>::Query(
 }
 
 /**
- * @func
+ * @func   SetStatement
  * @brief  None
  * @param  None
  * @retval None
@@ -223,7 +223,7 @@ Query<R>::SetStatement() const {
 }
 
 /**
- * @func
+ * @func   SetCountStatement
  * @brief  None
  * @param  None
  * @retval None
@@ -237,7 +237,7 @@ Query<R>::SetCountStatement() const {
 }
 
 /**
- * @func
+ * @func   Where
  * @brief  None
  * @param  None
  * @retval None
@@ -258,7 +258,7 @@ Query<R>::Where(
 }
 
 /**
- * @func
+ * @func   Bind
  * @brief  None
  * @param  None
  * @retval None
@@ -275,7 +275,7 @@ Query<R>::Bind(
 }
 
 /**
- * @func
+ * @func   SingleResults
  * @brief  None
  * @param  None
  * @retval None
@@ -291,8 +291,8 @@ Query<R>::SingleResults(
     return result;
 }
 
-/**
- * @func
+/** 
+ * @func   resultValue
  * @brief  None
  * @param  None
  * @retval None
@@ -304,7 +304,7 @@ Query<R>::resultValue() const {
 }
 
 /**
- * @func
+ * @func   resultList
  * @brief  None
  * @param  None
  * @retval None
@@ -324,7 +324,7 @@ Query<R>::resultList() const {
 }
 
 /**
- * @func
+ * @func   operator R
  * @brief  None
  * @param  None
  * @retval None
@@ -335,7 +335,7 @@ inline Query<R>::operator R() const {
 }
 
 /**
- * @func
+ * @func   operator Collection<R>
  * @brief  None
  * @param  None
  * @retval None

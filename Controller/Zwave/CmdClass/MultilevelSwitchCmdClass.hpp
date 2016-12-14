@@ -19,7 +19,7 @@ public:
 
     virtual u8_t GetMaxVersion() const { return SWITCH_MULTILEVEL_VERSION_V4; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_SWITCH_MULTILEVEL_V4; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_SWITCH_MULTILEVEL"; }
+    static const String GetZwCmdClassName() { return "SWITCH_MULTILEVEL"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

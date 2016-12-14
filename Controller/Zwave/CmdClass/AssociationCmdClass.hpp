@@ -20,7 +20,7 @@ public:
 
     virtual u8_t GetMaxVersion() const  { return ASSOCIATION_VERSION_V2; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_ASSOCIATION_V2;}
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_ASSOCIATION"; }
+    static const String GetZwCmdClassName() { return "ASSOCIATION"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

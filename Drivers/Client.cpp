@@ -41,7 +41,7 @@ Client::~Client() {
 }
 
 /**
- * @func
+ * @func   SetSocketFd
  * @brief  None
  * @param  None
  * @retval None
@@ -55,7 +55,7 @@ void_t Client::SetSocketFd(int_t idwSocketFd) {
 }
 
 /**
- * @func
+ * @func   GetSocketFd
  * @brief  None
  * @param  None
  * @retval None
@@ -65,7 +65,7 @@ int_t Client::GetSocketFd() {
 }
 
 /**
- * @func
+ * @func   SetSocketAddress
  * @brief  None
  * @param  None
  * @retval None
@@ -77,82 +77,94 @@ void_t Client::SetSocketAddress(sockaddr_p pSocketAddress) {
 }
 
 /**
- * @func
+ * @func   GetSocketAddress
  * @brief  None
  * @param  None
  * @retval None
  */
-sockaddr_p Client::GetSocketAddress() {
+sockaddr_p
+Client::GetSocketAddress() {
     return m_pSockAddr;
 }
 
 /**
- * @func
+ * @func   SetMAC
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::SetMAC(String strMAC) {
+void_t
+Client::SetMAC(String strMAC) {
     m_strMAC = strMAC;
 }
 
 /**
- * @func
+ * @func   GetMAC
  * @brief  None
  * @param  None
  * @retval None
  */
-String Client::GetMAC() {
+String
+Client::GetMAC() {
     return m_strMAC;
 }
 
 /**
- * @func
+ * @func   SetType
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::SetType(String strType) {
+void_t
+Client::SetType(String strType) {
     m_strType = strType;
 }
 
 /**
- * @func
+ * @func   GetType
  * @brief  None
  * @param  None
  * @retval None
  */
-String Client::GetType() {
+String
+Client::GetType() {
     return m_strType;
 }
 
 /**
- * @func
+ * @func   Authenticate
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::Authenticate(bool_t boAuthen) {
+void_t
+Client::Authenticate(
+    bool_t boAuthen
+) {
     m_boIsAuthenticated = boAuthen;
 }
 
 /**
- * @func
+ * @func   IsAuthenticated
  * @brief  None
  * @param  None
  * @retval None
  */
-bool_t Client::IsAuthenticated() {
+bool_t
+Client::IsAuthenticated() {
     return m_boIsAuthenticated;
 }
 
 /**
- * @func
+ * @func   Push
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::Push(Packet_p pPacket) {
+void_t
+Client::Push(
+    Packet_p pPacket
+) {
     if (pPacket != NULL) {
         m_pClientLocker->Lock();
         m_quePacket.push(pPacket);
@@ -161,83 +173,93 @@ void_t Client::Push(Packet_p pPacket) {
 }
 
 /**
- * @func
+ * @func   Front
  * @brief  None
  * @param  None
  * @retval None
  */
-Packet_p Client::Front() {
+Packet_p
+Client::Front() {
     if(m_quePacket.size() > 0)
         return m_quePacket.front();
     return NULL;
 }
 
 /**
- * @func
+ * @func   Pop
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::Pop() {
+void_t
+Client::Pop() {
     if(m_quePacket.size() > 0)
         m_quePacket.pop();
 }
 
 /**
- * @func
+ * @func   PendingMessages
  * @brief  None
  * @param  None
  * @retval None
  */
-u32_t Client::PendingMessages() {
+u32_t
+Client::PendingMessages() {
     return m_quePacket.size();
 }
 
 /**
- * @func
+ * @func   SetCount
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::SetCount() {
+void_t
+Client::SetCount() {
     m_pClientLocker->Lock();
-    if(m_byCount > 1)
+    if(m_byCount > 1) {
         m_byCount = 2;
-    else
+    } else {
         m_byCount++;
+    }
     m_pClientLocker->UnLock();
 }
 
 /**
- * @func
+ * @func   IsAuthenMessage
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t Client::IsAuthenMessage() {
-    if(m_byCount == 1)
+    if(m_byCount == 1) {
         return TRUE;
+    }
     return FALSE;
 }
 
 /**
- * @func
+ * @func   SetAlive
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t Client::SetAlive(bool_t boAlive) {
+void_t
+Client::SetAlive(
+    bool_t boAlive
+) {
     m_pClientLocker->Lock();
     m_boIsAlive = boAlive;
     m_pClientLocker->UnLock();
 }
 
 /**
- * @func
+ * @func   IsAlive
  * @brief  None
  * @param  None
  * @retval None
  */
-bool_t Client::IsAlive() {
+bool_t
+Client::IsAlive() {
     return m_boIsAlive;
 }

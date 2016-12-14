@@ -66,6 +66,6 @@ public:
     bool_t IsAlive();
 };
 
-typedef Client Client_t;
+typedef Client  Client_t;
 typedef Client* Client_p;
 #endif /* CLIENT_HPP_ */

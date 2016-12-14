@@ -41,6 +41,9 @@ private:
 
     threadFunctor_t m_ClientSockThreadFunctor;
     LThread_p m_pClientSockThread;
+
+    bool_t IsWritable(u32_t dwMsecTimeout);
+    bool_t IsReadable(u32_t dwMsecTimeout);
 public:
     ClientSock(const_char_p pChostname, int_t idwPort);
     virtual ~ClientSock();
@@ -53,9 +56,6 @@ public:
     bool_t Close();
     bool_t IsConnected();
     bool_t IsBlocked();
-
-    bool_t IsWritable(u32_t dwMsecTimeout);
-    bool_t IsReadable(u32_t dwMsecTimeout);
 
     bool_t Start();
     bool_t Ping();

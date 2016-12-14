@@ -17,7 +17,7 @@
 ValueLstNode_p ValueLstNode::m_pInstance = NULL;
 
 /**
- * @func
+ * @func   ValueLstNode
  * @brief  None
  * @param  None
  * @retval None
@@ -29,7 +29,7 @@ ValueLstNode::ValueLstNode() {
 }
 
 /**
- * @func
+ * @func   ValueLstNode
  * @brief  None
  * @param  None
  * @retval None
@@ -43,7 +43,7 @@ ValueLstNode::ValueLstNode(
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -59,7 +59,7 @@ ValueLstNode::operator= (
 }
 
 /**
- * @func   Register
+ * @func   ~ValueLstNode
  * @brief  None
  * @param  None
  * @retval None
@@ -74,7 +74,7 @@ ValueLstNode::~ValueLstNode() {
 }
 
 /**
- * @func
+ * @func   GetInstance
  * @brief  None
  * @param  None
  * @retval None
@@ -88,7 +88,7 @@ ValueLstNode::GetInstance() {
 }
 
 /**
- * @func
+ * @func   operator[]
  * @brief  None
  * @param  None
  * @retval None
@@ -101,7 +101,7 @@ ValueLstNode::operator[] (
 }
 
 /**
- * @func
+ * @func   operator[]
  * @brief  None
  * @param  None
  * @retval None

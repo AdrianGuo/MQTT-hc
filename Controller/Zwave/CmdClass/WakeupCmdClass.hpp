@@ -30,7 +30,7 @@ public:
 
     virtual u8_t GetMaxVersion() const { return  WAKE_UP_VERSION_V2; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_WAKE_UP_V2; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_WAKE_UP"; }
+    static const String GetZwCmdClassName() { return "WAKE_UP"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

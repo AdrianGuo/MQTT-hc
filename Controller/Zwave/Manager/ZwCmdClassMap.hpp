@@ -24,10 +24,12 @@ private:
     static ZwCmdClassMap* m_pInstance;
     Map<u8_t, String> m_mapCmdClass;
     ZwCmdClassMap();
+    ZwCmdClassMap(const ZwCmdClassMap& rhs);
+    ZwCmdClassMap& operator= (const ZwCmdClassMap& rhs);
 public:
-    static ZwCmdClassMap* GetInstance();
+    static ZwCmdClassMap& GetInstance();
     virtual ~ZwCmdClassMap();
-    String operator[] (u8_t);
+    String operator[] (u8_t bCmdClass);
 };
 
 typedef ZwCmdClassMap  ZwCmdClassMap_t;

@@ -20,27 +20,27 @@
 #include "ZwDefs.hpp"
 #include "ZwCmdClass.hpp"
 
-class PowerlevelCmdClass : public ZwCmdClass {
+class PowerLevelCmdClass : public ZwCmdClass {
 private:
     u8_t m_byTransmitOptions;
     ZwDbModel_p m_pDbModel;
 
-    PowerlevelCmdClass(u32_t dwHomeId, u8_t byNodeId);
+    PowerLevelCmdClass(u32_t dwHomeId, u8_t byNodeId) {}
 
 public:
     static ZwCmdClass_p CreateZwCmdClass(u32_t dwHomeId, u8_t byNodeId);
-    virtual ~PowerlevelCmdClass();
+    virtual ~PowerLevelCmdClass() {}
 
     virtual u8_t GetMaxVersion() const { return  POWERLEVEL_VERSION; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_POWERLEVEL; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_POWERLEVEL"; }
+    static const String GetZwCmdClassName() { return "POWERLEVEL"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 
     virtual ZwMessage_p GetValue();
 };
 
-typedef PowerlevelCmdClass  PowerlevelCmdClass_t;
-typedef PowerlevelCmdClass* PowerlevelCmdClass_p;
+typedef PowerLevelCmdClass  PowerlevelCmdClass_t;
+typedef PowerLevelCmdClass* PowerlevelCmdClass_p;
 
 #endif /* !POWERLEVEL_CMDCLASS_HPP_ */

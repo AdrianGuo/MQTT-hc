@@ -19,7 +19,7 @@ public:
 
     virtual u8_t GetMaxVersion() const { return SWITCH_BINARY_VERSION_V2; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_SWITCH_BINARY_V2; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_SWITCH_BINARY"; }
+    static const String GetZwCmdClassName() { return "SWITCH_BINARY"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

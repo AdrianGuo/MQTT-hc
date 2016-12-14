@@ -12,7 +12,7 @@ u32_t RTimer::m_dwNumberOfTimer = 0;
 Map<u32_t, RTimer*> RTimer::m_mapThreadToTimer;
 
 /**
- * @func
+ * @func   MemsetRTimer
  * @brief  None
  * @param  None
  * @retval None
@@ -30,12 +30,13 @@ RTimer::MemsetRTimer() {
 }
 
 /**
- * @func
+ * @func   RTimer
  * @brief  None
  * @param  None
  * @retval None
  */
-RTimer::RTimer() : m_dwCount (0) {
+RTimer::RTimer(
+) : m_dwCount (0) {
     MemsetRTimer();
     m_dwTimerIndex = m_dwNumberOfTimer++;
 }
@@ -57,7 +58,7 @@ RTimer::~RTimer() {
 }
 
 /**
- * @func
+ * @func   getTimerInstance
  * @brief  None
  * @param  None
  * @retval None
@@ -77,7 +78,7 @@ RTimer::getTimerInstance() {
 }
 
 /**
- * @func
+ * @func   getTickCount
  * @brief  None
  * @param  None
  * @retval None
@@ -153,7 +154,7 @@ RTimer::StartTimer(
 }
 
 /**
- * @func
+ * @func   RestartTimer
  * @brief  None
  * @param  None
  * @retval None
@@ -175,7 +176,7 @@ RTimer::RestartTimer(
 }
 
 /**
- * @func
+ * @func   CancelTimer
  * @brief  None
  * @param  None
  * @retval None
@@ -199,7 +200,7 @@ RTimer::CancelTimer(
 }
 
 /**
- * @func
+ * @func   IsExpired
  * @brief  None
  * @param  None
  * @retval None

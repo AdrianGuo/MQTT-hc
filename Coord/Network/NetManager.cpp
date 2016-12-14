@@ -62,19 +62,17 @@
  */
 NetManager::NetManager(
     const_char_p cMacId
-) {
-    m_strMacId = cMacId;
-    m_pSessionClient  = NULL;
-    m_boIsAlived = FALSE;
-    m_boIsConnected = FALSE;
-
-    m_dwAuthenRequestCount = 0;
-    m_iKeepAliveTimerHandle = -1;
-    m_iAuthenRequestTimerHandle = -1;
-    m_iConnectionTimerHandle = -1;
-
-    m_pNetCtrllerTimer = RTimer::getTimerInstance();
-
+) : m_strMacId (cMacId),
+    m_pSessionClient (NULL),
+    m_pNetCtrllerTimer (RTimer::getTimerInstance()),
+    m_dwAuthenRequestCount (0),
+    m_dwKaliveRequestCount (0),
+    m_iKeepAliveTimerHandle (-1),
+    m_iAuthenRequestTimerHandle (-1),
+    m_iConnectionTimerHandle (-1),
+    m_boIsAlived (FALSE),
+    m_boIsConnected (FALSE),
+    m_pJsonNetSession (JsonNetSession::CreateSession()) {
     m_keepaliveTimerFunctor = makeFunctor(
     (timerFunctor_p) NULL, *this, &NetManager::HandleKeepAliveProcess);
     m_authenRequestTimerFunctor = makeFunctor(
@@ -82,7 +80,6 @@ NetManager::NetManager(
     m_checkConectionTimerFunctor = makeFunctor(
     (timerFunctor_p) NULL, *this, &NetManager::HandleConnectProcess);
 
-    m_pJsonNetSession = JsonNetSession::CreateSession();
     RegisterNetSession();
 }
 
@@ -96,6 +93,14 @@ NetManager::~NetManager() {
     if (m_pJsonNetSession != NULL) {
         delete m_pJsonNetSession;
         m_pJsonNetSession = NULL;
+    }
+
+    m_strMacId.clear();
+
+    while (!m_queNetCtrllerJsonCommand.empty()) {
+        JsonCommand_p pJsonCommand = m_queNetCtrllerJsonCommand.front();
+        m_queNetCtrllerJsonCommand.pop();
+        delete pJsonCommand;
     }
 }
 

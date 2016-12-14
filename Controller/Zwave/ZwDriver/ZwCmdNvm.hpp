@@ -33,7 +33,7 @@ class ZwCmdNvm : public IZwDriver {
 private:
     ValueLstNode_t&         m_ValueLstNode;
     ValueZwDriver_t&        m_ValueZwDriver;
-    ValueZwCmdNvm_p         m_pValueZwCmdNvm;
+    ValueZwCmdNvm_t&        m_ValueZwCmdNvm;
 
     JsonSendZwaveSession_p  m_pJsonZwaveSession;
 

@@ -39,26 +39,25 @@ private:
     bool_t m_boSecurity;
     bool_t m_boIsController;
 
-    u8_t m_byNodeId;
-    u8_t m_byCapability;
-    u8_t m_byBasic;                  /* 01: Controller 02: Static Controller 03: Slave 04: Routing Slave */
-    u8_t m_byGeneric;
-    u8_t m_bySpecific;
-
-    u8_t m_byDeviceType;
-
-    u8_t m_byVersion;
+    u8_t  m_byNodeId;
     u32_t m_dwHomeId;
+    u8_t  m_byCapability;
+    u8_t  m_byBasic;                  /* 01: Controller 02: Static Controller 03: Slave 04: Routing Slave */
+    u8_t  m_byGeneric;
+    u8_t  m_bySpecific;
+    u8_t  m_byDevType;
+    u8_t  m_byVersion;
+
 public:
-    u8_t   GetDeviceType() const { return m_byDeviceType; }
-    bool_t GetSecurity()   const { return m_boSecurity; }
-    u8_t   GetNodeId()     const { return m_byNodeId; }
-    u8_t   GetCapability() const { return m_byCapability; }
     u8_t   GetBasic()      const { return m_byBasic; }
+    u32_t  GetHomeId()     const { return m_dwHomeId; }
+    u8_t   GetNodeId()     const { return m_byNodeId; }
+    u8_t   GetDevType()    const { return m_byDevType; }
+    bool_t GetSecurity()   const { return m_boSecurity; }
+    u8_t   GetCapability() const { return m_byCapability; }
     u8_t   GetGeneric()    const { return m_byGeneric; }
     u8_t   GetSpecific()   const { return m_bySpecific; }
-    u8_t   GetVersion()     const { return m_byVersion; }
-    u32_t  GetHomeId()     const { return m_dwHomeId; }
+    u8_t   GetVersion()    const { return m_byVersion; }
 
     void_t SetSecurity   (bool_t boSercurity) { m_boSecurity = boSercurity; }
     void_t SetNodeId     (u8_t byNodeId)      { m_byNodeId = byNodeId; }
@@ -68,7 +67,7 @@ public:
     void_t SetSpecific   (u8_t bySpecific)    { m_bySpecific = bySpecific; }
     void_t SetVersion    (u8_t byVersion)     { m_byVersion = byVersion; }
     void_t SetHomeId     (u32_t dwHomeId)     { m_dwHomeId = dwHomeId; }
-    void_t SetDeviceType (u8_t byDeviceType)  { m_byDeviceType = byDeviceType; }
+    void_t SetDeviceType (u8_t byDeviceType)  { m_byDevType = byDeviceType; }
     void_t SetDeviceType ();
 
     bool_t IsController() const {
@@ -86,12 +85,12 @@ public:
 
     /* Device Name */
 private:
-    String m_strManufactureName;
+    String m_strManufacName;
     String m_strProductName;
     String m_strNodeName;
 
-    u16_t m_wManufactureId;
-    u16_t m_wProductType;             /* 01: Gateway 02: ZWave 03: ZWave Plus */
+    u16_t m_wManufacId;
+    u16_t m_wProductTy;             /* 01: Gateway 02: ZWave 03: ZWave Plus */
     u16_t m_wProductId;
 
     u8_t m_byRoleType;
@@ -99,30 +98,30 @@ private:
 
     u16_t m_wIconType;
 public:
-    String GetManufactureName() const { return m_strManufactureName; }
-    String GetProductName()     const { return m_strProductName; }
-    String GetNodeName()        const { return m_strNodeName; }
+    String GetManufacName() const { return m_strManufacName; }
+    String GetProductName() const { return m_strProductName; }
+    String GetNodeName() const { return m_strNodeName; }
 
-    u16_t GetManufactureId() const { return m_wManufactureId; }
-    u16_t GetProductType()   const { return m_wProductType; }
-    u16_t GetProductId()     const { return m_wProductId; }
+    u16_t GetManufacId() const { return m_wManufacId; }
+    u16_t GetProductTy() const { return m_wProductTy; }
+    u16_t GetProductId() const { return m_wProductId; }
 
     u8_t GetRoleType() const { return m_byRoleType; }
     u8_t GetNodeType() const { return m_byNodeType; }
 
     u16_t GetIconType() const { return m_wIconType; }
 
-    void_t SetManuFactureName (String strManufactureName) { m_strManufactureName = strManufactureName; }
-    void_t SetProductName     (String strProductName)     { m_strProductName = strProductName; }
-    void_t SetNodeName        (String strNodeName)        { m_strNodeName = strNodeName; }
+    void_t SetManuFacName (String strManufacName) { m_strManufacName = strManufacName; }
+    void_t SetProductName (String strProductName) { m_strProductName = strProductName; }
+    void_t SetNodeName    (String strNodeName) { m_strNodeName = strNodeName; }
 
-    void_t SetManufactureId   (u16_t wManufactureId) { m_wManufactureId = wManufactureId; }
-    void_t SetProductType     (u16_t wProductType)   { m_wProductType = wProductType; }
-    void_t SetProductId       (u16_t wProductId)     { m_wProductId = wProductId; }
+    void_t SetManufacId (u16_t wManufacId) { m_wManufacId = wManufacId; }
+    void_t SetProductTy (u16_t wProductTy) { m_wProductTy = wProductTy; }
+    void_t SetProductId (u16_t wProductId) { m_wProductId = wProductId; }
 
-    void_t SetRoleType        (u8_t byRoleType) { m_byRoleType = byRoleType; }
-    void_t SetNodeType        (u8_t byNodeType) { m_byNodeType = byNodeType; }
-    void_t SetIconType        (u16_t wIconType) { m_wIconType  = wIconType; }
+    void_t SetRoleType (u8_t byRoleType) { m_byRoleType = byRoleType; }
+    void_t SetNodeType (u8_t byNodeType) { m_byNodeType = byNodeType; }
+    void_t SetIconType (u16_t wIconType) { m_wIconType  = wIconType; }
 
     /* Command Class */
 private:
@@ -155,9 +154,9 @@ public:
 
     /* Statistics */
 private:
-    u32_t m_dwReceivedUnsolicited;
+    u32_t m_dwRecvUnsolicited;
 public:
-    void_t IncrementUnsolicitedCount() { m_dwReceivedUnsolicited++; }
+    void_t IncUnsolicitedCount() { m_dwRecvUnsolicited++; }
 
     /* Endpoint */
 private:

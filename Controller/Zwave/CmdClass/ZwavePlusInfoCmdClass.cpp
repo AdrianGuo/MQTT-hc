@@ -21,7 +21,7 @@
 #include "ZwavePlusInfoCmdClass.hpp"
 
 /**
- * @func
+ * @func   ZwavePlusInfoCmdClass
  * @brief  None
  * @param  None
  * @retval None
@@ -30,10 +30,7 @@ ZwavePlusInfoCmdClass::ZwavePlusInfoCmdClass(
     u32_t dwHomeId,
     u8_t  byNodeId
 ) : ZwCmdClass (dwHomeId, byNodeId),
-    m_byTransmitOptions (
-        TRANSMIT_OPTION_ACK |
-        TRANSMIT_OPTION_AUTO_ROUTE |
-        TRANSMIT_OPTION_EXPLORE),
+    m_byTransmitOptions (ZWAVE_PLUS_TX_OPTIONS),
     m_pDbModel (ZwDbModel::CreateModel("zwave.db")) {
 }
 

@@ -34,7 +34,7 @@ private:
 
     JsonSendZwaveSession_p  m_pJsonZwaveSession;
 
-    ZwDbModel_p  m_pZwDbModel;
+    ZwDbModel_p m_pZwDbModel;
 
     HandlerRequest_p  m_pHandlerRequest;
     HandlerResponse_p m_pHandlerResponse;

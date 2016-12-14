@@ -74,8 +74,8 @@ typedef ProcZwCmdFunctor_t*         ProcZwCmdFunctor_p;
 
 class ZwCtrller : public ICtrller {
 private:
-    const static i32_t AddNodeTimeout = 60000; // ms
-    const static i32_t RmvNodeTimeout = 60000;
+    const static i32_t AddNodeTimeout = 40000; // ms
+    const static i32_t RmvNodeTimeout = 40000;
 
     Queue<ZwMessage_p> m_queSendZwMsg;
 
@@ -87,17 +87,16 @@ private:
     Locker_p    m_pZwCtrllerLocker;
 
     CtrllerFunctor_p m_pCtrllerFunctor;
+    threadFunctor_t m_ZwCtrllerThreadFunctor;
+
+    bool_t m_boAddNodeSend;
+    bool_t m_boDelNodeCmdSend;
+    bool_t m_boAddNodeRecv;
+    bool_t m_boDelNodeResReceived;
 
     JsonRecvZwaveSession_p m_pJsonRecvZwaveSession;
     JsonSendZwaveSession_p m_pJsonSendZwaveSession;
     JsonSelfZwaveSession_p m_pJsonSelfZwaveSession;
-
-    threadFunctor_t m_ZwCtrllerThreadFunctor;
-
-    bool_t m_boAddNodeCmdSend;
-    bool_t m_boDelNodeCmdSend;
-    bool_t m_boAddNodeResReceived;
-    bool_t m_boDelNodeResReceived;
 
     Event_t m_evWaitMsgSignal;
     ZwCtrllerFunctor_t m_ZwCtrllerFunctor;
@@ -112,17 +111,17 @@ private:
     void_t RegisterProc(ZwMessage::Command zwCommand, ProcZwCmdFunctor_t funcTor);
     void_t ProcessProc(ZwMessage_p pZwMessage);
 
-    void_t HandlerZwaveCmdAdd   (JsonCommand_p pJsonCommand);
-    void_t HandlerZwaveCmdDel   (JsonCommand_p pJsonCommand);
-    void_t HandlerZwaveCmdRes   (JsonCommand_p pJsonCommand);
-    void_t HandlerZwaveCmdRst   (JsonCommand_p pJsonCommand);
-    void_t HandlerZwaveCmdSet   (JsonCommand_p pJsonCommand);
-    void_t HandlerZwaveCmdGet   (JsonCommand_p pJsonCommand);
+    void_t HandlerZwaveCmdAdd(JsonCommand_p pJsonCommand);
+    void_t HandlerZwaveCmdDel(JsonCommand_p pJsonCommand);
+    void_t HandlerZwaveCmdRst(JsonCommand_p pJsonCommand);
+    void_t HandlerZwaveCmdRsa(JsonCommand_p pJsonCommand);
+    void_t HandlerZwaveCmdSet(JsonCommand_p pJsonCommand);
+    void_t HandlerZwaveCmdGet(JsonCommand_p pJsonCommand);
 
-    void_t ProcZwaveCmdAddNode  (ZwMessage_p pZwMessage);
-    void_t ProcZwaveCmdDelNode  (ZwMessage_p pZwMessage);
-    void_t ProcZwaveCmdRestart  (ZwMessage_p pZwMessage);
-    void_t ProcZwCmdSendData    (ZwMessage_p pZwMessage);
+    void_t ProcZwaveCmdAddNode(ZwMessage_p pZwMessage);
+    void_t ProcZwaveCmdDelNode(ZwMessage_p pZwMessage);
+    void_t ProcZwaveCmdRestart(ZwMessage_p pZwMessage);
+    void_t ProcZwCmdSendData  (ZwMessage_p pZwMessage);
 
     void_t RegisterZwSession();
     void_t RegisterHandler();

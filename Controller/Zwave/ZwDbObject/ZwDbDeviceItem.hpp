@@ -36,6 +36,7 @@ public:
     ValueIntDb_t ParId;
     ValueIntDb_t HomeId;
 
+    ValueIntDb_t ZwPlus;
     ValueIntDb_t Security;
     ValueIntDb_t Basic;
     ValueIntDb_t Generic;
@@ -51,11 +52,10 @@ public:
     ValueStrDb_t Manufac;
     ValueStrDb_t Product;
 
-
     DbPtr<ZwDbDeviceItem>  Device;
     DbPtr<ZwDbCtrllerItem> Controller;
 
-    Collection<DbPtr<ZwDbDeviceItem>> Devices;
+    Collection<DbPtr<ZwDbDeviceItem>>   Devices;
     Collection<DbPtr<ZwDbCmdClassItem>> CmdClasses;
 
     static String GetTableName();
@@ -68,6 +68,7 @@ ZwDbDeviceItem::Table(A& action) {
     Column(action, NodeId);
     Column(action, Position);
     Column(action, DevType);
+    Column(action, ZwPlus);
     Column(action, Basic);
     Column(action, Generic);
     Column(action, Specific);

@@ -33,7 +33,7 @@ public:
 
     virtual u8_t GetMaxVersion() const { return  MANUFACTURER_SPECIFIC_VERSION_V2; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_MANUFACTURER_SPECIFIC_V2; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_MANUFACTURER_SPECIFIC"; }
+    static const String GetZwCmdClassName() { return "MANUFACTURER_SPECIFIC"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

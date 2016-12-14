@@ -18,7 +18,7 @@ public:
 
     virtual u8_t GetMaxVersion() const  { return BASIC_VERSION_V2; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_BASIC_V2; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_BASIC"; }
+    static const String GetZwCmdClassName() { return "BASIC"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

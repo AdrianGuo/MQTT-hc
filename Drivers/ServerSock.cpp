@@ -16,12 +16,14 @@
 #define CONNECT_TIMEOUT_SEC                     (5)
 
 /**
- * @func
+ * @func   ServerSock
  * @brief  None
  * @param  None
  * @retval None
  */
-ServerSock::ServerSock(int_t idwPort) {
+ServerSock::ServerSock(
+    int_t idwPort
+) {
     m_idwSockfd = SOCKET_ERROR;
     m_idwPort = idwPort;
 
@@ -55,11 +57,11 @@ ServerSock::ServerSock(int_t idwPort) {
     m_keepaliveTimerFunctor =
     makeFunctor((timerFunctor_p) NULL, *this, &ServerSock::HandleKeepAliveProcess);
     m_iKeepAliveTimerHandle = m_pServerSockTimer->StartTimer(
-    RTimer::Repeat::Forever,  CONNECT_TIMEOUT_SEC, &m_keepaliveTimerFunctor, NULL);
+    RTimer::Repeat::Forever, CONNECT_TIMEOUT_SEC, &m_keepaliveTimerFunctor, NULL);
 }
 
 /**
- * @func
+ * @func   ~ServerSock
  * @brief  None
  * @param  None
  * @retval None
@@ -103,7 +105,7 @@ ServerSock::Serve() {
 
     m_idwSockfd = idwSockfd;
     optval = 1;
-    if(setsockopt(m_idwSockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
+    if (setsockopt(m_idwSockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) < 0) {
         m_boIsServed = FALSE;
         return FALSE;
     }
@@ -123,7 +125,7 @@ ServerSock::Serve() {
 }
 
 /**
- * @func
+ * @func   IsServed
  * @brief  None
  * @param  None
  * @retval None
@@ -145,7 +147,7 @@ bool_t ServerSock::Close() {
 }
 
 /**
- * @func
+ * @func   ListenThread
  * @brief  None
  * @param  None
  * @retval None
@@ -180,12 +182,12 @@ ServerSock::ListenThread(
                         (socklen_t*) &tempSockAddrLen);
 
                 if (tempSock == INVALID_SOCKET) {
-                    LOG_INFO("INVALID_SOCKET");
+                    LOG_INFO("invalid socket");
                     delete tempSockAddr;
                     close(tempSock);
                     continue;
                 } else {
-                    LOG_INFO("New client from %s on socket %d.",
+                    LOG_INFO("new client from %s on socket %d.",
                             inet_ntoa(tempSockAddr->sin_addr), tempSock);
 
                     if(m_mapClients.find(tempSock) != m_mapClients.end())
@@ -211,7 +213,7 @@ ServerSock::ListenThread(
 }
 
 /**
- * @func
+ * @func   MessageThread
  * @brief  None
  * @param  None
  * @retval None
@@ -232,7 +234,7 @@ ServerSock::MessageThread(
         ready = select(m_idwNfds, &readfds, &writefds, NULL, &timeout);
         if ((ready != SOCKET_ERROR) && (ready != EINTR) && (ready != EBADF) && (ready != 0)) {
             for (int_t fd = 0; fd < m_idwNfds; fd++) {
-                if(m_mapClients.find(fd) != m_mapClients.end()) {
+                if (m_mapClients.find(fd) != m_mapClients.end()) {
                     // Receive messages
                     if (FD_ISSET(fd, &m_ReadFds)) {
                         m_mapClients[fd].SetCount();
@@ -269,7 +271,7 @@ ServerSock::MessageThread(
 }
 
 /**
- * @func
+ * @func   Start
  * @brief  None
  * @param  None
  * @retval None
@@ -294,7 +296,7 @@ ServerSock::Start() {
 }
 
 /**
- * @func
+ * @func   GetClients
  * @brief  None
  * @param  None
  * @retval None
@@ -305,7 +307,7 @@ ServerSock::GetClients() {
 }
 
 /**
- * @func
+ * @func   RemoveClient
  * @brief  None
  * @param  None
  * @retval None
@@ -320,7 +322,8 @@ ServerSock::RemoveClient(
     m_mapClients.erase(client.GetSocketFd());
     m_pServerSockLocker->Lock();
     m_idwNfds = 0;
-    for(MapClients_t::const_iterator_t it = m_mapClients.begin(); it != m_mapClients.end(); it++) {
+    for (MapClients_t::const_iterator_t it = m_mapClients.begin();
+            it != m_mapClients.end(); it++) {
         if(m_idwNfds < (it->first + 1))
             m_idwNfds = it->first + 1;
     }
@@ -335,26 +338,31 @@ ServerSock::RemoveClient(
  */
 void_t
 ServerSock::PushPacket(
-    Client_p pClient, Packet_p pOutgoing
+    Client_p pClient,
+    Packet_p pOutgoing
 ) {
     pClient->Push(pOutgoing);
 }
 
 /**
- * @func
+ * @func   HandleKeepAliveProcess
  * @brief  None
  * @param  None
  * @retval None
  */
 void_t
-ServerSock::HandleKeepAliveProcess(void_p pBuffer) {
+ServerSock::HandleKeepAliveProcess(
+    void_p pBuffer
+) {
     LOG_DEBUG("Handle clients alive state.");
-    for(MapClients_t::const_iterator_t it = m_mapClients.begin(); it != m_mapClients.end(); it++) {
-        if(m_mapClients[it->first].IsAlive()) {
+    for (MapClients_t::const_iterator_t it = m_mapClients.begin();
+            it != m_mapClients.end(); it++) {
+        if (m_mapClients[it->first].IsAlive()) {
             m_mapClients[it->first].SetAlive(FALSE);
         } else {
             RemoveClient(m_mapClients[it->first]);
         }
-        if(m_mapClients.size() == 0) break;
+
+        if (m_mapClients.size() == 0) break;
     }
 }

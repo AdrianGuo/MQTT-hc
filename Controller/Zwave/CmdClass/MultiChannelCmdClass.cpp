@@ -23,11 +23,9 @@ MultiChannelCmdClass::MultiChannelCmdClass(
     m_byNumberOfEndpoints (0),
     m_byNumberOfIndividualEndpoints (0),
     m_byNumberOfAggregatedEndpoints (0),
-    m_byTransmitOptions (
-        TRANSMIT_OPTION_ACK |
-        TRANSMIT_OPTION_AUTO_ROUTE |
-        TRANSMIT_OPTION_EXPLORE),
-    m_pDbModel (ZwDbModel::CreateModel("zwave.db")
+    m_byTransmitOptions (ZWAVE_PLUS_TX_OPTIONS),
+    m_pDbModel (ZwDbModel::CreateModel("zwave.db")),
+    m_ZwCmdClassMap (ZwCmdClassMap::GetInstance()
 ) {
 }
 
@@ -382,7 +380,7 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
         JsonDevLstAdd::Device_t node;
         node.devid = (i32_t) byRootId;
         node.order  = byEndpoint;
-        node.type   = pZwEndPoint->GetDeviceType();
+        node.type   = pZwEndPoint->GetDevType();
         node.mac    = "FFFFFFFF";
         lstNode.push_back(node);
 
@@ -392,20 +390,22 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
         pZwRootNode->ProcessFunctor(EvAction::None, pJsonCommand);
 
         LOG_DEBUG("add ep %03d ", byEndpoint);
-        ZwDbDevice device = m_pDbModel->Add(new ZwDbDeviceItem());
-        device.Modify()->NodeId   = byRootId;
-        device.Modify()->Position = byEndpoint;
-        device.Modify()->Generic  = byGeneric;
-        device.Modify()->Specific = bySpecific;
-        device.Modify()->DevType  = pZwEndPoint->GetDeviceType();
-        device.Modify()->Device   = parentFind;
+        ZwDbDevice deviceAdd = m_pDbModel->Add(new ZwDbDeviceItem());
+        deviceAdd.Modify()->NodeId   = byRootId;
+        deviceAdd.Modify()->Position = byEndpoint;
+        deviceAdd.Modify()->Generic  = byGeneric;
+        deviceAdd.Modify()->Specific = bySpecific;
+        deviceAdd.Modify()->DevType  = pZwEndPoint->GetDevType();
+        deviceAdd.Modify()->Device   = parentFind;
 
         for (u8_t i = 0; i < byLength; i++) {
-            pZwEndPoint->AddZwCmdClass(pbCommand[3 + i]);
+            u8_t byCmdClass = pbCommand[3 + i];
+            pZwEndPoint->AddZwCmdClass(byCmdClass);
             ZwDbCommandClass cmdclass = m_pDbModel->Add(new ZwDbCmdClassItem());
-            cmdclass.Modify()->CmdId  = pbCommand[3 + i];
-            cmdclass.Modify()->CmdHex = GetHex(pbCommand[3 + i]);
-            cmdclass.Modify()->Device = device;
+            cmdclass.Modify()->CmdId  = byCmdClass;
+            cmdclass.Modify()->Device = deviceAdd;
+            cmdclass.Modify()->CmdName = m_ZwCmdClassMap[byCmdClass];
+            cmdclass.Modify()->CmdHex = GetHex(byCmdClass);
         }
     }
 

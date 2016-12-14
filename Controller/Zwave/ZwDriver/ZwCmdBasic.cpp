@@ -12,12 +12,12 @@
 ZwCmdBasic::ZwCmdBasic(
 ) : IZwDriver(),
     m_ValueLstNode (ValueLstNode::GetInstance()),
-    m_ValueZwDriver (ValueRef<ValueZwDriver>::GetInstance()) {
-    m_pValueZwCmdBasic  = ValuePtr<ValueZwCmdBasic>::GetInstance();
+    m_ValueZwDriver (ValueRef<ValueZwDriver>::GetInstance()),
+    m_ValueZwCmdBasic (ValueRef<ValueZwCmdBasic>::GetInstance()) {
     m_pJsonZwaveSession = JsonSendZwaveSession::CreateSession();
-    m_pZwDbModel        = ZwDbModel::CreateModel("zwave.db");
-    m_pHandlerRequest   = HandlerRequest::GetInstance();
-    m_pHandlerResponse  = HandlerResponse::GetInstance();
+    m_pZwDbModel = ZwDbModel::CreateModel("zwave.db");
+    m_pHandlerRequest = HandlerRequest::GetInstance();
+    m_pHandlerResponse = HandlerResponse::GetInstance();
     RegisterHandlers();
 }
 
@@ -259,7 +259,7 @@ ZwCmdBasic::HandleVersionResponse(
         String strVersion (12, '0');
 
         for (u8_t i = 0; i < 12; i++) {
-            m_pValueZwCmdBasic->libraryVersion.GetValue().push_back(pbyBuffer[i]);
+            m_ValueZwCmdBasic.libraryVersion.PushBack(pbyBuffer[i]);
             strVersion[i] = pbyBuffer[i];
         }
 
@@ -318,7 +318,7 @@ ZwCmdBasic::HandleClearNetworkStatsResponse(
 }
 
 /**
- * @func
+ * @func   RegisterHandlers
  * @brief  None
  * @param  None
  * @retval None
@@ -327,47 +327,68 @@ void_t
 ZwCmdBasic::RegisterHandlers() {
     // Response
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_EXPLORE_REQUEST_INCLUSION,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleExploreRequestInclusionResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleExploreRequestInclusionResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_EXPLORE_REQUEST_EXCLUSION,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleExploreRequestExclusionResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleExploreRequestExclusionResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_GET_BACKGROUND_RSSI,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleGetBackgroundRssiResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleGetBackgroundRssiResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_GET_PROTOCOL_STATUS,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleGetProtocolStatusResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleGetProtocolStatusResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_GET_RANDOM,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleGetRandomWordResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleGetRandomWordResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_RANDOM,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleRandomResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleRandomResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_RF_POWER_LEVEL_SET,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleRfPowerLevelSetResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleRfPowerLevelSetResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_RF_POWER_LEVEL_GET,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleRfPowerLevelGetResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleRfPowerLevelGetResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_REQUEST_NETWORK_UPDATE,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleRequestNetWorkUpdateResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleRequestNetWorkUpdateResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_SEND_NODE_INFORMATION,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleSendNodeInformationResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSendNodeInformationResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_SEND_TEST_FRAME,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleSendTestFrameResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSendTestFrameResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_SET_RF_RECEIVE_MODE,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleSetRfReceiveModeResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSetRfReceiveModeResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_TYPE_LIBRARY,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleTypeLibraryResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleTypeLibraryResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_GET_VERSION,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleVersionResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleVersionResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_GET_TX_TIMERS,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleGetTxTimerResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleGetTxTimerResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_GET_NETWORK_STATS,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleGetNetworkStatsResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleGetNetworkStatsResponse));
     m_pHandlerResponse->RegisterHandler(FUNC_ID_ZW_CLEAR_NETWORK_STATS,
-    makeFunctor((HandlerResponseFunctor_p) NULL, *this, &ZwCmdBasic::HandleClearNetworkStatsResponse));
+    makeFunctor((HandlerResponseFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleClearNetworkStatsResponse));
 
     // Request
     m_pHandlerRequest->RegisterHandler(FUNC_ID_ZW_REQUEST_NETWORK_UPDATE,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdBasic::HandleSendTestFrameRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSendTestFrameRequest));
     m_pHandlerRequest->RegisterHandler(FUNC_ID_ZW_RF_POWER_LEVEL_REDISCOVERY_SET,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdBasic::HandleSendTestFrameRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSendTestFrameRequest));
     m_pHandlerRequest->RegisterHandler(FUNC_ID_ZW_SEND_NODE_INFORMATION,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdBasic::HandleSendTestFrameRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSendTestFrameRequest));
     m_pHandlerRequest->RegisterHandler(FUNC_ID_ZW_SEND_TEST_FRAME,
-    makeFunctor((HandlerRequestFunctor_p) NULL, *this, &ZwCmdBasic::HandleSendTestFrameRequest));
+    makeFunctor((HandlerRequestFunctor_p) NULL, *this,
+    &ZwCmdBasic::HandleSendTestFrameRequest));
 }

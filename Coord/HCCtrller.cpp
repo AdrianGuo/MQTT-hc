@@ -157,6 +157,16 @@ HCCtrller::~HCCtrller() {
         delete m_pDbModelDb;
         m_pDbModelDb = NULL;
     }
+
+    while (!m_queJsonCommand.empty()) {
+        JsonCommand_p pJsonCommand = m_queJsonCommand.front();
+        m_queJsonCommand.pop();
+        if (pJsonCommand != NULL) {
+            delete pJsonCommand;
+            pJsonCommand = NULL;
+        }
+    }
+
 }
 
 /**
@@ -327,10 +337,12 @@ HCCtrller::RecvCommandFromSession(
 ) {
     m_pHCCtrllerLocker->Lock();
     if (pJsonCommand->IsJsonAvailable()) {
-//        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
         m_queJsonCommand.push(pJsonCommand);
         m_pHCCtrllerLocker->UnLock();
         return TRUE;
+    } else {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
     }
     m_pHCCtrllerLocker->UnLock();
     return FALSE;
@@ -348,10 +360,12 @@ HCCtrller::RecvCommandFromModules(
 ) {
     m_pHCCtrllerLocker->Lock();
     if (pJsonCommand->IsJsonAvailable()) {
-//        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
         m_queJsonCommand.push(pJsonCommand);
         m_pHCCtrllerLocker->UnLock();
         return TRUE;
+    } else {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
     }
     m_pHCCtrllerLocker->UnLock();
     return FALSE;

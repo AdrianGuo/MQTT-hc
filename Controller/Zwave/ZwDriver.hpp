@@ -19,6 +19,8 @@
 #include "ZwCmdClassMan.hpp"
 #include "ZwTransportAPI.hpp"
 
+#include "ZwCmdClassMap.hpp"
+
 #include "HandlerRequest.hpp"
 #include "HandlerResponse.hpp"
 #include "ZwCmdClassMan.hpp"
@@ -65,19 +67,19 @@ class ZwDriver {
     ValueEvent_t m_evPacketSignal;
 
     SZwSerial_t m_SessionZwSerial;
+    ZwCmdClassMap_t& m_CmdClassMap;
     ValueLstNode_t& m_ValueLstNode;
 
-    ValueZwCmdCtrller_t&  m_ValueZwCmdCtrller;
-    ValueZwDriver_t&      m_ValueZwDriver;
-    ValueZwAppFunc_t&     m_ValueZwAppFunc;
-
-    ValueZwCmdNvm_p       m_pValueZwCmdNvm;
-    ValueZwCmdBasic_p     m_pValueZwCmdBasic;
+    ValueZwCmdCtrller_t& m_ValueZwCmdCtrller;
+    ValueZwDriver_t& m_ValueZwDriver;
+    ValueZwAppFunc_t& m_ValueZwAppFunc;
+    ValueZwCmdNvm_t& m_ValueZwCmdNvm;
+    ValueZwCmdBasic_t& m_ValueZwCmdBasic;
 
     ZwCmdClassMan_p m_pZwCmdClassManager;
 
-    ZwDriverRecvMsgFunctor_t    m_ZwDriverRecvMsgFunctor;
-    ZwCtrllerFunctor_p          m_pZwCtrllerRecvFunctor;
+    ZwDriverRecvMsgFunctor_t m_ZwDriverRecvMsgFunctor;
+    ZwCtrllerFunctor_p m_pZwCtrllerRecvFunctor;
 
     ZwCmdBasic_p        m_pZwCmdBasic;
     ZwCmdAppFunc_p      m_pZwCmdAppFunc;
@@ -110,7 +112,7 @@ public:
 
     void_t ZwDriverRecvFunctor(ZwCtrllerFunctor_p pZwCrllerFunctor);
 
-    void_t InitZwaveNode(u8_t byNodeId);
+    ZwNode_p InitZwaveNode(u8_t byNodeId);
     ZwNode_p GetZwaveNode(u8_t byNodeId);
 
     u16_t GetZwNodeVersion (u8_t byNodeId) const;

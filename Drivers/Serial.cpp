@@ -13,7 +13,7 @@
 #define SERIAL_SUCCESS              (0)
 
 /**
- * @func
+ * @func   Serial
  * @brief  None
  * @param  None
  * @retval None
@@ -83,7 +83,6 @@ Serial::SerialThreadProc(
         if (IsConnected() && IsReadable(200)) {
             int_t iLength = read(m_idwPortfd, m_pByBuffer, BUFFER_SERIAL_SIZE);
             if ((m_pSerialFunctor != NULL) && (iLength > 0)) {
-//                LOG_INFO("receive packet");
                 (*m_pSerialFunctor)(m_pByBuffer, iLength);
             }
         }
@@ -100,8 +99,6 @@ Serial::SerialThreadProc(
                 int_t iResult = 0;
                 if ((iResult = write(m_idwPortfd, pSendPacket->GetBuffer(), pSendPacket->Length())) == SERIAL_ERROR) {
                     LOG_ERROR("send packet fail");
-                } else {
-//                    DEBUG1("   SEND PACKET");
                 }
                 delete pSendPacket;
                 pSendPacket = NULL;
@@ -316,9 +313,7 @@ Serial::IsWriteable(
     if (iResult == -1) {
         LOG_ERROR("select fail");
     } else if (iResult == 0) {
-//        debug_serial("timeout");
     } else {
-//        debug_serial("readable");
         if (FD_ISSET(m_idwPortfd, &Writefd)) {
             boRetVal = TRUE;
         }
@@ -358,9 +353,7 @@ Serial::IsReadable(
     if (iResult == -1) {
         LOG_ERROR("select fail");
     } else if (iResult == 0) {
-//        debug_serial("timeout");
     } else {
-//        debug_serial("readable");
         if (FD_ISSET(m_idwPortfd, &readfd)) {
             boRetVal = TRUE;
         }

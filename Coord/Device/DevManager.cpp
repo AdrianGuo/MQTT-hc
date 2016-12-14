@@ -31,7 +31,6 @@
 #include "JsonDevLstDelRes.hpp"
 #include "JsonDevSync.hpp"
 #include "JsonDevSyncRes.hpp"
-#include "LogPlus.hpp"
 
 #include "DevManager.hpp"
 
@@ -41,10 +40,10 @@
  * @param  None
  * @retval None
  */
-DevManager::DevManager() {
-    m_pDbModelDb = DbModel::CreateModel("newhc.db");
-    m_pJsonRecvDevSession = JsonRecvDevSession::CreateSession();
-    m_pJsonSendDevSession = JsonSendDevSession::CreateSession();
+DevManager::DevManager(
+) : m_pDbModelDb (DbModel::CreateModel("newhc.db")),
+    m_pJsonRecvDevSession (JsonRecvDevSession::CreateSession()),
+    m_pJsonSendDevSession (JsonSendDevSession::CreateSession()) {
     RegisterDevSession();
 }
 
@@ -55,7 +54,15 @@ DevManager::DevManager() {
  * @retval None
  */
 DevManager::~DevManager() {
+    if (m_pJsonRecvDevSession != NULL) {
+        delete m_pJsonRecvDevSession;
+        m_pJsonRecvDevSession = NULL;
+    }
 
+    if (m_pJsonSendDevSession != NULL) {
+        delete m_pJsonSendDevSession;
+        m_pJsonSendDevSession = NULL;
+    }
 }
 
 /**
@@ -144,7 +151,14 @@ DevManager::HandlerDevCmdSet(
     JsonMessagePtr<JsonDevSet> jsonDeviceSet =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevSet>();
 
-    if (!jsonDeviceSet->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDeviceSet->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     Vector<JsonDevSet::Device_t> lstSetDevice = jsonDeviceSet->LstDev();
     Vector<JsonDevSet::Device_t> lstSetZwDevice;
@@ -177,25 +191,19 @@ DevManager::HandlerDevCmdSet(
     if (lstSetZwDevice.size() > 0) {
         JsonMessagePtr<JsonDevSet> jsonZwDeviceSet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevSet>();
-
-        JsonCommand_p pJsonCommandRes =
+        JsonCommand_p pJsonCommand =
         jsonZwDeviceSet->CreateJsonCommand(lstSetZwDevice);
-
-        pJsonCommandRes->SetDesFlag(JsonCommand::Flag::Zwave);
-
-        PushJsonCommand(pJsonCommandRes);
+        pJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
+        PushJsonCommand(pJsonCommand);
     }
 
     if (lstSetZbDevice.size() > 0) {
         JsonMessagePtr<JsonDevSet> jsonZbDeviceSet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevSet>();
-
-        JsonCommand_p pJsonCommandRes =
+        JsonCommand_p pJsonCommand =
         jsonZbDeviceSet->CreateJsonCommand(lstSetZbDevice);
-
-        pJsonCommandRes->SetDesFlag(JsonCommand::Flag::Zigbee);
-
-        PushJsonCommand(pJsonCommandRes);
+        pJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
+        PushJsonCommand(pJsonCommand);
     }
 }
 
@@ -212,7 +220,14 @@ DevManager::HandlerDevCmdGet(
     JsonMessagePtr<JsonDevGet> jsonDeviceSet =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevGet>();
 
-    if (!jsonDeviceSet->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDeviceSet->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     Vector<JsonDevGet::Device_t> lstSetDevice = jsonDeviceSet->LstDev();
     Vector<JsonDevGet::Device_t> lstGetZwDevice;
@@ -243,10 +258,8 @@ DevManager::HandlerDevCmdGet(
     if (lstGetZwDevice.size() > 0) {
         JsonMessagePtr<JsonDevGet> jsonZwGet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevGet>();
-
         JsonCommand_p pJsonCommand =
         jsonZwGet->CreateJsonCommand(lstGetZwDevice);
-
         pJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
         PushJsonCommand(pJsonCommand);
     }
@@ -254,10 +267,8 @@ DevManager::HandlerDevCmdGet(
     if (lstGetZbDevice.size() > 0) {
         JsonMessagePtr<JsonDevGet> jsonZbGet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevGet>();
-
         JsonCommand_p pJsonCommand =
-        jsonZbGet->CreateJsonCommand(lstGetZwDevice);
-
+        jsonZbGet->CreateJsonCommand(lstGetZbDevice);
         pJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
         PushJsonCommand(pJsonCommand);
     }
@@ -290,7 +301,14 @@ DevManager::HandlerDevCmdAdd(
     JsonMessagePtr<JsonDevAdd> jsonDeviceAdd =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevAdd>();
 
-    if (!jsonDeviceAdd->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDeviceAdd->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     i8_t ibAction = jsonDeviceAdd->Act();
 
@@ -320,16 +338,23 @@ DevManager::HandlerDevCmdDel(
     JsonMessagePtr<JsonDevDel> jsonDeviceDel =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevDel>();
 
-    if (!jsonDeviceDel->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDeviceDel->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     i8_t ibAct = jsonDeviceDel->Act();
 
     JsonMessagePtr<JsonDevDel> jsonDel =
     m_pJsonSendDevSession->GetJsonMapping<JsonDevDel>();
 
-    JsonCommand_p pJsonCmdZwAdd = jsonDel->CreateJsonCommand(ibAct);
-    pJsonCmdZwAdd->SetDesFlag(JsonCommand::Flag::Zwave);
-    PushJsonCommand(pJsonCmdZwAdd);
+    JsonCommand_p pJsonCmdZwDel = jsonDel->CreateJsonCommand(ibAct);
+    pJsonCmdZwDel->SetDesFlag(JsonCommand::Flag::Zwave);
+    PushJsonCommand(pJsonCmdZwDel);
 
     JsonCommand_p pJsonCmdZbDel = jsonDel->CreateJsonCommand(ibAct);
     pJsonCmdZbDel->SetDesFlag(JsonCommand::Flag::Zigbee);
@@ -349,7 +374,11 @@ DevManager::HandlerDevCmdLstAdd(
     JsonMessagePtr<JsonDevLstAdd> jsonDevLstAdd =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevLstAdd>();
 
-    if (!jsonDevLstAdd->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDevLstAdd->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
 
     Vector<JsonDevLstAdd::Device_t> lstDevAdd = jsonDevLstAdd->LstDev();
 
@@ -376,9 +405,7 @@ DevManager::HandlerDevCmdLstAdd(
         }
     }
     m_pDbModelDb->UpdateChanges();
-
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
-
     PushJsonCommand(pJsonCommand);
 }
 
@@ -395,7 +422,11 @@ DevManager::HandlerDevCmdLstDel(
     JsonMessagePtr<JsonDevLstDel> jsonDevLstDel =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevLstDel>();
 
-    if (!jsonDevLstDel->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDevLstDel->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
 
     Vector<JsonDevLstDel::Device_t> lstDevDel = jsonDevLstDel->LstDev();
 
@@ -409,9 +440,7 @@ DevManager::HandlerDevCmdLstDel(
         }
     }
     m_pDbModelDb->UpdateChanges();
-
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
-
     PushJsonCommand(pJsonCommand);
 }
 
@@ -428,7 +457,14 @@ DevManager::HandlerDevCmdReset(
     JsonMessagePtr<JsonDevReset> jsonDeviceReset =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevReset>();
 
-    if (!jsonDeviceReset->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDeviceReset->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     JsonMessagePtr<JsonDevReset> jsonReset =
     m_pJsonSendDevSession->GetJsonMapping<JsonDevReset>();
@@ -469,7 +505,14 @@ DevManager::HandlerDevCmdRestart(
     JsonMessagePtr<JsonDevRestart> jsonDeviceReset =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevRestart>();
 
-    if (!jsonDeviceReset->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonDeviceReset->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     JsonMessagePtr<JsonDevReset> jsonRestart =
     m_pJsonSendDevSession->GetJsonMapping<JsonDevReset>();

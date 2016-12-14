@@ -26,15 +26,11 @@
  * @param  None
  * @retval None
  */
-CrC16EncapCmdClass::CrC16EncapCmdClass(
+Crc16EncapCmdClass::Crc16EncapCmdClass(
     u32_t dwHomeId,
     u8_t byNodeId
 ) : ZwCmdClass (dwHomeId, byNodeId),
-    m_byTransmitOptions (
-        TRANSMIT_OPTION_ACK |
-        TRANSMIT_OPTION_AUTO_ROUTE |
-        TRANSMIT_OPTION_EXPLORE
-) {
+    m_byTransmitOptions (ZWAVE_PLUS_TX_OPTIONS) {
 }
 
 /**
@@ -43,7 +39,7 @@ CrC16EncapCmdClass::CrC16EncapCmdClass(
  * @param  None
  * @retval None
  */
-CrC16EncapCmdClass::~CrC16EncapCmdClass() {
+Crc16EncapCmdClass::~Crc16EncapCmdClass() {
 
 }
 
@@ -54,7 +50,7 @@ CrC16EncapCmdClass::~CrC16EncapCmdClass() {
  * @retval None
  */
 ValueDevice_p
-CrC16EncapCmdClass::HandleCrc16Encap(
+Crc16EncapCmdClass::HandleCrc16Encap(
     u8_p pbCommand,
     u8_t byLength
 ) {
@@ -79,7 +75,7 @@ CrC16EncapCmdClass::HandleCrc16Encap(
  * @retval None
  */
 ValueDevice_p
-CrC16EncapCmdClass::HandleMessage(
+Crc16EncapCmdClass::HandleMessage(
     u8_p pbCommand,
     u8_t byLength
 ) {
@@ -102,6 +98,6 @@ CrC16EncapCmdClass::HandleMessage(
  * @retval None
  */
 ZwMessage_p
-CrC16EncapCmdClass::GetValue() {
+Crc16EncapCmdClass::GetValue() {
     return NULL;
 }

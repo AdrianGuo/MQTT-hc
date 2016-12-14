@@ -43,6 +43,7 @@ private:
     const static u32_t KaliveTimeout  = 60;
     const static u32_t AuthenMax = 10;
 
+    String m_strMacId;
     SClient_p m_pSessionClient;
 
     RTimer_p m_pNetCtrllerTimer;
@@ -57,19 +58,17 @@ private:
     u32_t m_dwAuthenRequestCount;
     u32_t m_dwKaliveRequestCount;
 
-    int_t m_iConnectionTimerHandle;
-    int_t m_iAuthenRequestTimerHandle;
     int_t m_iKeepAliveTimerHandle;
+    int_t m_iAuthenRequestTimerHandle;
+    int_t m_iConnectionTimerHandle;
 
     bool_t m_boIsAlived;
     bool_t m_boAuthenticated;
     bool_t m_boIsConnected;
 
-    String m_strMacId;
+    JsonNetSession_p m_pJsonNetSession;
 
     Queue<JsonCommand_p> m_queNetCtrllerJsonCommand;
-
-    JsonNetSession_p m_pJsonNetSession;
 
     typedef Map<String, HandlerNetCmdFunctor_t> MapHandleFunc;
     MapHandleFunc m_mapHandleFunc;

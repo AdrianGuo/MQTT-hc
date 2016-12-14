@@ -8,6 +8,8 @@
 
 class ZwNode;
 
+#define ZWAVE_PLUS_TX_OPTIONS   (TRANSMIT_OPTION_ACK | TRANSMIT_OPTION_AUTO_ROUTE | TRANSMIT_OPTION_EXPLORE)
+
 class ZwCmdClass {
 private:
     u32_t   m_dwHomeId;

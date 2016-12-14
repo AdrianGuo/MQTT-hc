@@ -134,11 +134,11 @@ bool_t
 ClientSock::Connect() {
     int idwSockfd = SOCKET_ERROR;
 
-    LOG_INFO("connecting...");
+    LOG_DEBUG("connecting...");
 
     /* Set socket fd */
     if ((idwSockfd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        LOG_INFO("sock fail"); /* Debug */
+        LOG_ERROR("socket fail");
         m_boIsConnected = FALSE;
         return FALSE;
     }
@@ -313,7 +313,7 @@ ClientSock::IsWritable(
     if (idwResult == 0) {
 //        DEBUG1("timeout");
     } else if (idwResult == -1) {
-        LOG_ERROR("error"); /* error */
+        LOG_ERROR("writable error"); /* error */
     } else {
         if (FD_ISSET(m_idwSockfd, &Writefds)) {
             boRetVal = TRUE;
@@ -354,7 +354,7 @@ ClientSock::IsReadable(
     if (idwResult == 0) {
 //        DEBUG1("timeout"); /* timeout */
     } else if (idwResult == -1) {
-        LOG_ERROR("error"); /* error */
+        LOG_ERROR("readable error"); /* error */
     } else {
         if (FD_ISSET(m_idwSockfd, &Readfds)) {
             boRetVal = TRUE;

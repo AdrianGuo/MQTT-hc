@@ -8,10 +8,10 @@
  */
 ValueString::ValueString(
     String  strValue,
-    u8_t    byValueID
+    u8_t    byValueId
 ) : Value (type_string) {
     m_strValue = strValue;
-    m_byValueID = byValueID;
+    m_byValueId = byValueId;
 }
 
 /**
@@ -29,8 +29,8 @@ ValueString::~ValueString() {}
  * @retval None
  */
 u8_t
-ValueString::GetValueID() {
-    return m_byValueID;
+ValueString::GetValueId() {
+    return m_byValueId;
 }
 
 /**
@@ -40,10 +40,10 @@ ValueString::GetValueID() {
  * @retval None
  */
 void_t
-ValueString::SetValueID(
-    u8_t byValueID
+ValueString::SetValueId(
+    u8_t byValueId
 ) {
-    m_byValueID = byValueID;
+    m_byValueId = byValueId;
 }
 
 /**
@@ -58,7 +58,20 @@ ValueString::GetValue() {
 }
 
 /**
- * @func
+ * @func   PushBack
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueString::PushBack(
+    char c
+) {
+    m_strValue.push_back(c);
+}
+
+/**
+ * @func   SetValue
  * @brief  None
  * @param  None
  * @retval None

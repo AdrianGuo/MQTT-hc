@@ -28,6 +28,7 @@
 #include "ZbCtrller.hpp"
 #include "HCCtrller.hpp"
 #include "LogPlus.hpp"
+#include "LED.hpp"
 
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -64,6 +65,10 @@ int main(int argc, char* argv[]) {
         LOG_ERROR("Usage %s <<number>>", argv[0]);
         return (-1);
     }
+
+    LED led(0);
+    led.On();
+
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
     LOG_DEBUG("start log");
 

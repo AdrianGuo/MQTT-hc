@@ -32,7 +32,7 @@ public:
 
     virtual u8_t GetMaxVersion() const { return  NOTIFICATION_VERSION_V7; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_NOTIFICATION_V7; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_NOTIFICATION"; }
+    static const String GetZwCmdClassName() { return "NOTIFICATION"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

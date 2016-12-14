@@ -28,15 +28,15 @@ typedef ValueZwCmdBasic* ValueZwCmdBasic_p;
 
 class ZwCmdBasic : public IZwDriver {
 private:
-    ValueLstNode_t&             m_ValueLstNode;
-    ValueZwDriver_t&            m_ValueZwDriver;
-    ValueZwCmdBasic_p           m_pValueZwCmdBasic;
+    ValueLstNode_t& m_ValueLstNode;
+    ValueZwDriver_t& m_ValueZwDriver;
+    ValueZwCmdBasic_t& m_ValueZwCmdBasic;
 
-    JsonSendZwaveSession_p      m_pJsonZwaveSession;
+    JsonSendZwaveSession_p m_pJsonZwaveSession;
 
-    ZwDbModel_p                 m_pZwDbModel;
-    HandlerRequest_p            m_pHandlerRequest;
-    HandlerResponse_p           m_pHandlerResponse;
+    ZwDbModel_p m_pZwDbModel;
+    HandlerRequest_p m_pHandlerRequest;
+    HandlerResponse_p m_pHandlerResponse;
 
     void_t HandleExploreRequestInclusionResponse(ZwPacket_p pZwPacket);
 

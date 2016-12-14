@@ -14,8 +14,8 @@
 ZwCmdNvm::ZwCmdNvm(
 ) : IZwDriver(),
     m_ValueLstNode (ValueLstNode::GetInstance()),
-    m_ValueZwDriver (ValueRef<ValueZwDriver>::GetInstance()) {
-    m_pValueZwCmdNvm    = ValuePtr<ValueZwCmdNvm>::GetInstance();
+    m_ValueZwDriver (ValueRef<ValueZwDriver>::GetInstance()),
+    m_ValueZwCmdNvm (ValueRef<ValueZwCmdNvm>::GetInstance()) {
     m_pJsonZwaveSession = JsonSendZwaveSession::CreateSession();
     m_pZwDbModel        = ZwDbModel::CreateModel("zwave.db");
     m_pHandlerRequest   = HandlerRequest::GetInstance();
@@ -54,8 +54,8 @@ ZwCmdNvm::HandleMemoryGetIdResponse(
 
         String strHomeId = GetHex(dwHomeId);
 
-        m_pValueZwCmdNvm->homeId = dwHomeId;
-        m_pValueZwCmdNvm->nodeId = byNodeId;
+        m_ValueZwCmdNvm.homeId = dwHomeId;
+        m_ValueZwCmdNvm.nodeId = byNodeId;
 
         ZwDbController controllerfind = m_pZwDbModel->Find<ZwDbCtrllerItem>();
 

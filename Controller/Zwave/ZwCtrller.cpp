@@ -86,10 +86,13 @@
 ZwCtrller::ZwCtrller(
     const_char_p portname
 ) : m_ZwDriver (portname) ,
-    m_boAddNodeCmdSend (FALSE),
+    m_boAddNodeSend (FALSE),
     m_boDelNodeCmdSend (FALSE),
-    m_boAddNodeResReceived (FALSE),
-    m_boDelNodeResReceived (FALSE) {
+    m_boAddNodeRecv (FALSE),
+    m_boDelNodeResReceived (FALSE),
+    m_pJsonRecvZwaveSession (JsonRecvZwaveSession::CreateSession()),
+    m_pJsonSendZwaveSession (JsonSendZwaveSession::CreateSession()),
+    m_pJsonSelfZwaveSession (JsonSelfZwaveSession::CreateSession()) {
 
     m_pZwDeviceValueMan = ZwDeviceValueMan::GetInstance();
     m_pZwDeviceValueMan->Register();
@@ -106,10 +109,6 @@ ZwCtrller::ZwCtrller(
 
     m_ZwCtrllerFunctor =
     makeFunctor((ZwCtrllerFunctor_p) NULL, *this, &ZwCtrller::PushJsonCommand);
-
-    m_pJsonRecvZwaveSession = JsonRecvZwaveSession::CreateSession();
-    m_pJsonSendZwaveSession = JsonSendZwaveSession::CreateSession();
-    m_pJsonSelfZwaveSession = JsonSelfZwaveSession::CreateSession();
 
     RegisterZwSession();
     RegisterHandler();
@@ -254,9 +253,9 @@ ZwCtrller::RegisterHandler() {
     RegisterHandler(JsonDevDel::GetStrCmd(),
     makeFunctor((HandlerZwCmdFunctor_p) NULL, *this, &ZwCtrller::HandlerZwaveCmdDel));
     RegisterHandler(JsonDevReset::GetStrCmd(),
-    makeFunctor((HandlerZwCmdFunctor_p) NULL, *this, &ZwCtrller::HandlerZwaveCmdRes));
-    RegisterHandler(JsonDevRestart::GetStrCmd(),
     makeFunctor((HandlerZwCmdFunctor_p) NULL, *this, &ZwCtrller::HandlerZwaveCmdRst));
+    RegisterHandler(JsonDevRestart::GetStrCmd(),
+    makeFunctor((HandlerZwCmdFunctor_p) NULL, *this, &ZwCtrller::HandlerZwaveCmdRsa));
     RegisterHandler(JsonDevGet::GetStrCmd(),
     makeFunctor((HandlerZwCmdFunctor_p) NULL, *this, &ZwCtrller::HandlerZwaveCmdGet));
     RegisterHandler(JsonDevSet::GetStrCmd(),
@@ -307,7 +306,6 @@ void_t
 ZwCtrller::ProcessHandler(
     JsonCommand_p pJsonCommand
 ) {
-//    LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
     String strJsonCommandName = pJsonCommand->GetFullCommand();
 
     MapHandlerFunctor::const_iterator_t it =
@@ -375,7 +373,6 @@ ZwCtrller::PushJsonCommand(
 
     if ((m_pCtrllerFunctor != NULL) && (pInBuffer != NULL)) {
         JsonCommand_p pJsonCommand = (JsonCommand_p) pInBuffer;
-        LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
         (*m_pCtrllerFunctor)(pJsonCommand);
     }
 }
@@ -423,47 +420,46 @@ ZwCtrller::HandlerZwaveCmdAdd(
         JsonMessagePtr<JsonDevAdd> jsonZwAdd =
         m_pJsonRecvZwaveSession->GetJsonMapping<JsonDevAdd>();
 
-        if (!jsonZwAdd->ParseJsonCommand(pJsonCommand)) { return; }
+        if (!jsonZwAdd->ParseJsonCommand(pJsonCommand)) {
+            delete pJsonCommand;
+            pJsonCommand = NULL;
+            return;
+        }
 
         if (jsonZwAdd->Act() == 0) {
             m_pZwCtrllerLocker->Lock();
-            if (!m_boAddNodeCmdSend) {
+            if (!m_boAddNodeSend) {
                 m_pZwCtrllerLocker->UnLock();
 
-                ZwMessage_p pZwMessage =
-                new ZwMessage(pJsonCommand, ZwMessage::Command::AddDevice);
+                ZwMessage_p pZwMessage = 
+                new ZwMessage(0xFF, REQUEST, FUNC_ID_ZW_ADD_NODE_TO_NETWORK, TRUE,
+                TRUE, FUNC_ID_ZW_ADD_NODE_TO_NETWORK, 0, ZwMessage::Command::AddDevice);
+                pZwMessage->ResetPacket(2);
+                pZwMessage->Push(ADD_NODE_ANY);
+                pZwMessage->Push(pZwMessage->GetNextCallbackId());
                 m_evWaitMsgSignal.Reset();
 
                 m_pZwCtrllerLocker->Lock();
                 m_queSendZwMsg.push(pZwMessage);
             }
-
-            delete pJsonCommand;
-            pJsonCommand = NULL;
-            m_pZwCtrllerLocker->UnLock();
         } else if (jsonZwAdd->Act() == 1) {
+            ZwMessage_p pZwMessage = 
+            new ZwMessage(0xFF, REQUEST, FUNC_ID_ZW_ADD_NODE_TO_NETWORK, TRUE,
+            TRUE, FUNC_ID_ZW_ADD_NODE_TO_NETWORK, 0, ZwMessage::Command::StopAdd);
+            pZwMessage->ResetPacket(2);
+            pZwMessage->Push(ADD_NODE_STOP);
+            pZwMessage->Push(pZwMessage->GetNextCallbackId());
+            
             m_pZwCtrllerLocker->Lock();
-            if (!m_boAddNodeResReceived) {
-                m_pZwCtrllerLocker->UnLock();
-
+            if (!m_boAddNodeRecv) {
                 m_evWaitMsgSignal.Set();
-
-                m_pZwCtrllerLocker->Lock();
             }
-
-            ZwMessage_p pZwMessage =
-            new ZwMessage(pJsonCommand, ZwMessage::Command::StopAdd);
             m_queSendZwMsg.push(pZwMessage);
-
-            delete pJsonCommand;
-            pJsonCommand = NULL;
-            m_pZwCtrllerLocker->UnLock();
         }
-    } else {
-        delete pJsonCommand;
-        pJsonCommand = NULL;
-        m_pZwCtrllerLocker->UnLock();
     }
+    m_pZwCtrllerLocker->UnLock();
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 }
 
 /**
@@ -477,53 +473,55 @@ ZwCtrller::HandlerZwaveCmdDel(
     JsonCommand_p pJsonCommand
 ) {
     m_pZwCtrllerLocker->Lock();
-    if (!m_boAddNodeCmdSend) {
+    if (!m_boAddNodeSend) {
         m_pZwCtrllerLocker->UnLock();
 
         JsonMessagePtr<JsonDevDel> jsonZwDel =
         m_pJsonRecvZwaveSession->GetJsonMapping<JsonDevDel>();
 
-        if (!jsonZwDel->ParseJsonCommand(pJsonCommand)) { return; }
+        if (!jsonZwDel->ParseJsonCommand(pJsonCommand)) {
+            delete pJsonCommand;
+            pJsonCommand = NULL;
+            return;
+        }
 
         if (jsonZwDel->Act() == 0) {
             m_pZwCtrllerLocker->Lock();
             if (!m_boDelNodeCmdSend) {
                 m_pZwCtrllerLocker->UnLock();
-                ZwMessage_p pZwMessage =
-                new ZwMessage(pJsonCommand, ZwMessage::Command::RmvDevice);
+
+                ZwMessage_p pZwMessage = 
+                new ZwMessage(0xFF, REQUEST, FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK, TRUE,
+                TRUE, FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK, 0, ZwMessage::Command::RmvDevice);
+                pZwMessage->ResetPacket(2);
+                pZwMessage->Push(REMOVE_NODE_ANY);
+                pZwMessage->Push(pZwMessage->GetNextCallbackId());
 
                 m_evWaitMsgSignal.Reset();
 
                 m_pZwCtrllerLocker->Lock();
                 m_queSendZwMsg.push(pZwMessage);
             }
-
-            delete pJsonCommand;
-            pJsonCommand = NULL;
-            m_pZwCtrllerLocker->UnLock();
         } else if (jsonZwDel->Act() == 1) {
+            ZwMessage_p pZwMessage = 
+            new ZwMessage(0xFF, REQUEST, FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK, TRUE,
+            TRUE, FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK, 0, ZwMessage::Command::StopRmv);
+            pZwMessage->ResetPacket(2);
+            pZwMessage->Push(REMOVE_NODE_STOP);
+            pZwMessage->Push(pZwMessage->GetNextCallbackId());
+
             m_pZwCtrllerLocker->Lock();
             if (!m_boDelNodeResReceived) {
                 m_pZwCtrllerLocker->UnLock();
-
                 m_evWaitMsgSignal.Set();
-
                 m_pZwCtrllerLocker->Lock();
             }
-
-            ZwMessage_p pZwMessage =
-            new ZwMessage(pJsonCommand, ZwMessage::Command::StopRmv);
             m_queSendZwMsg.push(pZwMessage);
-
-            delete pJsonCommand;
-            pJsonCommand = NULL;
-            m_pZwCtrllerLocker->UnLock();
         }
-    } else {
-        delete pJsonCommand;
-        pJsonCommand = NULL;
-        m_pZwCtrllerLocker->UnLock();
     }
+    m_pZwCtrllerLocker->UnLock();
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 }
 
 /**
@@ -533,13 +531,15 @@ ZwCtrller::HandlerZwaveCmdDel(
  * @retval None
  */
 void_t
-ZwCtrller::HandlerZwaveCmdRes(
+ZwCtrller::HandlerZwaveCmdRst(
     JsonCommand_p pJsonCommand
 ) {
     ZwMessage_p pZwMessage = new ZwMessage(pJsonCommand);
     m_pZwCtrllerLocker->Lock();
     if (pZwMessage != NULL) { m_queSendZwMsg.push(pZwMessage); }
     m_pZwCtrllerLocker->UnLock();
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 }
 
 /**
@@ -549,10 +549,15 @@ ZwCtrller::HandlerZwaveCmdRes(
  * @retval None
  */
 void_t
-ZwCtrller::HandlerZwaveCmdRst(
+ZwCtrller::HandlerZwaveCmdRsa(
     JsonCommand_p pJsonCommand
 ) {
-
+    ZwMessage_p pZwMessage = new ZwMessage(pJsonCommand);
+    m_pZwCtrllerLocker->Lock();
+    if (pZwMessage != NULL) { m_queSendZwMsg.push(pZwMessage); }
+    m_pZwCtrllerLocker->UnLock();
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 }
 
 /**
@@ -568,14 +573,21 @@ ZwCtrller::HandlerZwaveCmdSet(
     JsonMessagePtr<JsonDevSet> jsonZwSet =
     m_pJsonRecvZwaveSession->GetJsonMapping<JsonDevSet>();
 
-    if (!jsonZwSet->ParseJsonCommand(pJsonCommand)) { return; }
+    if (!jsonZwSet->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 
     Vector<JsonDevSet::Device_t> lstSetZwDevice = jsonZwSet->LstDev();
 
     for (u32_t i = 0; i < lstSetZwDevice.size(); i++) {
         u8_t byNodeId = (u8_t) lstSetZwDevice[i].devid;
-        u8_t byOrder  = lstSetZwDevice[i].order;
-        u8_t byType   = lstSetZwDevice[i].type;
+        u8_t byOrder = lstSetZwDevice[i].order;
+        u8_t byType = lstSetZwDevice[i].type;
 
         ValueDevice_p pValueDevice =
         m_pZwDeviceValueMan->CreateValueDevice(byType, lstSetZwDevice[i].value);
@@ -640,28 +652,32 @@ ZwCtrller::ProcZwaveCmdAddNode(
     if (pZwMessage->GetZwCommad() == ZwMessage::Command::AddDevice) {
         m_evWaitMsgSignal.Reset();
         m_pZwCtrllerLocker->Lock();
-        m_boAddNodeCmdSend = TRUE;
-        m_boAddNodeResReceived  = FALSE;
+        m_boAddNodeSend = TRUE;
+        m_boAddNodeRecv = FALSE;
         m_pZwCtrllerLocker->UnLock();
     }
     m_ZwDriver.ProcSendMessage(pZwMessage);
 
     m_pZwCtrllerLocker->Lock();
-    if (m_boAddNodeCmdSend) {
+    if (m_boAddNodeSend) {
+        if (!m_boAddNodeRecv) {
+            LOG_INFO("wait for add device: ++");
+        } else {
+            LOG_INFO("wait add: --");
+        }
         m_pZwCtrllerLocker->UnLock();
-
-        LOG_INFO("wait add: ++");
 
         if (!m_evWaitMsgSignal.Wait(AddNodeTimeout)) {
             LOG_INFO("add timeout");
             ProcSelfStopAddNode();
         } else {
-            m_pZwCtrllerLocker->Lock();
             LOG_INFO("wait add: --");
-            m_boAddNodeCmdSend      = FALSE;
-            m_boAddNodeResReceived  = TRUE;
+            m_pZwCtrllerLocker->Lock();
+            m_boAddNodeSend = FALSE;
+            m_boAddNodeRecv = TRUE;
         }
     }
+
     m_pZwCtrllerLocker->UnLock();
     m_evWaitMsgSignal.Reset();
 }
@@ -683,8 +699,8 @@ ZwCtrller::ProcZwaveCmdDelNode(
     if (pZwMessage->GetZwCommad() == ZwMessage::Command::RmvDevice) {
         m_evWaitMsgSignal.Reset();
         m_pZwCtrllerLocker->Lock();
-        m_boDelNodeCmdSend      = TRUE;
-        m_boDelNodeResReceived  = FALSE;
+        m_boDelNodeCmdSend = TRUE;
+        m_boDelNodeResReceived = FALSE;
         m_pZwCtrllerLocker->UnLock();
     }
     m_ZwDriver.ProcSendMessage(pZwMessage);
@@ -717,7 +733,9 @@ ZwCtrller::ProcZwaveCmdDelNode(
 void_t
 ZwCtrller::ProcZwaveCmdRestart(
     ZwMessage_p pZwMessage
-) { }
+) {
+
+}
 
 /**
  * @func   ProcSelfStopAddNode
@@ -746,9 +764,9 @@ ZwCtrller::ProcSelfStopRmvNode() {
     JsonMessagePtr<JsonDevDel> jsonZwAdd =
     m_pJsonSelfZwaveSession->GetJsonMapping<JsonDevDel>();
 
-    JsonCommand_p pJsonCommandRes = jsonZwAdd->CreateJsonCommand(1);
-    pJsonCommandRes->SetDesFlag(JsonCommand::Flag::Zwave);
-    (*m_pCtrllerFunctor)(pJsonCommandRes);
+    JsonCommand_p pJsonCommand = jsonZwAdd->CreateJsonCommand(1);
+    pJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
+    (*m_pCtrllerFunctor)(pJsonCommand);
 }
 
 /**

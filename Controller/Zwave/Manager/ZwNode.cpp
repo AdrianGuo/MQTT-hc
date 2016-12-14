@@ -54,24 +54,24 @@ ZwNode::ZwNode(
     m_boSecurity (FALSE),
     m_boIsController (FALSE),
     m_byNodeId (byNodeId),
+    m_dwHomeId (dwHomeId),
     m_byCapability (0),
     m_byBasic (4),
     m_byGeneric (0),
     m_bySpecific (0),
-    m_byDeviceType (DEVICE_TYPE_UNKNOW),
+    m_byDevType (DEVICE_TYPE_UNKNOW),
     m_byVersion (0),
-    m_dwHomeId (dwHomeId),
-    m_strManufactureName (String()),
+    m_strManufacName (String()),
     m_strProductName (String()),
     m_strNodeName (String()),
-    m_wManufactureId (0),
-    m_wProductType (0),
+    m_wManufacId (0),
+    m_wProductTy (0),
     m_wProductId (0),
     m_byRoleType (0),
     m_byNodeType (0),
     m_wIconType (0),
     m_boSecured (FALSE),
-    m_dwReceivedUnsolicited (0),
+    m_dwRecvUnsolicited (0),
     m_byNbrOfEndpoints (0) {
     m_pZwCmdClassManager = ZwCmdClassMan::GetInstance();
     m_pControllerFunctor = NULL;
@@ -229,12 +229,12 @@ ZwNode::RmvZwCmdClass(
 void_t
 ZwNode::SetDeviceType () {
     if (m_byGeneric == GENERIC_TYPE_SWITCH_BINARY) {
-        m_byDeviceType = 1;
+        m_byDevType = 1;
     } else if (m_byGeneric == GENERIC_TYPE_SWITCH_MULTILEVEL) {
         if (m_bySpecific == SPECIFIC_TYPE_POWER_SWITCH_MULTILEVEL) {
-            m_byDeviceType = 2;
+            m_byDevType = 2;
         } else if (m_bySpecific == SPECIFIC_TYPE_FAN_SWITCH) {
-            m_byDeviceType = 4;
+            m_byDevType = 4;
         }
     }
 }
@@ -467,7 +467,7 @@ ZwNode::ProcessFunctor(
  */
 ZwMessage_p
 ZwNode::GetNodeProtocolInfo() {
-    LOG_INFO("node protocol info %d", m_byNodeId);
+    LOG_DEBUG("node protocol info %d", m_byNodeId);
     ZwMessage_p pZwMessage = new ZwMessage(m_byNodeId, REQUEST,
     FUNC_ID_ZW_GET_NODE_PROTOCOL_INFO, TRUE);
     pZwMessage->ResetPacket(1);
@@ -483,7 +483,7 @@ ZwNode::GetNodeProtocolInfo() {
  */
 ZwMessage_p
 ZwNode::RequestNodeInfo() {
-    LOG_INFO("node info %d", m_byNodeId);
+    LOG_DEBUG("node info %d", m_byNodeId);
     ZwMessage_p pZwMessage = new ZwMessage(m_byNodeId, REQUEST,
     FUNC_ID_ZW_REQUEST_NODE_INFO, TRUE);
     pZwMessage->ResetPacket(1);
@@ -499,7 +499,7 @@ ZwNode::RequestNodeInfo() {
  */
 ZwMessage_p
 ZwNode::GetZwPlusInfo() {
-    LOG_INFO("plus info %d", m_byNodeId);
+    LOG_DEBUG("plus info %d", m_byNodeId);
     ZwCmdClass_p pZwCmdClass = m_pZwCmdClassManager->CreateCmdClass(
     ZwavePlusInfoCmdClass::GetZwCmdClassId(), m_dwHomeId, m_byNodeId);
     ZwMessage_p pZwMessage = pZwCmdClass->GetValue();

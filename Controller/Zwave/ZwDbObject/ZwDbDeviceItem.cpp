@@ -16,35 +16,36 @@
 #include "ZwDbDeviceItem.hpp"
 
 /**
- * @func
+ * @func   ZwDbDeviceItem
  * @brief  None
  * @param  None
  * @retval None
  */
 ZwDbDeviceItem::ZwDbDeviceItem() :
     DbItem (ZWDEVICE),
-    NodeId   (-1, "NodeId"),
+    NodeId (-1, "NodeId"),
     Position (-1, "Position"),
-    DevType  (-1, "TypeDv"),
-    ParId   (-1, "ParId"),
-    HomeId  (-1, "HomeId"),
-    Basic   (-1, "Basic"),
-    Generic  (-1, "Generic"),
+    DevType (-1, "TypeDv"),
+    ParId (-1, "ParId"),
+    HomeId (-1, "HomeId"),
+    ZwPlus (-1, "ZwPlus"),
+    Basic (-1, "Basic"),
+    Generic (-1, "Generic"),
     Specific (-1, "Specific"),
-    Capability  (-1, "Capability"),
+    Capability (-1, "Capability"),
     Version (-1, "Version"),
-    ManuId  (-1, "ManuId"),
-    ProdId  (-1, "ProdId"),
+    ManuId (-1, "ManuId"),
+    ProdId (-1, "ProdId"),
     RoleType (-1, "RoleType"),
     NodeType (-1, "NodeType"),
     IconType (-1, "IconType"),
-    Manufac  (String(), "Manufac"),
-    Product  (String(), "Product") {
+    Manufac (String(), "Manufac"),
+    Product (String(), "Product") {
 
 }
 
 /**
- * @func
+ * @func   ~ZwDbDeviceItem
  * @brief  None
  * @param  None
  * @retval None
@@ -54,7 +55,7 @@ ZwDbDeviceItem::~ZwDbDeviceItem() {
 }
 
 /**
- * @func
+ * @func   GetTableName
  * @brief  None
  * @param  None
  * @retval None

@@ -2,13 +2,16 @@
 #define ZWCMD_CTRLLER_HPP_
 
 #include "typedefs.h"
-#include "ValueByte.hpp"
-#include "ValueDword.hpp"
 #include "HandlerRequest.hpp"
 #include "HandlerResponse.hpp"
+
+#include "ZwCmdClassMap.hpp"
 #include "JsonZwaveSession.hpp"
 #include "ZwDbModel.hpp"
 #include "IZwDriver.hpp"
+
+#include "ValueByte.hpp"
+#include "ValueDword.hpp"
 #include "ValueLstNode.hpp"
 #include "ValueZwNode.hpp"
 
@@ -37,15 +40,15 @@ typedef ValueZwCmdCtrller* ValueZwCmdCtrller_p;
 /******************************************************************************/
 class ZwCmdCtrller : public IZwDriver {
 private:
-    ValueLstNode_t&         m_ValueLstNode;
-    ValueZwDriver_t&        m_ValueZwDriver;
-    ValueZwCmdCtrller_t&    m_ValueZwCmdCtrller;
+    ValueLstNode_t& m_ValueLstNode;
+    ValueZwDriver_t& m_ValueZwDriver;
+    ValueZwCmdCtrller_t& m_ValueZwCmdCtrller;
+    ZwCmdClassMap_t& m_ZwCmdClassMap;
 
-    JsonSendZwaveSession_p  m_pJsonZwaveSession;
-
-    ZwDbModel_p         m_pZwDbModel;
-    HandlerRequest_p    m_pHandlerRequest;
-    HandlerResponse_p   m_pHandlerResponse;
+    ZwDbModel_p m_pZwDbModel;
+    HandlerRequest_p m_pHandlerRequest;
+    HandlerResponse_p  m_pHandlerResponse;
+    JsonSendZwaveSession_p m_pJsonZwaveSession;
 
     void_t ProcResetDatabase();
     void_t ReConfigZwCtrller();

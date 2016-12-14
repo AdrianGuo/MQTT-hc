@@ -13,6 +13,8 @@
 
 #include "AssociationCmdClass.hpp"
 #include "MultiChannelCmdClass.hpp"
+#include "ZwavePlusInfoCmdClass.hpp"
+
 #include "ZwMessage.hpp"
 #include "ValuePtr.hpp"
 #include "ZwCmdCtrller.hpp"
@@ -27,9 +29,10 @@ ZwCmdCtrller::ZwCmdCtrller(
 ) : IZwDriver(),
     m_ValueLstNode (ValueLstNode::GetInstance()),
     m_ValueZwDriver (ValueRef<ValueZwDriver>::GetInstance()),
-    m_ValueZwCmdCtrller (ValueRef<ValueZwCmdCtrller>::GetInstance()) {
+    m_ValueZwCmdCtrller (ValueRef<ValueZwCmdCtrller>::GetInstance()),
+    m_ZwCmdClassMap (ZwCmdClassMap::GetInstance()) {
+    m_pZwDbModel = ZwDbModel::CreateModel("zwave.db");
     m_pJsonZwaveSession  = JsonSendZwaveSession::CreateSession();
-    m_pZwDbModel         = ZwDbModel::CreateModel("zwave.db");
     m_pHandlerRequest    = HandlerRequest::GetInstance();
     m_pHandlerResponse   = HandlerResponse::GetInstance();
     RegisterHandlers();
@@ -55,7 +58,7 @@ ZwCmdCtrller::ProcSendJsonAddedNode(
 ) {
     if (byNodeId == 0 || m_ValueLstNode[byNodeId - 1] == NULL) { return; }
 
-    u8_t byNodeType = m_ValueLstNode[byNodeId - 1]->GetDeviceType();
+    u8_t byNodeType = m_ValueLstNode[byNodeId - 1]->GetDevType();
 
     JsonDevLstAdd::Device_t node;
     Vector<JsonDevLstAdd::Device_t> zwLstNode;
@@ -301,9 +304,9 @@ ZwCmdCtrller::HandleAddNodeToNetworkRequest(
                     m_ValueLstNode[byNodeId - 1]->SetCallbackFunctor(m_pCallbackFunctor);
                 }
 
-                u8_t byTypeDev = m_ValueLstNode[byNodeId - 1]->GetDeviceType();
+                u8_t byTypeDev = m_ValueLstNode[byNodeId - 1]->GetDevType();
                 ZwDbDevice devicefind = m_pZwDbModel->Find<ZwDbDeviceItem>().
-                Where("NodeId = ?").Bind(byNodeId).Where("Position = ?").Bind(0);
+                Where("NodeId = ?").Bind(byNodeId).Where("Position = ?").Bind(ROOT_ORDER);
 
                 if (devicefind.get() == NULL) {
                     ZwDbController controller = m_pZwDbModel->Find<ZwDbCtrllerItem>();
@@ -315,13 +318,21 @@ ZwCmdCtrller::HandleAddNodeToNetworkRequest(
                     deviceadd.Modify()->Generic    = byGeneric;
                     deviceadd.Modify()->Specific   = bySpecific;
                     deviceadd.Modify()->Controller = controller;
+                    deviceadd.Modify()->ZwPlus     = 0;
 
                     for (u8_t i = 0; i < byLength - 3; i++) {
-                        m_ValueLstNode[byNodeId - 1]->AddZwCmdClass(pBuffer[7 + i]);
-                        ZwDbCommandClass cmdclass = m_pZwDbModel->Add(new ZwDbCmdClassItem());
-                        cmdclass.Modify()->CmdId  = pBuffer[7 + i];
-                        cmdclass.Modify()->CmdHex = GetHex(pBuffer[7 + i]);
-                        cmdclass.Modify()->Device = deviceadd;
+                        u8_t byCmdClass = pBuffer[7 + i];
+                        m_ValueLstNode[byNodeId - 1]->AddZwCmdClass(byCmdClass);
+                        if (byCmdClass == ZwavePlusInfoCmdClass::GetZwCmdClassId()) {
+                            deviceadd.Modify()->ZwPlus = 1;
+                        }
+
+                        ZwDbCommandClass cmdclass =
+                        m_pZwDbModel->Add(new ZwDbCmdClassItem());
+                        cmdclass.Modify()->CmdId   = byCmdClass;
+                        cmdclass.Modify()->CmdHex  = GetHex(byCmdClass);
+                        cmdclass.Modify()->Device  = deviceadd;
+                        cmdclass.Modify()->CmdName = m_ZwCmdClassMap[byCmdClass];
                     }
                     m_pZwDbModel->UpdateChanges();
                 }
@@ -705,7 +716,7 @@ ZwCmdCtrller::HandleGetNodeProtocolInfoRespose(
         if (devicefind.get() != NULL) { // update
             devicefind.Modify()->NodeId     = byNodeId;
             devicefind.Modify()->Position   = ROOT_ORDER;
-            devicefind.Modify()->DevType    = m_ValueLstNode[byNodeId - 1]->GetDeviceType();
+            devicefind.Modify()->DevType    = m_ValueLstNode[byNodeId - 1]->GetDevType();
             devicefind.Modify()->Capability = byCapability;
             devicefind.Modify()->Security   = bySecurity;
             devicefind.Modify()->Basic      = byBasic;
@@ -717,7 +728,7 @@ ZwCmdCtrller::HandleGetNodeProtocolInfoRespose(
             ZwDbDevice deviceadd = m_pZwDbModel->Add(new ZwDbDeviceItem());
             deviceadd.Modify()->NodeId      = byNodeId;
             deviceadd.Modify()->Position    = ROOT_ORDER;
-            deviceadd.Modify()->DevType     = m_ValueLstNode[byNodeId - 1]->GetDeviceType();
+            deviceadd.Modify()->DevType     = m_ValueLstNode[byNodeId - 1]->GetDevType();
             deviceadd.Modify()->Capability  = byCapability;
             deviceadd.Modify()->Security    = bySecurity;
             deviceadd.Modify()->Basic       = byBasic;

@@ -20,26 +20,26 @@
 #include "ZwDefs.hpp"
 #include "ZwCmdClass.hpp"
 
-class CrC16EncapCmdClass : public ZwCmdClass {
+class Crc16EncapCmdClass : public ZwCmdClass {
 private:
     u8_t m_byTransmitOptions;
-    CrC16EncapCmdClass(u32_t dwHomeId, u8_t byNodeId);
+    Crc16EncapCmdClass(u32_t dwHomeId, u8_t byNodeId);
 
     ValueDevice_p HandleCrc16Encap(u8_p pbCommand, u8_t byLength);
 public:
     static ZwCmdClass_p CreateZwCmdClass(u32_t dwHomeId, u8_t byNodeId);
-    virtual ~CrC16EncapCmdClass();
+    virtual ~Crc16EncapCmdClass();
 
     virtual u8_t GetMaxVersion() const { return CRC_16_ENCAP_VERSION; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_CRC_16_ENCAP; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_CRC_16_ENCAP"; }
+    static const String GetZwCmdClassName() { return "CRC_16_ENCAP"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 
     virtual ZwMessage_p GetValue();
 };
 
-typedef CrC16EncapCmdClass  CrC16EncapCmdClass_t;
-typedef CrC16EncapCmdClass* CrC16EncapCmdClass_p;
+typedef Crc16EncapCmdClass  CrC16EncapCmdClass_t;
+typedef Crc16EncapCmdClass* CrC16EncapCmdClass_p;
 
 #endif /* !CRC16_ENCAPCMDCLASS_HPP_ */

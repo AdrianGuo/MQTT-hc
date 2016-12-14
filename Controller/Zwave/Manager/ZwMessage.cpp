@@ -12,6 +12,126 @@
 
 u8_t ZwMessage::sByNextCallbackId = 0;
 
+
+/**
+ * @func   CreateMessageSendData
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwMessage::CreateMessageSendData(JsonCommand_p pJsonCommand) {
+
+}
+
+/**
+ * @func   CreateMessageAddDevice
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwMessage::CreateMessageAddDevice(
+    JsonCommand_p pJsonCommand
+) {
+    m_byTargetNodeId = 0xFF;
+    m_byTypeMessage = REQUEST;
+    m_byFunctionId = FUNC_ID_ZW_ADD_NODE_TO_NETWORK;
+    m_byExpectedFunctionId = m_byFunctionId;
+    m_byExpectedCmdClassId = 0;
+    m_boCallbackRequired = TRUE;
+    m_boReplyRequired = TRUE;
+    m_boIsEncrypted = FALSE;
+    JsonDevAdd jsonZwAdd;
+    jsonZwAdd.ParseJsonCommand(pJsonCommand);
+    Packet::ResetPacket(2);
+    if (jsonZwAdd.Act() == 0) {
+        Packet::Push(ADD_NODE_ANY);
+        Packet::Push(GetNextCallbackId());
+    } else if (jsonZwAdd.Act() == 1) {
+        Packet::Push(ADD_NODE_STOP);
+        Packet::Push(GetNextCallbackId());
+    } else {
+        Packet::Push(0xFF);
+        Packet::Push(0);
+    }
+}
+
+/**
+ * @func   CreateMessageRmvDevice
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwMessage::CreateMessageDelDevice(
+    JsonCommand_p pJsonCommand
+) {
+    m_byTargetNodeId = 0xFF;
+    m_byTypeMessage = REQUEST;
+    m_byFunctionId = FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK;
+    m_byExpectedFunctionId = m_byFunctionId;
+    m_byExpectedCmdClassId = 0;
+    m_boCallbackRequired = TRUE;
+    m_boReplyRequired = TRUE;
+    m_boIsEncrypted = FALSE;
+    Packet::ResetPacket(2);
+    JsonDevDel jsonZwDel;
+    jsonZwDel.ParseJsonCommand(pJsonCommand);
+    if (jsonZwDel.Act() == 0) {
+        Packet::Push(REMOVE_NODE_ANY);
+        Packet::Push(GetNextCallbackId());
+    } else if (jsonZwDel.Act() == 1) {
+        Packet::Push(REMOVE_NODE_STOP);
+        Packet::Push(0);
+    } else {
+        Packet::Push(0xFF);
+        Packet::Push(0);
+    }
+}
+
+/**
+ * @func   CreateMessageRstDevice
+ * @brief  Create ZwMessage for Json command dev=reset
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwMessage::CreateMessageRstDevice(
+    JsonCommand_p pJsonCommand
+) {
+    m_byTargetNodeId = 0xFF;
+    m_byTypeMessage = REQUEST;
+    m_byFunctionId = FUNC_ID_ZW_SET_DEFAULT;
+    m_byExpectedFunctionId = m_byFunctionId;
+    m_byExpectedCmdClassId = 0;
+    m_boCallbackRequired = TRUE;
+    m_boReplyRequired = TRUE;
+    m_boIsEncrypted = FALSE;
+    Packet::ResetPacket(1);
+    Packet::Push(GetNextCallbackId());
+}
+
+/**
+ * @func   CreateMessageRsaDevice
+ * @brief  Create ZwMessage for Json command dev=restart
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwMessage::CreateMessageRsaDevice(
+    JsonCommand_p pJsonCommand
+) {
+    m_byTargetNodeId = 0xFF;
+    m_byTypeMessage = REQUEST;
+    m_byFunctionId = 0;
+    m_byExpectedFunctionId = m_byFunctionId;
+    m_byExpectedCmdClassId = 0;
+    m_boCallbackRequired = FALSE;
+    m_boReplyRequired = FALSE;
+    m_boIsEncrypted = FALSE;
+}
+
 /**
  * @func   ZwMessage
  * @brief  None
@@ -23,69 +143,13 @@ ZwMessage::ZwMessage(
     Command zwCommand
 ) {
     if (pJsonCommand->GetFullCommand() == JsonDevAdd::GetStrCmd()) {
-        m_byTargetNodeId = 0xFF;
-        m_byTypeMessage = REQUEST;
-        m_byFunctionId = FUNC_ID_ZW_ADD_NODE_TO_NETWORK;
-        m_byExpectedFunctionId = m_byFunctionId;
-        m_byExpectedCmdClassId = 0;
-        m_boCallbackRequired = TRUE;
-        m_boReplyRequired = TRUE;
-        m_boIsEncrypted = FALSE;
-        JsonDevAdd jsonZwAdd;
-        jsonZwAdd.ParseJsonCommand(pJsonCommand);
-        Packet::ResetPacket(2);
-        if (jsonZwAdd.Act() == 0) {
-            Packet::Push(ADD_NODE_ANY);
-            Packet::Push(GetNextCallbackId());
-        } else if (jsonZwAdd.Act() == 1) {
-            Packet::Push(ADD_NODE_STOP);
-            Packet::Push(GetNextCallbackId());
-        } else {
-            Packet::Push(0xFF);
-            Packet::Push(0);
-        }
+        CreateMessageAddDevice(pJsonCommand);
     } else if (pJsonCommand->GetFullCommand() == JsonDevDel::GetStrCmd()) {
-        m_byTargetNodeId = 0xFF;
-        m_byTypeMessage = REQUEST;
-        m_byFunctionId = FUNC_ID_ZW_REMOVE_NODE_FROM_NETWORK;
-        m_byExpectedFunctionId = m_byFunctionId;
-        m_byExpectedCmdClassId = 0;
-        m_boCallbackRequired = TRUE;
-        m_boReplyRequired = TRUE;
-        m_boIsEncrypted = FALSE;
-        Packet::ResetPacket(2);
-        JsonDevDel jsonZwDel;
-        jsonZwDel.ParseJsonCommand(pJsonCommand);
-        if (jsonZwDel.Act() == 0) {
-            Packet::Push(REMOVE_NODE_ANY);
-            Packet::Push(GetNextCallbackId());
-        } else if (jsonZwDel.Act() == 1) {
-            Packet::Push(REMOVE_NODE_STOP);
-            Packet::Push(0);
-        } else {
-            Packet::Push(0xFF);
-            Packet::Push(0);
-        }
+        CreateMessageDelDevice(pJsonCommand);
     } else if (pJsonCommand->GetFullCommand() == JsonDevReset::GetStrCmd()) {
-        m_byTargetNodeId = 0xFF;
-        m_byTypeMessage = REQUEST;
-        m_byFunctionId = FUNC_ID_ZW_SET_DEFAULT;
-        m_byExpectedFunctionId = m_byFunctionId;
-        m_byExpectedCmdClassId = 0;
-        m_boCallbackRequired = TRUE;
-        m_boReplyRequired = TRUE;
-        m_boIsEncrypted = FALSE;
-        Packet::ResetPacket(1);
-        Packet::Push(GetNextCallbackId());
+        CreateMessageRstDevice(pJsonCommand);
     } else if (pJsonCommand->GetFullCommand() == JsonDevRestart::GetStrCmd()) {
-        m_byTargetNodeId = 0xFF;
-        m_byTypeMessage = REQUEST;
-        m_byFunctionId = 0;
-        m_byExpectedFunctionId = m_byFunctionId;
-        m_byExpectedCmdClassId = 0;
-        m_boCallbackRequired = FALSE;
-        m_boReplyRequired = FALSE;
-        m_boIsEncrypted = FALSE;
+        CreateMessageRsaDevice(pJsonCommand);
     }
     m_ZwCommand = zwCommand;
 }
@@ -109,11 +173,13 @@ ZwMessage::ZwMessage(
     m_byTypeMessage (byTypeMsg),
     m_byFunctionId (byFunctionId),
     m_byCallbackId (0),
-    m_byExprectedEndpointId (0),
+    m_byExpectedFunctionId (0),
+    m_byExpectedEndpointId (0),
+    m_byExpectedCmdClassId (byExpectedCmdClassId),
     m_boCallbackRequired (boCallbackRequired),
     m_boReplyRequired (boReplyRequired),
-    m_byExpectedCmdClassId (byExpectedCmdClassId),
     m_boIsEncrypted (FALSE),
+    m_byCountResend (0),
     m_ZwCommand (zwCommand) {
     if (boReplyRequired) {
         m_byExpectedFunctionId =
@@ -144,7 +210,7 @@ ZwMessage::SetTargetNodeId(
 }
 
 /**
- * @func
+ * @func   SetTypeMessage
  * @brief  None
  * @param  None
  * @retval None
@@ -243,7 +309,7 @@ void_t
 ZwMessage::SetExpectedEndpointId(
     u8_t byExpectedEndpointId
 ) {
-    m_byExprectedEndpointId = byExpectedEndpointId;
+    m_byExpectedEndpointId = byExpectedEndpointId;
 }
 
 /**
@@ -355,7 +421,7 @@ ZwMessage::GetExpectedCmdClassId() const {
  */
 u8_t
 ZwMessage::GetExpectedEndpointId() const {
-    return m_byExprectedEndpointId;
+    return m_byExpectedEndpointId;
 }
 
 /**
@@ -367,6 +433,28 @@ ZwMessage::GetExpectedEndpointId() const {
 ZwMessage::Command
 ZwMessage::GetZwCommad() const {
     return m_ZwCommand;
+}
+
+/**
+ * @func   GetCountResend
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+u8_t
+ZwMessage::GetCountResend() const {
+    return m_byCountResend;
+}
+
+/**
+ * @func   GetCountResend
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZwMessage::IncCountResend() {
+    m_byCountResend++;
 }
 
 /**

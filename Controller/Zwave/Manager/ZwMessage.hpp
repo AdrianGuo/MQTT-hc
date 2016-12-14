@@ -3,6 +3,8 @@
 
 #include "typedefs.h"
 #include "String.hpp"
+#include "Map.hpp"
+#include "Functor.hpp"
 #include "Packet.hpp"
 #include "JsonCommand.hpp"
 
@@ -13,9 +15,7 @@ public:
         AddDevice,
         StopAdd,
         RmvDevice,
-        StopRmv,
-        GetEnPoints,
-        GetCapability
+        StopRmv
     } Command;
 private:
     static u8_t sByNextCallbackId;
@@ -24,17 +24,27 @@ private:
     u8_t m_byTypeMessage; /* REQ: Request, RES: Response */
     u8_t m_byFunctionId;
     u8_t m_byCallbackId;
+
     u8_t m_byExpectedFunctionId;
+    u8_t m_byExpectedEndpointId;
     u8_t m_byExpectedCmdClassId;
-    u8_t m_byExprectedEndpointId;
 
     bool_t m_boCallbackRequired;
     bool_t m_boReplyRequired;
     bool_t m_boIsEncrypted;
 
-    ZwMessage::Command m_ZwCommand;
-public:
+    u8_t m_byCountResend;
 
+    ZwMessage::Command m_ZwCommand;
+
+    void_t CreateMessageSendData(JsonCommand_p pJsonCommand);
+    void_t CreateMessageAddDevice(JsonCommand_p pJsonCommand);
+    void_t CreateMessageDelDevice(JsonCommand_p pJsonCommand);
+    void_t CreateMessageRstDevice(JsonCommand_p pJsonCommand);
+    void_t CreateMessageRsaDevice(JsonCommand_p pJsonCommand);
+
+public:
+    static const u8_t ResendMax = 3;
     ZwMessage(JsonCommand_p pJsonCommand,
               Command zwCommand = Command::SendData);
     ZwMessage(u8_t   byTargetNodeId,
@@ -70,6 +80,9 @@ public:
 
     bool_t IsCallbackRequired()   const;
     bool_t IsExpectedFunctionId() const;
+
+    u8_t GetCountResend() const;
+    void_t IncCountResend();
 
     Command GetZwCommad() const;
     u8_t GetNextCallbackId();

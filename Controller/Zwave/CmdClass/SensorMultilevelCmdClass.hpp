@@ -25,15 +25,15 @@ private:
     u8_t m_byTransmitOptions;
     ZwDbModel_p m_pDbModel;
 
-    SensorMultilevelCmdClass(u32_t dwHomeId, u8_t byNodeId);
+    SensorMultilevelCmdClass(u32_t dwHomeId, u8_t byNodeId) {}
 
 public:
     static ZwCmdClass_p CreateZwCmdClass(u32_t dwHomeId, u8_t byNodeId);
-    virtual ~SensorMultilevelCmdClass();
+    virtual ~SensorMultilevelCmdClass() {}
 
     virtual u8_t GetMaxVersion() const { return  SENSOR_MULTILEVEL_VERSION_V9; }
     static const u8_t GetZwCmdClassId() { return COMMAND_CLASS_SENSOR_MULTILEVEL_V9; }
-    static const String GetZwCmdClassName() { return "COMMAND_CLASS_SENSOR_MULTILEVEL"; }
+    static const String GetZwCmdClassName() { return "SENSOR_MULTILEVEL"; }
 
     virtual ValueDevice_p HandleMessage(u8_p pbCommand, u8_t byLength);
 

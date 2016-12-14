@@ -20,6 +20,7 @@ ZwDriver::ZwDriver(
     const_char_p cPathZwDriver
 ) : m_dwCountCommand (0),
     m_SessionZwSerial (cPathZwDriver),
+    m_CmdClassMap (ZwCmdClassMap::GetInstance()),
     m_ValueLstNode (ValueLstNode::GetInstance()),
     m_ValueZwCmdCtrller(
             ValueRef<ValueZwCmdCtrller>::GetInstance(
@@ -35,12 +36,14 @@ ZwDriver::ZwDriver(
                     m_evPacketSignal)),
     m_ValueZwAppFunc (
             ValueRef<ValueZwAppFunc>::GetInstance(
-                    m_dwHomeId)) {
-    m_pValueZwCmdNvm = ValuePtr<ValueZwCmdNvm>::GetInstance(
+                    m_dwHomeId)),
+    m_ValueZwCmdNvm (
+            ValueRef<ValueZwCmdNvm>::GetInstance(
                     m_dwHomeId,
-                    m_byNodeId);
-    m_pValueZwCmdBasic = ValuePtr<ValueZwCmdBasic>::GetInstance(
-                                m_strLibraryVersion);
+                    m_byNodeId)),
+    m_ValueZwCmdBasic (
+            ValueRef<ValueZwCmdBasic>::GetInstance(
+                    m_strLibraryVersion)) {
 
     m_pZwDbModel = ZwDbModel::CreateModel("zwave.db");
 
@@ -136,7 +139,7 @@ ZwDriver::RegisterHandlers() {
 }
 
 /**
- * @func
+ * @func   ZwDriverRecvFunctor
  * @brief  None
  * @param  None
  * @retval None
@@ -154,17 +157,18 @@ ZwDriver::ZwDriverRecvFunctor(
 }
 
 /**
- * @func
+ * @func   InitZwaveNode
  * @brief  None
  * @param  None
  * @retval None
  */
-void_t
+ZwNode_p
 ZwDriver::InitZwaveNode(
     u8_t byNodeId
 ) {
     m_ValueLstNode[byNodeId - 1] = new ZwNode(m_dwHomeId, byNodeId);
     m_ValueLstNode[byNodeId - 1]->SetCallbackFunctor(m_pZwCtrllerRecvFunctor);
+    return m_ValueLstNode[byNodeId - 1];
 }
 
 /**
@@ -274,7 +278,7 @@ ZwDriver::GetZwNodeManufactureName(
     if ((byNodeId > ZW_MAX_NODES) || (m_ValueLstNode[byNodeId - 1] == NULL)) {
         return String();
     }
-    return m_ValueLstNode[byNodeId - 1]->GetManufactureName();
+    return m_ValueLstNode[byNodeId - 1]->GetManufacName();
 }
 
 /**
@@ -342,7 +346,7 @@ ZwDriver::GetZwNodePlusType(
 }
 
 /**
- * @func   GetZwNodeManufactureID
+ * @func   GetZwNodeManufactureId
  * @brief  None
  * @param  None
  * @retval None
@@ -354,7 +358,7 @@ ZwDriver::GetZwNodeManufactureId(
     if ((byNodeId > ZW_MAX_NODES) || (m_ValueLstNode[byNodeId - 1] == NULL)) {
         return 0;
     }
-    return m_ValueLstNode[byNodeId - 1]->GetManufactureId();
+    return m_ValueLstNode[byNodeId - 1]->GetManufacId();
 }
 
 /**
@@ -370,7 +374,7 @@ ZwDriver::GetZwNodeProductType(
     if ((byNodeId > ZW_MAX_NODES) || (m_ValueLstNode[byNodeId - 1] == NULL)) {
         return 0;
     }
-    return m_ValueLstNode[byNodeId - 1]->GetProductType();
+    return m_ValueLstNode[byNodeId - 1]->GetProductTy();
 }
 
 /**
@@ -533,7 +537,7 @@ ZwDriver::ProcSendMessage(
 
     if ((pCurrZwMsg->GetZwCommad() == ZwMessage::Command::StopAdd) ||
         (pCurrZwMsg->GetZwCommad() == ZwMessage::Command::StopRmv)) {
-        LOG_DEBUG("    stop adding/removing");
+        LOG_DEBUG("stop adding/removing");
         boStopNetwrk = TRUE;
     }
 
@@ -554,19 +558,17 @@ ZwDriver::ProcSendMessage(
 
     LOG_INFO("send command %d", ++m_dwCountCommand);
 
-    LOG_DEBUG("send: Func: %02x Node: %03d EndP: %03d Cb: %03d",
-                    pCurrZwMsg->GetFunctionId(),
-                    pCurrZwMsg->GetTargetNodeId(),
-                    pCurrZwMsg->GetExpectedEndpointId(),
-                    pCurrZwMsg->GetCallbackId());
-
-    m_pZwDriverLocker->Lock();
-    LOG_DEBUG("expc: Func: %02x Node: %03d CmdC:  %02X Cb: %03d",
-                    m_byExpectedFuncId.GetValue(),
-                    m_byExpectedNodeId.GetValue(),
-                    m_byExpectedCmdCId.GetValue(),
-                    m_byExpectedCbakId.GetValue());
-    m_pZwDriverLocker->UnLock();
+//    LOG_DEBUG("send: Func: %02x Node: %03d EndP: %03d Cb: %03d",
+//                    pCurrZwMsg->GetFunctionId(),
+//                    pCurrZwMsg->GetTargetNodeId(),
+//                    pCurrZwMsg->GetExpectedEndpointId(),
+//                    pCurrZwMsg->GetCallbackId());
+//
+//    LOG_DEBUG("expc: Func: %02x Node: %03d CmdC:  %02X Cb: %03d",
+//                    m_byExpectedFuncId.GetValue(),
+//                    m_byExpectedNodeId.GetValue(),
+//                    m_byExpectedCmdCId.GetValue(),
+//                    m_byExpectedCbakId.GetValue());
 
     if (pCurrZwMsg->Length() > 0) {
         pZwPacket->Push(pCurrZwMsg->GetBuffer(), pCurrZwMsg->Length());
@@ -579,7 +581,7 @@ ZwDriver::ProcSendMessage(
 
     if (!boStopNetwrk) {
         if (!m_evPacketSignal->Wait(wait_response)) {
-            LOG_INFO("send command %d timeout", m_dwCountCommand);
+            LOG_INFO("send command %2d timeout", m_dwCountCommand);
             m_pZwDriverLocker->Lock();
             m_byExpectedNodeId = 0;
             m_byExpectedCbakId = 0;
@@ -587,20 +589,25 @@ ZwDriver::ProcSendMessage(
             m_byExpectedCmdCId = 0;
             m_byExpectedEndPId = 0;
             m_pZwDriverLocker->UnLock();
-            ProcessFunctor(EvAction::Pushback, pCurrZwMsg);
-        } else {
-            LOG_INFO("send command %d done", m_dwCountCommand);
-            if (pCurrZwMsg != NULL) {
-                delete pCurrZwMsg;
-                pCurrZwMsg = NULL;
+            u8_t byCountResend = pCurrZwMsg->GetCountResend();
+            if (byCountResend < pCurrZwMsg->ResendMax) {
+                LOG_INFO("resend command %2d %2d", m_dwCountCommand, byCountResend);
+                ProcessFunctor(EvAction::Pushback, pCurrZwMsg); // Resend
+                pCurrZwMsg->IncCountResend();
+                return;
+            } else {
+                LOG_INFO("resend command %2d fail", m_dwCountCommand);
             }
+        } else {
+            LOG_INFO("send command %2d done", m_dwCountCommand);
         }
     } else {
         LOG_INFO("send command %d done", m_dwCountCommand);
-        if (pCurrZwMsg != NULL) {
-            delete pCurrZwMsg;
-            pCurrZwMsg = NULL;
-        }
+    }
+
+    if (pCurrZwMsg != NULL) {
+        delete pCurrZwMsg;
+        pCurrZwMsg = NULL;
     }
 }
 
@@ -765,8 +772,7 @@ ZwDriver::LoadZwDevices(
         u8_t byEndPId = (u8_t) (*it)->Position;
 
         if ((-1) == (*it)->ParId) {
-            pZwNode = new ZwNode(dwHomeId, byNodeId);
-            m_ValueLstNode[byNodeId - 1] = pZwNode;
+            pZwNode = InitZwaveNode(byNodeId);
 
         } else {
             if (m_ValueLstNode[byNodeId - 1] != NULL) {
@@ -792,6 +798,7 @@ ZwDriver::LoadZwDatabase() {
     if (m_pZwDbModel->Controller.get() != NULL) {
         u32_t dwHomeId = m_pZwDbModel->Controller->HomeId;
         if (-1 != (i32_t) dwHomeId) {
+            m_dwHomeId = dwHomeId;
             LoadZwDevices(dwHomeId);
         }
     }

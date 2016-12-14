@@ -112,6 +112,9 @@ DbManager::~DbManager() {
         delete m_pJsonSendDbSession;
         m_pJsonSendDbSession = NULL;
     }
+
+    m_Rooms.clear();
+    m_Floors.clear();
 }
 
 /**
