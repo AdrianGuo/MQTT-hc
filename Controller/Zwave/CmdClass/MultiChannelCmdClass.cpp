@@ -7,6 +7,7 @@
 #include "ZwTransportAPI.hpp"
 #include "ZwNode.hpp"
 #include "JsonDevLstAdd.hpp"
+#include "ValuePtr.hpp"
 #include "MultiChannelCmdClass.hpp"
 /**
  * @func
@@ -379,9 +380,10 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
         Vector<JsonDevLstAdd::Device_t> lstNode;
         JsonDevLstAdd::Device_t node;
         node.devid = (i32_t) byRootId;
-        node.order  = byEndpoint;
-        node.type   = pZwEndPoint->GetDevType();
-        node.mac    = "FFFFFFFF";
+        node.order = byEndpoint;
+        node.type = pZwEndPoint->GetDevType();
+        node.mac = "FFFFFFFF";
+        node.netwk = ZWAVE_NETW;
         lstNode.push_back(node);
 
         JsonCommand_p pJsonCommand =

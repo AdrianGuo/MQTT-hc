@@ -389,8 +389,8 @@ DevManager::HandlerDevCmdLstAdd(
 
         if (deviceFind.get() == NULL) {
             DbDevice deviceAdd = m_pDbModelDb->Add(new DbDeviceItem());
-            deviceAdd.Modify()->DevId    = lstDevAdd[i].devid;
-            deviceAdd.Modify()->MacId    = lstDevAdd[i].mac;
+            deviceAdd.Modify()->DevId = lstDevAdd[i].devid;
+            deviceAdd.Modify()->MacId = lstDevAdd[i].mac;
             deviceAdd.Modify()->Position = lstDevAdd[i].order;
             deviceAdd.Modify()->TypeDev  = lstDevAdd[i].type;
             deviceAdd.Modify()->TypeNet  = lstDevAdd[i].netwk;
