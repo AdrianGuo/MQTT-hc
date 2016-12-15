@@ -44,6 +44,7 @@
 #define LUMI_DEVICE_FAN                                 (3)
 #define LUMI_DEVICE_CURTAIN                             (4)
 #define LUMI_DEVICE_IR                                  (5)
+#define LUMI_DEVICE_POWER                               (127)
 #define LUMI_DEVICE_PIR                                 (128)
 #define LUMI_DEVICE_DOOR                                (129)
 #define LUMI_DEVICE_TEMPERATURE                         (130)

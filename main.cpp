@@ -28,7 +28,10 @@
 #include "ZbCtrller.hpp"
 #include "HCCtrller.hpp"
 #include "LogPlus.hpp"
+
+#ifdef MT7688
 #include "LED.hpp"
+#endif
 
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -66,8 +69,10 @@ int main(int argc, char* argv[]) {
         return (-1);
     }
 
+#ifdef MT7688
     LED led(0);
     led.On();
+#endif
 
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
     LOG_DEBUG("start log");

@@ -151,7 +151,7 @@ ZbZdoCmd::DeviceAnnounce(
 
     } else {
         m_mapTemps[wNwk]   = MAC;
-        ActiveEndpointRequest(wNwk);
+//        ActiveEndpointRequest(wNwk);
     }
     // ZB Device Type (router, end device - sleepable)!!!
 }

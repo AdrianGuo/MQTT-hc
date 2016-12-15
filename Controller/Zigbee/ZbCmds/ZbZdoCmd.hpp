@@ -11,6 +11,7 @@
 #include <typedefs.h>
 #include <Map.hpp>
 #include <string>
+#include <RTimer.hpp>
 #include <ZbDeviceDb.hpp>
 
 typedef struct {
@@ -26,6 +27,10 @@ typedef Map<u16_t, EPInfor_t>*  DeviceLogic_p;
 class ZbZdoCmd {
 private:
     Map<u16_t,String> m_mapTemps;
+
+    RTimer_p m_pTimer;
+    timerFunctor_t m_Functor;
+    int_t m_iHandle;
 
     ZbZdoCmd();
 
