@@ -3,7 +3,24 @@
 #include <termios.h>
 #include <sys/signal.h>
 #include <sys/select.h>
-
+/*******************************************************************************
+ *
+ * Copyright (c) 2016
+ * Lumi, JSC.
+ * All Rights Reserved
+ *
+ *
+ * Description:      Include file for application
+ *
+ * Author:
+ *
+ * Last Changed By:  TrungTQ
+ * Revision:         Revision: 1.0
+ * Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
+ *
+ * Note:
+ *
+ ******************************************************************************/
 #include "LogPlus.hpp"
 #include "Serial.hpp"
 
@@ -97,7 +114,8 @@ Serial::SerialThreadProc(
 
             if (pSendPacket != NULL) {
                 int_t iResult = 0;
-                if ((iResult = write(m_idwPortfd, pSendPacket->GetBuffer(), pSendPacket->Length())) == SERIAL_ERROR) {
+                if ((iResult = write(m_idwPortfd, pSendPacket->GetBuffer(),
+                     pSendPacket->Length())) == SERIAL_ERROR) {
                     LOG_ERROR("send packet fail");
                 }
                 delete pSendPacket;
@@ -195,7 +213,8 @@ Serial::Connect() {
     bool_t boRetval = TRUE;
     m_pSerialLocker->Lock();
     if (!m_boIsConnected) {
-        if ((m_idwPortfd = open(m_strNamePort.data(), O_RDWR | O_NOCTTY | O_NONBLOCK)) == SERIAL_ERROR) {
+        if ((m_idwPortfd = open(m_strNamePort.data(),
+             O_RDWR | O_NOCTTY | O_NONBLOCK)) == SERIAL_ERROR) {
             LOG_ERROR("connect fail");
             boRetval = FALSE;
         } else {

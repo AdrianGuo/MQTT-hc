@@ -46,10 +46,10 @@ ZwPacket::IsChecksumValid(
  * @retval None
  */
 ZwPacket::ZwPacket(
-    u32_t byLength
-) : Packet (byLength) {
-    m_byTpeOfFrame = 0;
-    m_byFunctionId = 0;
+    u32_t dwLenOfFrame
+) : Packet (dwLenOfFrame),
+    m_byTpeOfFrame (0),
+    m_byFunctionId (0) {
 }
 
 /**
@@ -59,12 +59,12 @@ ZwPacket::ZwPacket(
  * @retval None
  */
 ZwPacket::ZwPacket(
-    u8_t byTpeOfFrame,
-    u8_t byCommand,
-    u32_t dwLength
-) : Packet (dwLength) ,
+    u8_t  byTpeOfFrame,
+    u8_t  byFunctionId,
+    u32_t dwLenOfFrame
+) : Packet (dwLenOfFrame) ,
     m_byTpeOfFrame (byTpeOfFrame),
-    m_byFunctionId (byCommand) {
+    m_byFunctionId (byFunctionId) {
 
 }
 
@@ -85,9 +85,9 @@ ZwPacket::~ZwPacket() {
  */
 void_t
 ZwPacket::SetTpeOfFrame(
-    u8_t byTypeOfFrame
+    u8_t byTpeOfFrame
 ) {
-    m_byTpeOfFrame = byTypeOfFrame;
+    m_byTpeOfFrame = byTpeOfFrame;
 }
 
 /**
@@ -98,9 +98,9 @@ ZwPacket::SetTpeOfFrame(
  */
 void_t
 ZwPacket::SetFunctionId(
-    u8_t byCommand
+    u8_t byFunctionId
 ) {
-    m_byFunctionId = byCommand;
+    m_byFunctionId = byFunctionId;
 }
 
 /**

@@ -68,7 +68,7 @@ ZwCmdCtrller::ProcSendJsonAddedNode(
     node.type  = byNodeType;
     node.netwk = ZWAVE_NETW;
     node.order = ROOT_ORDER;
-    node.mac   = "FFFFFFFF";
+    node.mac   = "FFFFFFFFFFFF";
 
     zwLstNode.push_back(node);
 
@@ -294,7 +294,7 @@ ZwCmdCtrller::HandleAddNodeToNetworkRequest(
                     return;
                 }
 
-                u32_t dwHomeId = m_ValueZwCmdCtrller.homeId;
+                u32_t dwHomeId = m_ValueZwCmdCtrller.homeId.GetValue();
                 if (m_ValueLstNode[byNodeId - 1] == NULL) {
                     m_ValueLstNode[byNodeId - 1] = new ZwNode(dwHomeId, byNodeId);
                     m_ValueLstNode[byNodeId - 1]->SetNodeId(byNodeId);
@@ -697,7 +697,7 @@ ZwCmdCtrller::HandleGetNodeProtocolInfoRespose(
 
     if (m_ValueZwDriver.expectedFuncId == pZwPacket->GetFunctionId()) {
         u8_p pBuffer      = pZwPacket->GetBuffer();
-        u8_t byNodeId     = m_ValueZwDriver.expectedNodeId;
+        u8_t byNodeId     = m_ValueZwDriver.expectedNodeId.GetValue();
         u8_t byCapability = pBuffer[0];
         u8_t bySecurity   = pBuffer[1];
         u8_t byBasic      = pBuffer[3];

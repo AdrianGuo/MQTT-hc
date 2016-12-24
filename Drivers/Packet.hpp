@@ -2,7 +2,6 @@
 #define PACKET_HPP_
 
 #include <typedefs.h>
-#include <Vector.hpp>
 
 class Packet {
 private:

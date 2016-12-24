@@ -1,25 +1,25 @@
 /*******************************************************************************
-*
-* Copyright (c) 2016
-* Lumi, JSC.
-* All Rights Reserved
-*
-*
-* Description:      Include file for application
-*
-* Author:
-*
-* Last Changed By:  TrungTQ
-* Revision:         Revision: 1.0
-* Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
-*
-* Note:             
-*
-*******************************************************************************/
+ *
+ * Copyright (c) 2016
+ * Lumi, JSC.
+ * All Rights Reserved
+ *
+ * Description:      Include file for application
+ *
+ * Author:
+ *
+ * Last Changed By:  TrungTQ
+ * Revision:         Revision: 1.0
+ * Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
+ *
+ * Note:
+ *
+ ******************************************************************************/
 
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
+#include <HcCtrller.hpp>
 #include <stddef.h>
 #include <unistd.h>
 #include "HelperHc.hpp"
@@ -87,7 +87,14 @@
 #include "JsonRoomLstDev.hpp"
 #include "JsonRoomLstDevRes.hpp"
 
-#include "HCCtrller.hpp"
+#include "JsonRuleActv.hpp"
+#include "JsonRuleAdd.hpp"
+#include "JsonRuleDel.hpp"
+#include "JsonRuleEdit.hpp"
+#include "JsonRuleEna.hpp"
+#include "JsonRuleGet.hpp"
+#include "JsonRuleInfor.hpp"
+
 
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -114,7 +121,7 @@
  * @param  None
  * @retval None
  */
-HCCtrller::HCCtrller(
+HcCtrller::HcCtrller(
     const_char_p ipname,
     int_t ipport,
     const_char_p cMacID,
@@ -122,25 +129,27 @@ HCCtrller::HCCtrller(
 ) : m_DbManager(),
     m_DevManager(),
     m_NetManager(cMacID),
+    m_RuManager(),
     m_SessionClient (ipname, ipport),
     m_SessionServer (openedport),
     m_pZwCtrller (NULL),
     m_pZbCtrller (NULL),
+    m_pRuleCtrller (NULL),
     m_pHCCtrllerLocker (new Locker()),
     m_boIsDebug (FALSE) {
     m_pDbModelDb = DbModel::CreateModel("newhc.db");
     m_HCCtrllerFunctor =
-    makeFunctor((HCCtrllerFunctor_p) NULL, *this, &HCCtrller::RecvCommandFromSession);
+    makeFunctor((HCCtrllerFunctor_p) NULL, *this, &HcCtrller::RecvCommandFromSession);
     m_CtrllerFunctor =
-    makeFunctor((CtrllerFunctor_p) NULL, *this, &HCCtrller::RecvCommandFromModules);
+    makeFunctor((CtrllerFunctor_p) NULL, *this, &HcCtrller::RecvCommandFromModules);
 
     m_DbManager.SetFunctor (&m_CtrllerFunctor);
     m_NetManager.SetFunctor(&m_CtrllerFunctor);
     m_DevManager.SetFunctor(&m_CtrllerFunctor);
+    m_RuManager.SetFunctor (&m_CtrllerFunctor);
 
     m_NetManager.SetSessionClient(&m_SessionClient);
     m_SessionClient.SClientRecvFunctor(&m_HCCtrllerFunctor);
-    m_SessionServer.RecvFunctor(&m_HCCtrllerFunctor);
     RegisterHandler();
 }
 
@@ -150,7 +159,7 @@ HCCtrller::HCCtrller(
  * @param  None
  * @retval None
  */
-HCCtrller::~HCCtrller() {
+HcCtrller::~HcCtrller() {
     if (m_pHCCtrllerLocker != NULL) {
         delete m_pHCCtrllerLocker;
         m_pHCCtrllerLocker = NULL;
@@ -179,7 +188,7 @@ HCCtrller::~HCCtrller() {
  * @retval None
  */
 void_t
-HCCtrller::RegisterHandler(
+HcCtrller::RegisterHandler(
     String strJsonCommand,
     HandlerJsonCmdFunctor_t funcTor
 ) {
@@ -193,7 +202,7 @@ HCCtrller::RegisterHandler(
  * @retval None
  */
 void_t
-HCCtrller::RegisterHandler() {
+HcCtrller::RegisterHandler() {
     /* Database */
     // Floor
     RegisterHandler(JsonFloorAdd::GetStrCmd(),
@@ -251,12 +260,29 @@ HCCtrller::RegisterHandler() {
     RegisterHandler(JsonAuthReq::GetStrCmd(),
     makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdAuthReq));
 
+
     /* Network */
     RegisterHandler(JsonAuthRes::GetStrCmd(),
     makeFunctor((HandlerNetCmdFunctor_p) NULL, m_NetManager, &NetManager::HandlerNetCmdAuthRes));
     RegisterHandler(JsonKaliveRes::GetStrCmd(),
     makeFunctor((HandlerNetCmdFunctor_p) NULL, m_NetManager, &NetManager::HandlerNetCmdKaliveRes));
 
+
+    /* Rule */
+    RegisterHandler(JsonRuleActv::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
+    RegisterHandler(JsonRuleAdd::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
+    RegisterHandler(JsonRuleDel::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
+    RegisterHandler(JsonRuleEdit::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
+    RegisterHandler(JsonRuleEna::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
+    RegisterHandler(JsonRuleGet::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
+    RegisterHandler(JsonRuleInfor::GetStrCmd(),
+    makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
 }
 
 /**
@@ -266,7 +292,7 @@ HCCtrller::RegisterHandler() {
  * @retval None
  */
 void_t
-HCCtrller::ProcessHandler(
+HcCtrller::ProcessHandler(
     JsonCommand_p pJsonCommand
 ) {
     String strJsonCommandName = pJsonCommand->GetFullCommand();
@@ -284,7 +310,7 @@ HCCtrller::ProcessHandler(
  * @retval None
  */
 void_t
-HCCtrller::Debug() {
+HcCtrller::Debug() {
     m_boIsDebug = TRUE;
     m_SessionClient.Connect();
     m_SessionClient.Start();
@@ -297,11 +323,10 @@ HCCtrller::Debug() {
  * @retval None
  */
 void_t
-HCCtrller::Connect() {
+HcCtrller::Connect() {
     m_boIsDebug = FALSE;
     m_NetManager.Connect();
 }
-
 
 /**
  * @func   Connect
@@ -310,7 +335,7 @@ HCCtrller::Connect() {
  * @retval None
  */
 void_t
-HCCtrller::Serve() {
+HcCtrller::Serve() {
     m_SessionServer.Serve();
     m_SessionServer.Start();
 }
@@ -322,7 +347,7 @@ HCCtrller::Serve() {
  * @retval None
  */
 void_t
-HCCtrller::AddZwCtrller(
+HcCtrller::AddZwCtrller(
     ZwCtrller_p pZwCtrller
 ) {
     m_pZwCtrller = pZwCtrller;
@@ -336,11 +361,25 @@ HCCtrller::AddZwCtrller(
  * @retval None
  */
 void_t
-HCCtrller::AddZbCtrller(
+HcCtrller::AddZbCtrller(
     ZbCtrller_p pZbCtrller
 ) {
     m_pZbCtrller = pZbCtrller;
     m_pZbCtrller->CtrllerRecvFunctor(&m_CtrllerFunctor);
+}
+
+/**
+ * @func   AddZbCtrller
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+HcCtrller::AddRuleCtrller(
+    RuleCtrller_p pRuleCtrller
+) {
+    m_pRuleCtrller = pRuleCtrller;
+    m_pRuleCtrller->CtrllerRecvFunctor(&m_CtrllerFunctor);
 }
 
 /**
@@ -350,7 +389,7 @@ HCCtrller::AddZbCtrller(
  * @retval None
  */
 bool_t
-HCCtrller::RecvCommandFromSession(
+HcCtrller::RecvCommandFromSession(
     JsonCommand_p pJsonCommand
 ) {
     m_pHCCtrllerLocker->Lock();
@@ -373,7 +412,7 @@ HCCtrller::RecvCommandFromSession(
  * @retval None
  */
 bool_t
-HCCtrller::RecvCommandFromModules(
+HcCtrller::RecvCommandFromModules(
     JsonCommand_p pJsonCommand
 ) {
     m_pHCCtrllerLocker->Lock();
@@ -396,7 +435,7 @@ HCCtrller::RecvCommandFromModules(
  * @retval None
  */
 void_t
-HCCtrller::Process() {
+HcCtrller::Process() {
     JsonCommand_p pJsonCommand = NULL;
 
     m_pHCCtrllerLocker->Lock();
@@ -428,6 +467,13 @@ HCCtrller::Process() {
                 delete pJsonCommand;
                 pJsonCommand = NULL;
             }
+        } else if (pJsonCommand->GetDesFlag() == JsonCommand::Flag::Rule) {
+            if (m_pRuleCtrller != NULL) {
+                m_pRuleCtrller->ProcessHandler(pJsonCommand);
+            } else {
+                delete pJsonCommand;
+                pJsonCommand = NULL;
+            }
         } else if (pJsonCommand->GetDesFlag() == JsonCommand::Flag::Client) {
             m_SessionServer.JsCommandToPacket(pJsonCommand);
         } else {
@@ -436,7 +482,7 @@ HCCtrller::Process() {
     }
 
     m_NetManager.Process();
-    usleep(50);
+    usleep(500);
 }
 
 /******************************************************************************/

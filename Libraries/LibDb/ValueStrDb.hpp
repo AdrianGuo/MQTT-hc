@@ -38,21 +38,17 @@ public:
     ValueStrDb& operator= (const_char_p rhs);
 
     bool_t operator== (const ValueStrDb& rhs) const;
-    bool_t operator== (const String strValue) const;
-
     bool_t operator!= (const ValueStrDb& rhs) const;
-    bool_t operator!= (const String strValue) const;
-
     bool_t operator>  (const ValueStrDb& rhs) const;
-    bool_t operator>  (const String strValue) const;
-
     bool_t operator>= (const ValueStrDb& rhs) const;
-    bool_t operator>= (const String strValue) const;
-
-    bool_t operator< (const ValueStrDb& rhs) const;
-    bool_t operator< (const String strValue) const;
-
+    bool_t operator<  (const ValueStrDb& rhs) const;
     bool_t operator<= (const ValueStrDb& rhs) const;
+
+    bool_t operator== (const String strValue) const;
+    bool_t operator!= (const String strValue) const;
+    bool_t operator>  (const String strValue) const;
+    bool_t operator>= (const String strValue) const;
+    bool_t operator<  (const String strValue) const;
     bool_t operator<= (const String strValue) const;
 
     operator String()  { return m_strValue; }

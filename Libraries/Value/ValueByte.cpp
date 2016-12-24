@@ -81,13 +81,13 @@ ValueByte::operator= (
  */
 bool_t
 ValueByte::operator== (
-    ValueByte& rhs
+    const ValueByte& rhs
 ) const {
     return m_byValue == rhs.GetValue();
 }
 
 /**
- * @func
+ * @func   operator==
  * @brief  None
  * @param  None
  * @retval None
@@ -107,7 +107,7 @@ ValueByte::operator== (
  */
 bool_t
 ValueByte::operator!= (
-    ValueByte& rhs
+    const ValueByte& rhs
 ) const {
     return m_byValue != rhs.GetValue();
 }
@@ -133,7 +133,7 @@ ValueByte::operator!= (
  */
 bool_t
 ValueByte::operator>  (
-    ValueByte& rhs
+    const ValueByte& rhs
 ) const {
     return m_byValue > rhs.GetValue();
 }
@@ -159,7 +159,7 @@ ValueByte::operator>  (
  */
 bool_t
 ValueByte::operator>= (
-    ValueByte& rhs
+    const ValueByte& rhs
 ) const {
     return m_byValue >= rhs.GetValue();
 }
@@ -185,7 +185,7 @@ ValueByte::operator>= (
  */
 bool_t
 ValueByte::operator<  (
-    ValueByte& rhs
+    const ValueByte& rhs
 ) const {
     return m_byValue < rhs.GetValue();
 }
@@ -211,7 +211,7 @@ ValueByte::operator<  (
  */
 bool_t
 ValueByte::operator<= (
-    ValueByte& rhs
+    const ValueByte& rhs
 ) const {
     return m_byValue <= rhs.GetValue();
 }
@@ -227,4 +227,88 @@ ValueByte::operator<= (
     const u8_t byValue
 ) const {
     return m_byValue <= byValue;
+}
+
+/**
+ * @func   operator!=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator!= (
+    const u8_t lhs,
+    const ValueByte& rhs
+) {
+    return lhs != rhs.GetValue();
+}
+
+/**
+ * @func   operator==
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator== (
+    const u8_t lhs,
+    const ValueByte& rhs
+) {
+    return lhs == rhs.GetValue();
+}
+
+/**
+ * @func   operator>
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>  (
+    const u8_t lhs,
+    const ValueByte& rhs
+) {
+    return lhs > rhs.GetValue();
+}
+
+/**
+ * @func   operator>=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>= (
+    const u8_t lhs,
+    const ValueByte& rhs
+) {
+    return lhs >= rhs.GetValue();
+}
+
+/**
+ * @func   operator<
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<  (
+    const u8_t lhs,
+    const ValueByte& rhs
+) {
+    return lhs < rhs.GetValue();
+}
+
+/**
+ * @func   operator<=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<= (
+    const u8_t lhs,
+    const ValueByte& rhs
+) {
+    return lhs <= rhs.GetValue();
 }

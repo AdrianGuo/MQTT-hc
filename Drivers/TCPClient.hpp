@@ -1,5 +1,5 @@
-#ifndef CLIENTSOCK_HPP_
-#define CLIENTSOCK_HPP_
+#ifndef TCP_CLIENT_HPP_
+#define TCP_CLIENT_HPP_
 
 #include "typedefs.h"
 #include "Functor.hpp"
@@ -21,11 +21,11 @@ typedef sockaddr_t*                         sockaddr_p;
 typedef Functor2_t(u8_p, u32_t)             SClientFunctor_t;
 typedef SClientFunctor_t*                   SClientFunctor_p;
 
-class ClientSock {
+class TCPClient {
 private:
     int_t m_idwSockfd;
     int_t m_idwPort;
-    u8_p m_pByBuffer;
+    u8_p m_pbBuffer;
 
     bool_t m_boIsConnected;
     bool_t m_boIsClosing;
@@ -45,8 +45,8 @@ private:
     bool_t IsWritable(u32_t dwMsecTimeout);
     bool_t IsReadable(u32_t dwMsecTimeout);
 public:
-    ClientSock(const_char_p pChostname, int_t idwPort);
-    virtual ~ClientSock();
+    TCPClient(const_char_p pChostname, int_t idwPort);
+    virtual ~TCPClient();
     
     void_p ClientSockThreadProc(void_p pBuffer);
 
@@ -70,7 +70,7 @@ public:
     void_t PushPacket(Packet_p pOutgoing);
 };
 
-typedef ClientSock  ClientSock_t;
-typedef ClientSock* ClientSock_p;
+typedef TCPClient  TCPClient_t;
+typedef TCPClient* TCPClient_p;
 
-#endif /* CLIENTSOCK_HPP_ */
+#endif /* !TCP_CLIENT_HPP_ */

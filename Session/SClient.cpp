@@ -118,22 +118,12 @@ SClient::ParseData(
         size_t posEqual = strRawJsonCommand.substr(posBegin, posParen).find(DE2); // find 1st =
         posBegin = strRawJsonCommand.substr(posBegin, posBegin + posEqual).find(STA); // find 1st $
 
-        String strCmdClass  = strRawJsonCommand.substr(posBegin + STA.length(), posEqual - posBegin - STA.length());
-        String strCmd       = strRawJsonCommand.substr(posEqual + DE2.length(), posParen - posEqual - DE2.length());
-        String strJson      = strRawJsonCommand.substr(posParen, posEnd - posParen);
-
-        if(m_strDupChecking != (strCmdClass + strCmd + strJson) ||
-                (strCmdClass + strCmd) == String("devadd") ||
-                (strCmdClass + strCmd) == String("devdel") ||
-                (strCmdClass + strCmd) == String("devreset")
-        ){
-            m_vecStringJsonCommand.push_back(strCmdClass);
-            m_vecStringJsonCommand.push_back(strCmd);
-            m_vecStringJsonCommand.push_back(strJson);
-
-            m_strDupChecking.clear();
-            m_strDupChecking = strCmdClass + strCmd + strJson;
-        }
+        m_vecStringJsonCommand.push_back(
+        strRawJsonCommand.substr(posBegin + STA.length(), posEqual - posBegin - STA.length()));
+        m_vecStringJsonCommand.push_back(
+        strRawJsonCommand.substr(posEqual + DE2.length(), posParen - posEqual - DE2.length()));
+        m_vecStringJsonCommand.push_back(
+        strRawJsonCommand.substr(posParen, posEnd - posParen));
 
         strRawJsonCommand = strRawJsonCommand.substr(posEnd + END.length(), strRawJsonCommand.length());
         m_strRemainder = strRawJsonCommand;
@@ -169,7 +159,7 @@ SClient::BufferToJsCmdClass(
         String strJsonValue = m_vecStringJsonCommand[i*3 + 2];
         String strFullCommand = strCmdClass + "=" + strCommand;
 
-//        LOG_DEBUG("parse $%s%s$end", strFullCommand.c_str(), strJsonValue.c_str());
+        LOG_DEBUG("parse $%s%s$end", strFullCommand.c_str(), strJsonValue.c_str());
 
         JsonCommand_p pJsonCommand = new JsonCommand(strFullCommand, strJsonValue);
 

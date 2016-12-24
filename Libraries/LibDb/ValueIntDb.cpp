@@ -150,8 +150,8 @@ ValueIntDb::operator== (
  */
 bool_t
 ValueIntDb::operator== (
-    int_t iValue
-) {
+    const int_t iValue
+) const {
     return m_iValue == iValue;
 }
 
@@ -176,8 +176,8 @@ ValueIntDb::operator!= (
  */
 bool_t
 ValueIntDb::operator!= (
-    int_t iValue
-) {
+    const int_t iValue
+) const {
     return m_iValue != iValue;
 }
 
@@ -202,8 +202,8 @@ ValueIntDb::operator>  (
  */
 bool_t
 ValueIntDb::operator>  (
-    int_t iValue
-) {
+    const int_t iValue
+) const {
     return m_iValue > iValue;
 }
 
@@ -228,8 +228,8 @@ ValueIntDb::operator>= (
  */
 bool_t
 ValueIntDb::operator>= (
-    int_t iValue
-) {
+    const int_t iValue
+) const {
     return m_iValue >= iValue;
 }
 
@@ -254,8 +254,8 @@ ValueIntDb::operator<  (
  */
 bool_t
 ValueIntDb::operator<  (
-    int_t iValue
-) {
+    const int_t iValue
+) const {
     return m_iValue < iValue;
 }
 
@@ -280,8 +280,8 @@ ValueIntDb::operator<= (
  */
 bool_t
 ValueIntDb::operator<= (
-    int_t iValue
-) {
+    const int_t iValue
+) const {
     return m_iValue <= iValue;
 }
 

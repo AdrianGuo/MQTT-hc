@@ -21,7 +21,7 @@
 class ValueZwCmdCtrller {
 public:
     ValueDword& homeId;
-    ValueByte&  nodeId;
+    ValueByte& nodeId;
 
     ValueZwCmdCtrller(
         ValueDword& dwHomeId,

@@ -81,7 +81,7 @@ ValueWord::operator= (
  */
 bool_t
 ValueWord::operator== (
-    ValueWord& rhs
+    const ValueWord& rhs
 ) const {
     return m_wValue == rhs.GetValue();
 }
@@ -107,7 +107,7 @@ ValueWord::operator== (
  */
 bool_t
 ValueWord::operator!= (
-    ValueWord& rhs
+    const ValueWord& rhs
 ) const {
     return m_wValue != rhs.GetValue();
 }
@@ -133,7 +133,7 @@ ValueWord::operator!= (
  */
 bool_t
 ValueWord::operator> (
-    ValueWord& rhs
+    const ValueWord& rhs
 ) const {
     return m_wValue > rhs.GetValue();
 }
@@ -159,7 +159,7 @@ ValueWord::operator> (
  */
 bool_t
 ValueWord::operator>= (
-    ValueWord& rhs
+    const ValueWord& rhs
 ) const {
     return m_wValue >= rhs.GetValue();
 }
@@ -185,7 +185,7 @@ ValueWord::operator>= (
  */
 bool_t
 ValueWord::operator< (
-    ValueWord& rhs
+    const ValueWord& rhs
 ) const {
     return m_wValue < rhs.GetValue();
 }
@@ -211,7 +211,7 @@ ValueWord::operator< (
  */
 bool_t
 ValueWord::operator<= (
-    ValueWord& rhs
+    const ValueWord& rhs
 ) const {
     return m_wValue < rhs.GetValue();
 }
@@ -227,4 +227,88 @@ ValueWord::operator<= (
     const u16_t wValue
 ) const {
     return m_wValue <= wValue;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator!= (
+    const u16_t lhs,
+    const ValueWord& rhs
+) {
+    return lhs != rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator== (
+    const u16_t lhs,
+    const ValueWord& rhs
+) {
+    return lhs == rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>  (
+    const u16_t lhs,
+    const ValueWord& rhs
+) {
+    return lhs > rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>= (
+    const u16_t lhs,
+    const ValueWord& rhs
+) {
+    return lhs >= rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<  (
+    const u16_t lhs,
+    const ValueWord& rhs
+) {
+    return lhs < rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<= (
+    const u16_t lhs,
+    const ValueWord& rhs
+) {
+    return lhs <= rhs.GetValue();
 }

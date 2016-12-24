@@ -81,7 +81,7 @@ ValueDword::operator= (
  */
 bool_t
 ValueDword::operator== (
-    ValueDword& rhs
+    const ValueDword& rhs
 ) const {
     return m_dwValue == rhs.GetValue();
 }
@@ -94,7 +94,7 @@ ValueDword::operator== (
  */
 bool_t
 ValueDword::operator== (
-    u32_t dwValue
+    const u32_t dwValue
 ) const {
     return m_dwValue == dwValue;
 }
@@ -107,7 +107,7 @@ ValueDword::operator== (
  */
 bool_t
 ValueDword::operator!= (
-    ValueDword& rhs
+    const ValueDword& rhs
 ) const {
     return m_dwValue != rhs.GetValue();
 }
@@ -133,7 +133,7 @@ ValueDword::operator!= (
  */
 bool_t
 ValueDword::operator>  (
-    ValueDword& rhs
+    const ValueDword& rhs
 ) const {
     return m_dwValue > rhs.GetValue();
 }
@@ -159,7 +159,7 @@ ValueDword::operator>  (
  */
 bool_t
 ValueDword::operator>= (
-    ValueDword& rhs
+    const ValueDword& rhs
 ) const {
     return m_dwValue >= rhs.GetValue();
 }
@@ -185,7 +185,7 @@ ValueDword::operator>= (
  */
 bool_t
 ValueDword::operator<  (
-    ValueDword& rhs
+    const ValueDword& rhs
 ) const {
     return m_dwValue < rhs.GetValue();
 }
@@ -211,7 +211,7 @@ ValueDword::operator<  (
  */
 bool_t
 ValueDword::operator<= (
-    ValueDword& rhs
+    const ValueDword& rhs
 ) const {
     return m_dwValue <= rhs.GetValue();
 }
@@ -227,4 +227,88 @@ ValueDword::operator<= (
     const u32_t dwValue
 ) const {
     return m_dwValue <= dwValue;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator!= (
+    const u32_t lhs,
+    const ValueDword& rhs
+) {
+    return lhs != rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator== (
+    const u32_t lhs,
+    const ValueDword& rhs
+) {
+    return lhs == rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>  (
+    const u32_t lhs,
+    const ValueDword& rhs
+) {
+    return lhs > rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>= (
+    const u32_t lhs,
+    const ValueDword& rhs
+) {
+    return lhs >= rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<  (
+    const u32_t lhs,
+    const ValueDword& rhs
+) {
+    return lhs < rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<= (
+    const u32_t lhs,
+    const ValueDword& rhs
+) {
+    return lhs <= rhs.GetValue();
 }

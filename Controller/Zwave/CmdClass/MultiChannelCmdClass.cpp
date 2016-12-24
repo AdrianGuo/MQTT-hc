@@ -382,7 +382,7 @@ MultiChannelCmdClass::HandleMultiChannelCapabilityReport(
         node.devid = (i32_t) byRootId;
         node.order = byEndpoint;
         node.type = pZwEndPoint->GetDevType();
-        node.mac = "FFFFFFFF";
+        node.mac = "FFFFFFFFFFFF";
         node.netwk = ZWAVE_NETW;
         lstNode.push_back(node);
 

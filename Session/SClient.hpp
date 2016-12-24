@@ -1,9 +1,9 @@
 #ifndef SCLIENT_HPP
 #define SCLIENT_HPP
 
+#include <TCPClient.hpp>
 #include "typedefs.h"
 #include "Vector.hpp"
-#include "ClientSock.hpp"
 #include "Vector.hpp"
 #include "String.hpp"
 #include "JsonCommand.hpp"
@@ -17,9 +17,8 @@ typedef HCCtrllerFunctor_t*                         HCCtrllerFunctor_p;
 
 class SClient {
 private:
-    ClientSock_t m_ClientSock;
+    TCPClient_t m_ClientSock;
     String       m_strRemainder;
-    String m_strDupChecking;
     SClientFunctor_t    m_SClientSendFunctor;
     HCCtrllerFunctor_p  m_pHCCtrllerRecvFunctor;
     Vector<String>      m_vecStringJsonCommand;

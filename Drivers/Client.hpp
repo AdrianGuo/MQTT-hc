@@ -4,11 +4,12 @@
  *  Created on: Oct 20, 2016
  *      Author: taho
  */
-#include <typedefs.h>
-#include <String.hpp>
-#include <Locker.hpp>
-#include <Packet.hpp>
-#include <Queue.hpp>
+#include "typedefs.h"
+#include "String.hpp"
+#include "Locker.hpp"
+#include "Packet.hpp"
+#include "Queue.hpp"
+#include "Vector.hpp"
 #include <netinet/in.h>
 
 #ifndef CLIENT_HPP_

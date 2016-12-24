@@ -60,7 +60,33 @@ ValueBool::operator= (
 }
 
 /**
- * @func
+ * @func   operator==
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueBool::operator== (
+    const ValueBool& rhs
+) const {
+    return m_boValue == rhs.GetValue();
+}
+
+/**
+ * @func   operator!=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueBool::operator!= (
+    const ValueBool& rhs
+) const {
+    return m_boValue != rhs.GetValue();
+}
+
+/**
+ * @func   operator==
  * @brief  None
  * @param  None
  * @retval None
@@ -73,7 +99,7 @@ ValueBool::operator== (
 }
 
 /**
- * @func
+ * @func   operator!=
  * @brief  None
  * @param  None
  * @retval None
@@ -83,4 +109,32 @@ ValueBool::operator!= (
     const bool_t boValue
 ) const {
     return m_boValue != boValue;
+}
+
+/**
+ * @func   operator!=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator!= (
+    const bool_t lhs,
+    const ValueBool& rhs
+) {
+    return lhs != rhs.GetValue();
+}
+
+/**
+ * @func   operator==
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator== (
+    const bool_t lhs,
+    const ValueBool& rhs
+) {
+    return lhs == rhs.GetValue();
 }

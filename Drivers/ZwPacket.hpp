@@ -13,10 +13,10 @@ private:
     u8_t CalculateChecksum();
 
 public:
-    ZwPacket(u32_t byLength = 0);
-    ZwPacket(u8_t byTypeOfFrame,
-             u8_t byFunctionId,
-             u32_t dwLength);
+    ZwPacket(u32_t dwLenOfFrame = 0);
+    ZwPacket(u8_t  byTpeOfFrame,
+             u8_t  byFunctionId,
+             u32_t dwLenOfFrame);
     virtual ~ZwPacket();
     
     u8_t GetTpeOfFrame();

@@ -1,21 +1,20 @@
 /*******************************************************************************
-*
-* Copyright (c) 2016
-* Lumi, JSC.
-* All Rights Reserved
-*
-*
-* Description:      Include file for application
-*
-* Author:
-*
-* Last Changed By:  TrungTQ
-* Revision:         Revision: 1.0
-* Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
-*
-* Note:             
-*
-*******************************************************************************/
+ *
+ * Copyright (c) 2016
+ * Lumi, JSC.
+ * All Rights Reserved
+ *
+ * Description:      Include file for application
+ *
+ * Author:
+ *
+ * Last Changed By:  TrungTQ
+ * Revision:         Revision: 1.0
+ * Last Changed:     Date: 2016-08-08 10:00:00 (Mon, 08 Aug 2016)
+ *
+ * Note:
+ *
+ ******************************************************************************/
 #ifndef NETCTRLLER_HPP_
 #define NETCTRLLER_HPP_
 

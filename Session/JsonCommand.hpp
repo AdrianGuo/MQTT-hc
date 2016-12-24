@@ -22,6 +22,7 @@ public:
         Local       = 0x0002,
         NetWork     = 0x0004,
         Coord       = 0x0008,
+        Rule        = 0x0010,
         Zwave       = 0x0020,
         Zigbee      = 0x0040,
         Client      = 0x0080
@@ -30,6 +31,7 @@ public:
     const static u32_t SrcDefault = Flag::Server;
     const static u32_t DesDefault = Flag::Coord;
 
+    JsonCommand(JsonCommand* pJsonCommand);
     JsonCommand(String strFullCommand, String strJson = "",
                 u32_t dwSrcFlag = SrcDefault, u32_t dwDesFlag = DesDefault);
     virtual ~JsonCommand();

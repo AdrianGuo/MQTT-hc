@@ -17,28 +17,29 @@ public:
     ValueWord& operator= (ValueWord& rhs);
     ValueWord& operator= (u16_t wValue);
 
-    bool_t operator== (ValueWord& rhs) const;
+    bool_t operator== (const ValueWord& rhs) const;
+    bool_t operator!= (const ValueWord& rhs) const;
+    bool_t operator>  (const ValueWord& rhs) const;
+    bool_t operator>= (const ValueWord& rhs) const;
+    bool_t operator<  (const ValueWord& rhs) const;
+    bool_t operator<= (const ValueWord& rhs) const;
+
     bool_t operator== (const u16_t wValue) const;
-
-    bool_t operator!= (ValueWord& rhs) const;
     bool_t operator!= (const u16_t wValue) const;
-
-    bool_t operator>  (ValueWord& rhs) const;
     bool_t operator>  (const u16_t wValue) const;
-
-    bool_t operator>= (ValueWord& rhs) const;
     bool_t operator>= (const u16_t wValue) const;
-
-    bool_t operator<  (ValueWord& rhs) const;
     bool_t operator<  (const u16_t wValue) const;
-
-    bool_t operator<= (ValueWord& rhs) const;
     bool_t operator<= (const u16_t wValue) const;
 
-    operator u16_t() const { return m_wValue; }
+    friend bool_t operator!= (const u16_t lhs, const ValueWord& rhs);
+    friend bool_t operator== (const u16_t lhs, const ValueWord& rhs);
+    friend bool_t operator>  (const u16_t lhs, const ValueWord& rhs);
+    friend bool_t operator>= (const u16_t lhs, const ValueWord& rhs);
+    friend bool_t operator<  (const u16_t lhs, const ValueWord& rhs);
+    friend bool_t operator<= (const u16_t lhs, const ValueWord& rhs);
 };
 
-typedef ValueWord ValueWord_t;
+typedef ValueWord  ValueWord_t;
 typedef ValueWord* ValueWord_p;
 
 #endif /* !VALUE_WORD_HPP_ */

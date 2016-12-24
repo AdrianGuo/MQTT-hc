@@ -160,38 +160,38 @@ public:
     bool_t operator== (const String& rhs);
     bool_t operator== (const_char_p rhs);
     friend bool_t operator== (const String& lhs, const String& rhs);
-    friend bool_t operator== (const_char_p lhs, const String& rhs);
-    friend bool_t operator== (const String& lhs, const_char_p rhs);
+    friend bool_t operator== (const_char_p  lhs, const String& rhs);
+    friend bool_t operator== (const String& lhs, const_char_p  rhs);
 
     bool_t operator!= (const String& rhs);
     bool_t operator!= (const_char_p rhs);
     friend bool_t operator!= (const String& lhs, const String& rhs);
-    friend bool_t operator!= (const_char_p lhs, const String& rhs);
-    friend bool_t operator!= (const String& lhs, const_char_p rhs);
+    friend bool_t operator!= (const_char_p  lhs, const String& rhs);
+    friend bool_t operator!= (const String& lhs, const_char_p  rhs);
 
     bool_t operator< (const String& rhs);
     bool_t operator< (const_char_p rhs);
     friend bool_t operator<  (const String& lhs, const String& rhs);
-    friend bool_t operator<  (const_char_p lhs, const String& rhs);
-    friend bool_t operator<  (const String& lhs, const_char_p rhs);
+    friend bool_t operator<  (const_char_p  lhs, const String& rhs);
+    friend bool_t operator<  (const String& lhs, const_char_p  rhs);
 
     bool_t operator<= (const String& rhs);
     bool_t operator<= (const_char_p rhs);
     friend bool_t operator<= (const String& lhs, const String& rhs);
-    friend bool_t operator<= (const_char_p lhs, const String& rhs);
-    friend bool_t operator<= (const String& lhs, const_char_p rhs);
+    friend bool_t operator<= (const_char_p  lhs, const String& rhs);
+    friend bool_t operator<= (const String& lhs, const_char_p  rhs);
 
     bool_t operator> (const String& rhs);
     bool_t operator> (const_char_p rhs);
     friend bool_t operator>  (const String& lhs, const String& rhs);
-    friend bool_t operator>  (const_char_p lhs, const String& rhs);
-    friend bool_t operator>  (const String& lhs, const_char_p rhs);
+    friend bool_t operator>  (const_char_p  lhs, const String& rhs);
+    friend bool_t operator>  (const String& lhs, const_char_p  rhs);
 
     bool_t operator>= (const String& rhs);
     bool_t operator>= (const_char_p rhs);
     friend bool_t operator>= (const String& lhs, const String& rhs);
-    friend bool_t operator>= (const_char_p   lhs, const String& rhs);
-    friend bool_t operator>= (const String& lhs, const_char_p rhs);
+    friend bool_t operator>= (const_char_p  lhs, const String& rhs);
+    friend bool_t operator>= (const String& lhs, const_char_p  rhs);
 
     String remove_char(char ch);
 };

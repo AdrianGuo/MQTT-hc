@@ -166,7 +166,7 @@ ZwNode_p
 ZwDriver::InitZwaveNode(
     u8_t byNodeId
 ) {
-    m_ValueLstNode[byNodeId - 1] = new ZwNode(m_dwHomeId, byNodeId);
+    m_ValueLstNode[byNodeId - 1] = new ZwNode(m_dwHomeId.GetValue(), byNodeId);
     m_ValueLstNode[byNodeId - 1]->SetCallbackFunctor(m_pZwCtrllerRecvFunctor);
     return m_ValueLstNode[byNodeId - 1];
 }
@@ -401,7 +401,7 @@ ZwDriver::GetZwNodeProductId(
  */
 u32_t
 ZwDriver::GetZwHomeId() const {
-    return m_dwHomeId;
+    return m_dwHomeId.GetValue();
 }
 
 /**
@@ -670,13 +670,13 @@ ZwDriver::HandleSerialApiGetInitDataResponse(
                 byCount++;
             }
         }
-        m_byChipType    = pZwPacket->GetBuffer()[byCount++];
+        m_byChipType = pZwPacket->GetBuffer()[byCount++];
         m_byChipVersion = pZwPacket->GetBuffer()[byCount];
 
         ZwDbController controllerfind = m_pZwDbModel->Find<ZwDbCtrllerItem>();
         if (controllerfind.get() != NULL) {
-            controllerfind.Modify()->ChipType    = m_byChipType;
-            controllerfind.Modify()->ChipVersion = m_byChipVersion;
+            controllerfind.Modify()->ChipType = m_byChipType.GetValue();
+            controllerfind.Modify()->ChipVersion = m_byChipVersion.GetValue();
             m_pZwDbModel->Add(controllerfind);
             m_pZwDbModel->UpdateChanges();
         }
@@ -717,8 +717,8 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
 
         ZwDbController controllerfind = m_pZwDbModel->Find<ZwDbCtrllerItem>();
         if (controllerfind.get() != NULL) {
-            controllerfind.Modify()->ManuId = m_wManuFacturerId;
-            controllerfind.Modify()->ProdId = m_wProductId;
+            controllerfind.Modify()->ManuId = m_wManuFacturerId.GetValue();
+            controllerfind.Modify()->ProdId = m_wProductId.GetValue();
             m_pZwDbModel->Add(controllerfind);
             m_pZwDbModel->UpdateChanges();
         }

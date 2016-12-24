@@ -1,7 +1,7 @@
 #include "ValueInt.hpp"
 
 /**
- * @func
+ * @func   ValueInt
  * @brief  None
  * @param  None
  * @retval None
@@ -13,7 +13,7 @@ ValueInt::ValueInt(
 }
 
 /**
- * @func
+ * @func   ~ValueInt
  * @brief  None
  * @param  None
  * @retval None
@@ -22,7 +22,7 @@ ValueInt::~ValueInt() {
 }
 
 /**
- * @func
+ * @func   GetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -34,7 +34,7 @@ ValueInt::GetValue() const {
 
 
 /**
- * @func
+ * @func   SetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -48,7 +48,7 @@ ValueInt::SetValue(
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -62,7 +62,7 @@ ValueInt::operator= (
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -76,20 +76,20 @@ ValueInt::operator= (
 }
 
 /**
- * @func
+ * @func   operator==
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
 ValueInt::operator== (
-    ValueInt& rhs
+    const ValueInt& rhs
 ) const {
     return m_iValue == rhs.GetValue();
 }
 
 /**
- * @func
+ * @func   operator==
  * @brief  None
  * @param  None
  * @retval None
@@ -102,20 +102,20 @@ ValueInt::operator== (
 }
 
 /**
- * @func
+ * @func   operator!=
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
 ValueInt::operator!= (
-    ValueInt& rhs
+    const ValueInt& rhs
 ) const {
     return m_iValue != rhs.GetValue();
 }
 
 /**
- * @func
+ * @func   operator!=
  * @brief  None
  * @param  None
  * @retval None
@@ -128,20 +128,20 @@ ValueInt::operator!= (
 }
 
 /**
- * @func
+ * @func   operator>
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
 ValueInt::operator>  (
-    ValueInt& rhs
+    const ValueInt& rhs
 ) const {
     return m_iValue > rhs.GetValue();
 }
 
 /**
- * @func
+ * @func   operator>
  * @brief  None
  * @param  None
  * @retval None
@@ -154,20 +154,20 @@ ValueInt::operator>  (
 }
 
 /**
- * @func
+ * @func   operator>=
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
 ValueInt::operator>= (
-    ValueInt& rhs
+    const ValueInt& rhs
 ) const {
     return m_iValue >= rhs.GetValue();
 }
 
 /**
- * @func
+ * @func   operator>=
  * @brief  None
  * @param  None
  * @retval None
@@ -180,14 +180,14 @@ ValueInt::operator>= (
 }
 
 /**
- * @func
+ * @func   operator<
  * @brief  None
  * @param  None
  * @retval None
  */
 bool_t
-ValueInt::operator<  (
-    ValueInt& rhs
+ValueInt::operator< (
+    const ValueInt& rhs
 ) const {
     return m_iValue < rhs.GetValue();
 }
@@ -199,7 +199,7 @@ ValueInt::operator<  (
  * @retval None
  */
 bool_t
-ValueInt::operator<  (
+ValueInt::operator< (
     const int_t iValue
 ) const {
     return m_iValue < iValue;
@@ -213,7 +213,7 @@ ValueInt::operator<  (
  */
 bool_t
 ValueInt::operator<= (
-    ValueInt& rhs
+    const ValueInt& rhs
 ) const {
     return m_iValue <= rhs.GetValue();
 }
@@ -229,4 +229,88 @@ ValueInt::operator<= (
     const int_t iValue
 ) const {
     return m_iValue < iValue;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator!= (
+    const int_t lhs,
+    const ValueInt& rhs
+) {
+    return lhs != rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator== (
+    const int_t lhs,
+    const ValueInt& rhs
+) {
+    return lhs == rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>  (
+    const int_t lhs,
+    const ValueInt& rhs
+) {
+    return lhs > rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator>= (
+    const int_t lhs,
+    const ValueInt& rhs
+) {
+    return lhs >= rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<  (
+    const int_t lhs,
+    const ValueInt& rhs
+) {
+    return lhs < rhs.GetValue();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+operator<= (
+    const int_t lhs,
+    const ValueInt& rhs
+) {
+    return lhs <= rhs.GetValue();
 }

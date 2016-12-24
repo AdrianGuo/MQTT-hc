@@ -26,7 +26,7 @@
 
 #include "ZwCtrller.hpp"
 #include "ZbCtrller.hpp"
-#include "HCCtrller.hpp"
+#include "HcCtrller.hpp"
 #include "LogPlus.hpp"
 #ifdef MT7688
 #include "LED.hpp"
@@ -39,9 +39,10 @@
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */
 /******************************************************************************/
-static HCCtrller_p  pHcController       = NULL;
+static HcCtrller_p  pHcController       = NULL;
 static ZwCtrller_p  pZwController       = NULL;
 static ZbCtrller_p  pZbController       = NULL;
+static RuleCtrller_p pRuleController    = NULL;
 
 /******************************************************************************/
 /*                              EXPORTED DATA                                 */
@@ -125,6 +126,10 @@ int main(int argc, char* argv[]) {
         pZbController->Init();
     }
 
+    if (pRuleController != NULL) {
+        pRuleController->Start();
+    }
+
     while (TRUE) {
         if (pHcController != NULL) {
             pHcController->Process();
@@ -149,7 +154,7 @@ InitController(
     const_char_p zbcom
 ) {
     int_t port = std::stoi(ipport);
-    pHcController = new HCCtrller(ipname, port, macId);
+    pHcController = new HcCtrller(ipname, port, macId);
 
     if (strcmp(zwcom, "") != 0) {
         LOG_INFO("init zwave module");
@@ -162,4 +167,7 @@ InitController(
         pZbController = new ZbCtrller(zbcom);
         pHcController->AddZbCtrller(pZbController);
     }
+
+    pRuleController = new RuleCtrller();
+    pHcController->AddRuleCtrller(pRuleController);
 }

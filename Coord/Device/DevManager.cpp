@@ -289,6 +289,10 @@ DevManager::HandlerDevCmdStt(
 ) {
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
     PushJsonCommand(pJsonCommand);
+
+    JsonCommand_p pRuJsonCommand = new JsonCommand(pJsonCommand);
+    pRuJsonCommand->SetDesFlag(JsonCommand::Flag::Rule);
+    PushJsonCommand(pRuJsonCommand);
 }
 
 /**

@@ -17,28 +17,29 @@ public:
     ValueInt& operator= (ValueInt& rhs);
     ValueInt& operator= (int_t iValue);
 
-    bool_t operator== (ValueInt& rhs) const;
+    bool_t operator== (const ValueInt& rhs) const;
+    bool_t operator!= (const ValueInt& rhs) const;
+    bool_t operator>  (const ValueInt& rhs) const;
+    bool_t operator>= (const ValueInt& rhs) const;
+    bool_t operator<  (const ValueInt& rhs) const;
+    bool_t operator<= (const ValueInt& rhs) const;
+
     bool_t operator== (const int_t iValue) const;
-
-    bool_t operator!= (ValueInt& rhs) const;
     bool_t operator!= (const int_t iValue) const;
-
-    bool_t operator>  (ValueInt& rhs) const;
     bool_t operator>  (const int_t iValue) const;
-
-    bool_t operator>= (ValueInt& rhs) const;
     bool_t operator>= (const int_t iValue) const;
-
-    bool_t operator<  (ValueInt& rhs) const;
     bool_t operator<  (const int_t iValue) const;
-
-    bool_t operator<= (ValueInt& rhs) const;
     bool_t operator<= (const int_t iValue) const;
 
-    operator int_t() const { return m_iValue; }
+    friend bool_t operator!= (const int_t lhs, const ValueInt& rhs);
+    friend bool_t operator== (const int_t lhs, const ValueInt& rhs);
+    friend bool_t operator>  (const int_t lhs, const ValueInt& rhs);
+    friend bool_t operator>= (const int_t lhs, const ValueInt& rhs);
+    friend bool_t operator<  (const int_t lhs, const ValueInt& rhs);
+    friend bool_t operator<= (const int_t lhs, const ValueInt& rhs);
 };
 
-typedef ValueInt ValueInt_t;
+typedef ValueInt  ValueInt_t;
 typedef ValueInt* ValueInt_p;
 
 #endif  /* !VALUE_INTEGER_HPP */

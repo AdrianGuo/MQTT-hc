@@ -3,19 +3,20 @@
 #include "JsonCommand.hpp"
 
 /**
- * @func
+ * @func   JsonCommand
  * @brief  None
  * @param  None
  * @retval None
  */
-//JsonCommand::JsonCommand() {
-////    m_strCmdClass = "";
-////    m_strCommand = "";
-//    m_dwSrcFlag = SrcDefault;
-//    m_dwDesFlag = DesDefault;
-//    m_boJsonAvailable = FALSE;
-//    m_jsonValue = 0;
-//}
+JsonCommand::JsonCommand(
+    JsonCommand_p pJsonCommand
+) : m_strFullCommand (pJsonCommand->GetFullCommand()),
+    m_dwSrcFlag (pJsonCommand->GetSrcFlag()),
+    m_dwDesFlag (pJsonCommand->GetDesFlag()),
+    m_jsonValue (pJsonCommand->GetJsonOjbect()),
+    m_boJsonAvailable (TRUE),
+    m_dwClientId (0) {
+}
 
 /**
  * @func   JsonCommand
@@ -45,6 +46,7 @@ JsonCommand::JsonCommand(
  */
 JsonCommand::~JsonCommand() {
     m_strFullCommand.clear();
+    m_jsonValue.clear();
 }
 
 

@@ -3,6 +3,7 @@
 
 #include "typedefs.h"
 #include "Value.hpp"
+#include "Vector.hpp"
 #include "ZwDefs.hpp"
 #include "ZwCmdClass.hpp"
 

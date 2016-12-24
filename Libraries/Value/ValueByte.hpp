@@ -17,28 +17,29 @@ public:
     ValueByte& operator= (ValueByte& rhs);
     ValueByte& operator= (u8_t byValue);
 
-    bool_t operator== (ValueByte& rhs) const;
-    bool_t operator== (const u8_t byValue) const;
+    bool_t operator!= (const ValueByte& rhs) const;
+    bool_t operator== (const ValueByte& rhs) const;
+    bool_t operator>  (const ValueByte& rhs) const;
+    bool_t operator>= (const ValueByte& rhs) const;
+    bool_t operator<  (const ValueByte& rhs) const;
+    bool_t operator<= (const ValueByte& rhs) const;
 
-    bool_t operator!= (ValueByte& rhs) const;
     bool_t operator!= (const u8_t byValue) const;
-
-    bool_t operator>  (ValueByte& rhs) const;
+    bool_t operator== (const u8_t byValue) const;
     bool_t operator>  (const u8_t byValue) const;
-
-    bool_t operator>= (ValueByte& rhs) const;
     bool_t operator>= (const u8_t byValue) const;
-
-    bool_t operator<  (ValueByte& rhs) const;
     bool_t operator<  (const u8_t byValue) const;
-
-    bool_t operator<= (ValueByte& rhs) const;
     bool_t operator<= (const u8_t byValue) const;
 
-    operator u8_t() const { return m_byValue; }
+    friend bool_t operator!= (const u8_t lhs, const ValueByte& rhs);
+    friend bool_t operator== (const u8_t lhs, const ValueByte& rhs);
+    friend bool_t operator>  (const u8_t lhs, const ValueByte& rhs);
+    friend bool_t operator>= (const u8_t lhs, const ValueByte& rhs);
+    friend bool_t operator<  (const u8_t lhs, const ValueByte& rhs);
+    friend bool_t operator<= (const u8_t lhs, const ValueByte& rhs);
 };
 
-typedef ValueByte ValueByte_t;
+typedef ValueByte  ValueByte_t;
 typedef ValueByte* ValueByte_p;
 
 #endif  /* !VALUE_BYTE_HPP */

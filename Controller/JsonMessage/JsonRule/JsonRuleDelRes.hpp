@@ -13,8 +13,8 @@
  *
  ******************************************************************************/
 
-#ifndef CONTROLLER_JSONMESSAGE_JSONRULEDELRES_HPP_
-#define CONTROLLER_JSONMESSAGE_JSONRULEDELRES_HPP_
+#ifndef JSON_RULE_DELRES_HPP_
+#define JSON_RULE_DELRES_HPP_
 
 #include "typedefs.h"
 #include "json.h"
@@ -31,4 +31,4 @@ public:
 typedef JsonRuleDelRes  JsonRuleDelRes_t;
 typedef JsonRuleDelRes* JsonRuleDelRes_p;
 
-#endif /* CONTROLLER_JSONMESSAGE_JSONRULEDELRES_HPP_ */
+#endif /* JSON_RULE_DELRES_HPP_ */

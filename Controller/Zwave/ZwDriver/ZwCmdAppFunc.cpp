@@ -163,7 +163,7 @@ ZwCmdAppFunc::ProcApplicationCommandHandler(
         Vector<JsonDevStt::Device_t> vecLstZwNode;
         JsonDevStt::Device_t node;
 
-        node.devid = (i32_t) byNodeId;
+        node.devid = byNodeId;
         node.netwk = ZWAVE_NETW;
         node.order = byOrder;
         node.type  = byDeviceType;
@@ -209,14 +209,13 @@ ZwCmdAppFunc::HandleApplicationCommandHandlerRequest(
 
     if (m_ValueLstNode[byNodeId - 1] == NULL) {
         m_ValueLstNode[byNodeId - 1] =
-        new ZwNode(m_ValueZwAppFunc.homeId, byNodeId);
+        new ZwNode(m_ValueZwAppFunc.homeId.GetValue(), byNodeId);
     }
     m_ValueLstNode[byNodeId - 1]->SetNodeAlive(TRUE);
 
-    if (FUNC_ID_APPLICATION_COMMAND_HANDLER ==
-        m_ValueZwDriver.expectedFuncId &&
-        m_ValueZwDriver.expectedNodeId == byNodeId &&
-        m_ValueZwDriver.expectedCmdCId == byCmdClass) {
+    if ((FUNC_ID_APPLICATION_COMMAND_HANDLER == m_ValueZwDriver.expectedFuncId) &&
+        (m_ValueZwDriver.expectedNodeId == byNodeId) &&
+        (m_ValueZwDriver.expectedCmdCId == byCmdClass)) {
         if (byCmdClass == MultiChannelCmdClass::GetZwCmdClassId()) {
             ProcMultiChannel(pbCommand, byLength - 3);
         } else {
@@ -280,7 +279,8 @@ ZwCmdAppFunc::HandleApplicationSlaveUpdateRequest(
         m_ValueLstNode[byNodeId - 1]->SetSpecific(bySpecific);
 
         if (devicefind.get() != NULL) {
-            ZwDbCommandClasses cmdclassfind = m_pZwDbModel->Find<ZwDbCmdClassItem>().
+            ZwDbCommandClasses cmdclassfind =
+            m_pZwDbModel->Find<ZwDbCmdClassItem>().
             Where("DevId = ?").Bind(devicefind->NodeId);
 
         }

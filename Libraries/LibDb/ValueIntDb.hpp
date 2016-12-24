@@ -26,27 +26,23 @@ public:
 
     ValueIntDb& operator= (const ValueIntDb& rhs);
     ValueIntDb& operator= (int_t iValue);
-    ValueIntDb& operator= (u8_t byValue);
+    ValueIntDb& operator= (u8_t  byValue);
     ValueIntDb& operator= (u16_t wValue);
     ValueIntDb& operator= (u32_t dwValue);
 
     bool_t operator== (const ValueIntDb& rhs) const;
-    bool_t operator== (int_t iValue);
-
     bool_t operator!= (const ValueIntDb& rhs) const;
-    bool_t operator!= (int_t iValue);
-
     bool_t operator>  (const ValueIntDb& rhs) const;
-    bool_t operator>  (int_t iValue);
-
     bool_t operator>= (const ValueIntDb& rhs) const;
-    bool_t operator>= (int_t iValue);
-
-    bool_t operator< (const ValueIntDb& rhs) const;
-    bool_t operator< (int_t iValue);
-
+    bool_t operator<  (const ValueIntDb& rhs) const;
     bool_t operator<= (const ValueIntDb& rhs) const;
-    bool_t operator<= (int_t iValue);
+
+    bool_t operator== (const int_t iValue) const;
+    bool_t operator!= (const int_t iValue) const;
+    bool_t operator>  (const int_t iValue) const;
+    bool_t operator>= (const int_t iValue) const;
+    bool_t operator<  (const int_t iValue) const;
+    bool_t operator<= (const int_t iValue) const;
 
     ValueIntDb& operator++ ();
     ValueIntDb& operator++ (int_t);

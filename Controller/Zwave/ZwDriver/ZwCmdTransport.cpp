@@ -88,8 +88,7 @@ ZwCmdTransport::HandleSendDataResponse(
     u8_t byRetVal = pZwPacket->GetBuffer()[0];
     u8_t byFunctionId = pZwPacket->GetFunctionId();
 
-    if ((0 == m_ValueZwDriver.expectedCbakId) ||
-        (byRetVal == FALSE)) { // no callback
+    if ((m_ValueZwDriver.expectedCbakId == 0) || (byRetVal == FALSE)) { // no callback
         m_ValueZwDriver.expectedCbakId = 0;
         m_ValueZwDriver.expectedCmdCId = 0;
         m_ValueZwDriver.expectedFuncId = 0;
