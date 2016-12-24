@@ -5,7 +5,7 @@
  *      Author: phind
  */
 
-#include "RuleManager/RuleDebug.hpp"
+#include "LogPlus.hpp"
 #include "ItemRule/Rule.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -181,7 +181,7 @@ void_t Rule::LoadData(Json::Value& jsonValue) {
  * @retval None
  */
 void_t Rule::DisplayInfor() {
-	debugRule2("Rule:\tid = %d\tname = %s\ttype = %d\tenable = %d", m_id,
+	LOG_DEBUG("Rule:\tid = %d\tname = %s\ttype = %d\tenable = %d", m_id,
 			m_name.element.c_str(), m_type, m_enable);
 }
 

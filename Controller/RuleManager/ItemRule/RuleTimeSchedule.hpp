@@ -10,7 +10,7 @@
 
 #include "DateAndTime.hpp"
 #include "json.h"
-#include "RuleDebug.hpp"
+#include "LogPlus.hpp"
 #include "typedefs.h"
 #include <cstdlib>
 
@@ -134,7 +134,7 @@ public:
 
 // for test & debug
 	void_t DisplayInfor() {
-		debugRule2(
+		LOG_DEBUG(
 				"TimeSchedule:\n\tType Time = %d\n\tType Time Repeat = %d" "\n\tTimepoints = %d\n\tStartTime = %d\n\tEnd Time = %d\n\tDate = %d\n\tYear = %d\n\tMonth = %d\n\tDay = %d\n\tAfter = %d",
 				m_typeTime, m_typeRepeat, m_timepoints, m_starttime, m_endtime,
 				m_date, m_year, m_month, m_day, m_after);

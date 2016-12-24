@@ -8,7 +8,7 @@
 #include "Functor.hpp"
 #include "ItemRule/RuleOutputDev.hpp"
 #include "JsonCommand.hpp"
-#include "RuleDebug.hpp"
+#include "LogPlus.hpp"
 #include "RuleManager.hpp"
 #include "String.hpp"
 #include <unistd.h>
@@ -77,11 +77,8 @@ void_t RuleManager::SetFunctor(CtrllerFunctor_p pRecvFunctor) {
  * @retval None
  */
 void_t RuleManager::Process() {
-//	debugRule("m_eventManager.Process()");
 	m_eventManager.Process();
-//	debugRule("ProcessCheckRule()");
 	ProcessCheckRule();
-//	debugRule("ProcessOutRule()");
 	ProcessOutRule();
 }
 
@@ -247,9 +244,8 @@ bool_t RuleManager::GetInforRule(Json::Value& jsonValue) {
 void_t RuleManager::PushJsonCommand(void_p pBuffer) {
 	JsonCommand_p pJsonCommandResult = (JsonCommand_p) pBuffer;
 	if (pJsonCommandResult != NULL) {
-		debugRule(
-				pJsonCommandResult->GetFullCommand().element
-						+ pJsonCommandResult->GetJsonValue().element)
+		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().element.c_str(),
+				pJsonCommandResult->GetJsonValue().element.c_str());
 	}
 
 	if ((m_pCtrllerFunctor != NULL) && (pBuffer != NULL)) {
@@ -316,7 +312,7 @@ void_t RuleManager::ProcessOutRule() {
 		PushJsonCommand(pJsonCommandResult);
 	}
 
-	// TODO chưa kiểm tra đầu ra cảnh ...
+// TODO chưa kiểm tra đầu ra cảnh ...
 }
 
 /**
@@ -342,7 +338,7 @@ Rule_p RuleManager::GetRule(int_t id) {
  */
 int_t RuleManager::GetIndexRule(int_t id) {
 	for (int_t nIndex = 0; nIndex < (int_t) m_vecRules.size(); nIndex++) {
-		debugRule(m_vecRules[nIndex]->GetId());
+//		LOG_DEBUG("GetIndexRule = %d", m_vecRules[nIndex]->GetId());
 		if (m_vecRules[nIndex]->GetId() == id) {
 			return nIndex;
 		}
@@ -395,7 +391,7 @@ void_t RuleManager::RegisterOutput(Rule_p pRule) {
 				vecOutputDevs[index]->GetData(), RuleItemActive::Dev);
 		m_vecItemsAct.push_back(item);
 	}
-	// TODO chua xu ly cho dau ra la rule cảnh
+// TODO chua xu ly cho dau ra la rule cảnh
 }
 
 /**
@@ -421,6 +417,7 @@ void_t RuleManager::RmRegisterOutput(int_t idRule) {
  */
 void_t RuleManager::debug() {
 	for (int var = 0; var < 60; ++var) {
+		LOG_DEBUG("%d", var);
 		sleep(1);
 		Process();
 	}

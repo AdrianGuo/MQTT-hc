@@ -11,7 +11,7 @@
 #include <time.h>
 #include <typedefs.h>
 #include <math.h>
-#include "RuleManager/RuleDebug.hpp"
+#include "LogPlus.hpp"
 
 class DateAndTime {
 public:
@@ -75,9 +75,9 @@ public:
 		int_t ydaySetup = timeinfo->tm_yday;
 
 		if ((abs(ydayCurrent - ydaySetup)) % 20 == 0) {
-			debugRule("TRUE");
+			LOG_DEBUG("DEBUG = TRUE");
 		} else {
-			debugRule("FALSE");
+			LOG_DEBUG("DEBUG = FALSE");
 		}
 	}
 };

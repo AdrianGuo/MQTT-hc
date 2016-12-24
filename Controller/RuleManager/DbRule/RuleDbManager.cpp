@@ -11,7 +11,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
-#include "RuleManager/RuleDebug.hpp"
+#include "LogPlus.hpp"
 
 /**
  * @func
@@ -183,7 +183,7 @@ bool_t RuleDbManager::ExecDbCmd(String cmd) {
 		// Set PRAGMA
 		sqlite3_exec(db, "PRAGMA encoding = \"UTF-8\"", 0, 0, 0);
 		sqlite3_exec(db, "PRAGMA foreign_keys = ON", 0, 0, 0);
-//		debugRule("ExecCmd = " + cmd.element);
+//		LOG_DEBUG("ExecCmd = %s", cmd.element);
 		int_t reslutExecCmd = sqlite3_exec(db, cmd.element.c_str(), 0, 0, 0);
 		// Close slqlite connection;
 		sqlite3_close(db);

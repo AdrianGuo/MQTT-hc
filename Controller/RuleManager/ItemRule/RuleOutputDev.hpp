@@ -41,7 +41,7 @@ private:
 	String m_data;
 };
 
-typedef RuleOutputDev  RuleOutputDev_t;
+typedef RuleOutputDev RuleOutputDev_t;
 typedef RuleOutputDev* RuleOutputDev_p;
 
 #endif /* RULEOUTPUTDEV_HPP_ */

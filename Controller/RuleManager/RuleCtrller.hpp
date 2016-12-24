@@ -73,6 +73,6 @@ public:
 // For TEST
 void TestRule();
 
-typedef RuleCtrller  RuleCtrller_t;
+typedef RuleCtrller RuleCtrller_t;
 typedef RuleCtrller* RuleCtrller_p;
 #endif /* RULECTRLLER_HPP_ */

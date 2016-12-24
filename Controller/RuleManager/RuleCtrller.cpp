@@ -4,6 +4,10 @@
  *  Created on: Nov 15, 2016
  *      Author: phind
  */
+#include <unistd.h>
+#include <map>
+#include <string>
+#include <pthread.h>
 
 #include "EventRule/EventManager.hpp"
 #include "JsonDevStt.hpp"
@@ -14,13 +18,10 @@
 #include "JsonRuleEna.hpp"
 #include "JsonRuleGet.hpp"
 #include "JsonRuleInfor.hpp"
-#include <pthread.h>
-#include "RuleCtrller.hpp"
-#include "RuleDebug.hpp"
-#include <unistd.h>
-#include <map>
-#include <string>
+#include "LogPlus.hpp"
+#include "HelperHc.hpp"
 
+#include "RuleCtrller.hpp"
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
 /******************************************************************************/
@@ -52,11 +53,9 @@
  * @retval None
  */
 void TestRule() {
-
 	RuleCtrller_t ruleCtrller;
 	ruleCtrller.debug();
-
-	debugRule("---> Finish Test Rule");
+	LOG_DEBUG("---> Finish Test Rule");
 }
 
 /**
@@ -200,9 +199,8 @@ void_t RuleCtrller::PushResJsonCommand(JsonCommand_p pJsonCommand,
 void_t RuleCtrller::PushJsonCommand(void_p pInBuffer) {
 	JsonCommand_p pJsonCommandResult = (JsonCommand_p) pInBuffer;
 	if (pJsonCommandResult != NULL) {
-		debugRule(
-				pJsonCommandResult->GetFullCommand().element
-						+ pJsonCommandResult->GetJsonValue().element)
+//		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().element.c_str(),
+//				pJsonCommandResult->GetJsonValue().element.c_str());
 	}
 	if ((m_pCtrllerFunctor != NULL) && (pInBuffer != NULL)) {
 //		m_pCtrllerFunctor->operator ()((JsonCommand_p) pInBuffer);
@@ -229,6 +227,7 @@ void_t RuleCtrller::Start() {
  * @retval None
  */
 void_t RuleCtrller::ProcessHandler(JsonCommand_p pJsonCommand) {
+    LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
 	m_pRuleCtrllerLocker->Lock();
 	m_queRuleCtrllerJsonCommand.push(pJsonCommand);
 	m_pRuleCtrllerLocker->UnLock();
@@ -276,7 +275,7 @@ void_t RuleCtrller::RegisterHandler() {
 	RegisterHandler(JsonDevStt::GetStrCmd(),
 			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
 					&RuleCtrller::HandlerDevCmdStt));
-	// TODO next
+// TODO next
 }
 
 /**
@@ -302,7 +301,7 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
 			if (it != m_mapHandlerFunctor.end()) {
 				m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
 			}
-//			debugRule(pJsonCommand->GetJsonValue().element);
+//			LOG_DEBUG("%s", pJsonCommand->GetJsonValue().element);
 		}
 
 		m_ruleManager.Process();
@@ -402,7 +401,7 @@ void_t RuleCtrller::HandlerRuleCmdGet(JsonCommand_p pJsonCommand) {
  * @retval None
  */
 void_t RuleCtrller::HandlerRuleCmdInfor(JsonCommand_p pJsonCommand) {
-	// TODO
+// TODO
 }
 
 /**

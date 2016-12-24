@@ -8,7 +8,6 @@
 #ifndef RULEINPUTDEV_HPP_
 #define RULEINPUTDEV_HPP_
 
-#include "RuleManager/RuleDebug.hpp"
 #include "json.h"
 #include "String.hpp"
 #include "typedefs.h"

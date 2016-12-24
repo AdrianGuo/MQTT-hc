@@ -19,7 +19,6 @@
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
-#include <HcCtrller.hpp>
 #include <stddef.h>
 #include <unistd.h>
 #include "HelperHc.hpp"
@@ -95,7 +94,7 @@
 #include "JsonRuleGet.hpp"
 #include "JsonRuleInfor.hpp"
 
-
+#include "HcCtrller.hpp"
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
 /******************************************************************************/
@@ -267,7 +266,6 @@ HcCtrller::RegisterHandler() {
     RegisterHandler(JsonKaliveRes::GetStrCmd(),
     makeFunctor((HandlerNetCmdFunctor_p) NULL, m_NetManager, &NetManager::HandlerNetCmdKaliveRes));
 
-
     /* Rule */
     RegisterHandler(JsonRuleActv::GetStrCmd(),
     makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager, &RuManager::HandlerRuCmd));
@@ -297,7 +295,7 @@ HcCtrller::ProcessHandler(
 ) {
     String strJsonCommandName = pJsonCommand->GetFullCommand();
     MapHandlerFunctor::const_iterator_t it =
-            m_mapHandlerFunctor.find(strJsonCommandName);
+    m_mapHandlerFunctor.find(strJsonCommandName);
     if (it != m_mapHandlerFunctor.end()) {
         m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
     }
