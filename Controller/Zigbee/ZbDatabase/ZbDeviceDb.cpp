@@ -81,6 +81,7 @@ ZbDeviceDb::IsInterested(int_t iType) {
         case ZCL_HA_DEVICEID_DOOR_LOCK:
         case ZCL_HA_DEVICEID_SIMPLE_INPUT:
         case ZCL_LUMI_DEVICEID_IR:
+        case ZCL_LUMI_DEVICEID_POWER:
             boRet = TRUE;
             break;
 
@@ -124,7 +125,6 @@ ZbDeviceDb::ReceiveInforFromDevice(
                 ForwardStateToOutside(this);
             }
         }
-
             break;
 /*
  *
@@ -167,7 +167,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     u8_p pbyData = vpData[i];
                     State = *pbyData;
                     ++pbyData;
-                    AttributeID(DI_State) = LittleWord(&pbyData, false);
+                    ReserveData(DI_State) = LittleWord(&pbyData, false);
                     IsResponsed(vDP[i].DP_DIName) = TRUE;
                     ForwardIrState(this);
                     pbyData = NULL;
@@ -182,6 +182,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_PIR:
+        case LUMI_DEVICE_POWER:
         case LUMI_DEVICE_TEMPERATURE:
         case LUMI_DEVICE_HUMIDITY:
         case LUMI_DEVICE_ILLUMINANCE: {
@@ -191,12 +192,10 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
                     else if((RealType == LUMI_DEVICE_PIR) || (RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
                     else AttributeData(DI_State) = *vpData[i];
-                } else if (vDP[i].DP_DIName == DI_Power) {
-                    AttributeData(DI_Power) = *vpData[i];
                 }
                 PopReq(vDP[i].DP_DIName);
             }
-            ForwardSensorStateToOutside(this);
+            ForwardStateToOutside(this);
 
         }
             break;
@@ -265,10 +264,6 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
 void_t
 ZbDeviceDb::EnvAttached() {
-    if(Endpoint.GetValue() == 1) {
-        SyncDeviceAction(DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
-        Action[DI_Power].DP_AttributeData = 100;
-    }
     if (Type == ZCL_HA_DEVICEID_TEMPERATURE_SENSOR) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_TEMPERATURE;
@@ -278,6 +273,9 @@ ZbDeviceDb::EnvAttached() {
     } else if (Type == ZCL_HA_DEVICEID_LIGHT_SENSOR) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_ILLUMINANCE_MEASUREMENT,    ATTRID_MS_ILLUMINANCE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_ILLUMINANCE;
+    } else if (Type == ZCL_LUMI_DEVICEID_POWER) {
+        SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
+        RealType = LUMI_DEVICE_POWER;
     }
 }
 
@@ -324,8 +322,8 @@ ZbDeviceDb::GenerateDeviceInfo(
 
         RealType = LUMI_DEVICE_CURTAIN;
     } else if (prefixModel == String("LM-IR")) {
-        SyncDeviceAction(DI_IR_Data,       ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRCMD);
         SyncDeviceAction(DI_State,         ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRSTATE);
+        SyncDeviceAction(DI_IR_Data,       ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRCMD);
         RealType = LUMI_DEVICE_IR;
     } else if (prefixModel == String("LM-IPZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_BINARY_INPUT,    ATTRID_BINARY_INPUT_PRESENT_VALUE);
@@ -334,8 +332,6 @@ ZbDeviceDb::GenerateDeviceInfo(
     }   else if (prefixModel == String("LM-PIR")) {
         if (Type == ZCL_HA_DEVICEID_IAS_ZONE) {
             SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_SS_IAS_ZONE,         ATTRID_SS_IAS_ZONE_STATUS);
-            SyncDeviceAction(DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,       ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
-            Action[DI_Power].DP_AttributeData = 100;
             RealType = LUMI_DEVICE_PIR;
         } else {
             EnvAttached();
@@ -343,8 +339,6 @@ ZbDeviceDb::GenerateDeviceInfo(
     } else if (prefixModel == String("LM-DOOR")) {
         if (Type == ZCL_HA_DEVICEID_DOOR_LOCK) {
             SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG, ATTRID_CLOSURES_DOOR_STATE);
-            SyncDeviceAction(DI_Power,   ZCL_CLUSTER_ID_GEN_POWER_CFG,        ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
-            Action[DI_Power].DP_AttributeData = 100;
             RealType = LUMI_DEVICE_DOOR;
         } else {
             EnvAttached();

@@ -13,7 +13,7 @@
 
 #include <ServerSock.hpp>
 
-#define CONNECT_TIMEOUT_SEC                     (5)
+#define CONNECT_TIMEOUT_SEC     (30)
 
 /**
  * @func   ServerSock
@@ -27,8 +27,7 @@ ServerSock::ServerSock(
     m_idwSockfd = SOCKET_ERROR;
     m_idwPort = idwPort;
 
-    FD_ZERO(&m_ReadFds);
-    FD_ZERO(&m_WriteFds);
+    FD_ZERO(&m_Fds);
     m_idwNfds = 0;
 
     m_boIsServed = FALSE;
@@ -56,8 +55,6 @@ ServerSock::ServerSock(
     m_pServerSockTimer = RTimer::getTimerInstance();
     m_keepaliveTimerFunctor =
     makeFunctor((timerFunctor_p) NULL, *this, &ServerSock::HandleKeepAliveProcess);
-    m_iKeepAliveTimerHandle = m_pServerSockTimer->StartTimer(
-    RTimer::Repeat::Forever, CONNECT_TIMEOUT_SEC, &m_keepaliveTimerFunctor, NULL);
 }
 
 /**
@@ -196,8 +193,7 @@ ServerSock::ListenThread(
                     Client_t client;
                     client.SetSocketFd(tempSock);
                     client.SetSocketAddress(tempSockAddr);
-                    FD_SET(tempSock, &m_ReadFds);
-                    FD_SET(tempSock, &m_WriteFds);
+                    FD_SET(tempSock, &m_Fds);
                     if(m_idwNfds <= tempSock)
                         m_idwNfds = tempSock + 1;
                     m_mapClients[tempSock] = client;
@@ -229,14 +225,14 @@ ServerSock::MessageThread(
 
     while (TRUE) {
         sleep(1);
-        readfds = m_ReadFds;
-        writefds = m_WriteFds;
+        readfds = m_Fds;
+        writefds = m_Fds;
         ready = select(m_idwNfds, &readfds, &writefds, NULL, &timeout);
         if ((ready != SOCKET_ERROR) && (ready != EINTR) && (ready != EBADF) && (ready != 0)) {
             for (int_t fd = 0; fd < m_idwNfds; fd++) {
                 if (m_mapClients.find(fd) != m_mapClients.end()) {
                     // Receive messages
-                    if (FD_ISSET(fd, &m_ReadFds)) {
+                    if (FD_ISSET(fd, &readfds)) {
                         m_mapClients[fd].SetCount();
 
                         u8_p m_pByBuffer = new u8_t[BUFFER_SOCKET_SIZE];
@@ -248,7 +244,7 @@ ServerSock::MessageThread(
                         delete m_pByBuffer;
                     }
                     // Send messages
-                    if (FD_ISSET(fd, &m_WriteFds)) {
+                    if (FD_ISSET(fd, &writefds)) {
                         while (m_mapClients[fd].PendingMessages() > 0) {
                             Packet_p pPacket = NULL;
                             pPacket = m_mapClients[fd].Front();
@@ -286,6 +282,8 @@ ServerSock::Start() {
         if (m_pListenThread->Start() && m_pMessageThread->Start()) {
             m_boIsStarted = TRUE;
             boRetVal = TRUE;
+            m_iKeepAliveTimerHandle = m_pServerSockTimer->StartTimer(
+            RTimer::Repeat::Forever, CONNECT_TIMEOUT_SEC, &m_keepaliveTimerFunctor, NULL);
         } else {
             LOG_INFO("thread fail");
         }
@@ -317,8 +315,7 @@ ServerSock::RemoveClient(
     Client_t client
 ) {
     close(client.GetSocketFd());
-    FD_CLR(client.GetSocketFd(), &m_ReadFds);
-    FD_CLR(client.GetSocketFd(), &m_WriteFds);
+    FD_CLR(client.GetSocketFd(), &m_Fds);
     m_mapClients.erase(client.GetSocketFd());
     m_pServerSockLocker->Lock();
     m_idwNfds = 0;

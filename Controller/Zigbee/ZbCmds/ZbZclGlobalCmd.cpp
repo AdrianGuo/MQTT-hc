@@ -9,6 +9,7 @@
 #include <debug.hpp>
 #include <LogPlus.hpp>
 #include <zcl.hpp>
+#include <zcl_ha.hpp>
 #include <zcl_lumi.hpp>
 #include <zcl_general.hpp>
 #include <ZbHelper.hpp>
@@ -137,8 +138,8 @@ ZbZclGlobalCmd::ReadAttributeRequest(
  */
 void_t
 ZbZclGlobalCmd::ReadAttributeRequest(
-        Device_t device,
-        DeviceInfo devInfo
+    Device_t device,
+    DeviceInfo devInfo
 ){
     Vector<DeviceInfo> vDI;
     vDI.push_back(devInfo);
@@ -155,16 +156,12 @@ void_t
 ZbZclGlobalCmd::ReadAttributeResponse(
     u8_p pbyBuffer
 ){
+//    LOG_DEBUG("ReadAttributeResponse.");
     u16_t wNwk              = LittleWord(&pbyBuffer);
 
-    //Devices not in DB will be forced to leave.
-    //not have all enpoints joined, forced to leave.
-    if(ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()){ // ||
-            //(ZbZdoCmd::s_mapEPInfor[wNwk].byEPCount != ZbZdoCmd::s_mapEPInfor[wNwk].byTotalEP)) {
-        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk);
-        return;
+    if(ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()) {
+        ZbZdoCmd::GetInstance()->IEEEAddrRequest(wNwk);
     }
-
 
     u8_t byEndpoint         = *pbyBuffer++;
     u16_t wClusterID        = LittleWord(&pbyBuffer);
@@ -172,10 +169,19 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     u8_t byLength = *pbyBuffer++; //Payload's length
 
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-    if(device.Modify() == NULL) {
-//        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk); //Prevent Spamming!!!
+//    if(device.Modify() == NULL) {
+////        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk); //Prevent Spamming!!!
+//        return;
+//    }
+
+    if(device.Modify() == NULL &&
+            wClusterID == ZCL_CLUSTER_ID_GEN_BASIC)
+    {
+        ProcessException(wNwk, pbyBuffer);
         return;
     }
+
+    if(device.Modify() == NULL) { return; }
 
     DeviceProperties vResponseDP;
     Vector<u8_p> vpData;
@@ -207,20 +213,24 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
         memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
 
-        vpData.push_back(pbyAttributeData);
-        pbyAttributeData = NULL;
-        delete pbyAttributeData;
-
-        byLength -= byAttributeDataTypeSize;
+        bool boCheck = false;
 
         for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
             if(temp == it->second) {
                 temp.DP_DIName = it->first;
                 vResponseDP.push_back(temp);
+
+                boCheck = true;
+                vpData.push_back(pbyAttributeData);
+                break;
             }
         }
 
-        temp = {};
+        if(boCheck) { pbyAttributeData = NULL; }
+        delete pbyAttributeData;
+
+        byLength -= byAttributeDataTypeSize;
+
         if(byLength > 0) {
             pbyBuffer += byAttributeDataTypeSize;
         }
@@ -413,4 +423,97 @@ void_t ZbZclGlobalCmd::WriteAttributeResponse(
 //            break;
 //    }
 
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::Broadcast() {
+    ZbPacket_p pZbPacket = new ZbPacket(9);
+    pZbPacket->SetCmdID(ZCL_GLOBAL_CMD_REQ);
+    pZbPacket->Push(0XFFFF >> 8);
+    pZbPacket->Push(0XFFFF & 0xFF);
+    pZbPacket->Push(0X01);
+    pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC >> 8);
+    pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC & 0xFF);
+    pZbPacket->Push(ZCL_CMD_READ);
+    pZbPacket->Push(0x02); //Payload's length
+    pZbPacket->Push(ATTRID_BASIC_ZCL_VERSION & 0xFF);
+    pZbPacket->Push(ATTRID_BASIC_ZCL_VERSION >> 8);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+    delete pZbPacket;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::ProcessException(
+    u16_t wNwk,
+    u8_p pbyBuffer
+) {
+    u16_t wAttributeID  =  BigWord(&pbyBuffer);
+    u8_t byStatus       = *pbyBuffer++;
+    if(wAttributeID != ATTRID_BASIC_MODEL_ID || byStatus != ZCL_STATUS_SUCCESS) return;
+    u8_t byAttributeDataType  = *pbyBuffer++;
+    u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
+    u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
+    bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
+    memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
+    String ModelName = String((const char*) pbyAttributeData);
+    delete pbyAttributeData;
+
+    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    if(device.Modify() != NULL) return;
+    if(ModelName == "LM-DOOR" ||
+            ModelName == "LM-PIR") {
+        Device_t first = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+        first.Modify()->DeviceID = wNwk;
+        first.Modify()->Network = wNwk;
+        first.Modify()->MAC = ZbZdoCmd::s_mapEPInfor[wNwk].MAC;
+        first.Modify()->Model = ModelName;
+        first.Modify()->Manufacturer = String("Lumi R&D");
+        first.Modify()->Endpoint = 1;
+        if(ModelName == "LM-DOOR") {
+            first.Modify()->Type = ZCL_HA_DEVICEID_DOOR_LOCK;
+        } else {
+            first.Modify()->Type = ZCL_HA_DEVICEID_IAS_ZONE;
+        }
+        first.Modify()->ControllerID = 1;
+
+        Vector<int_t> vecType;
+        vecType.push_back(ZCL_HA_DEVICEID_LIGHT_SENSOR);
+        vecType.push_back(ZCL_HA_DEVICEID_TEMPERATURE_SENSOR);
+        vecType.push_back(ZCL_HA_DEVICEID_THERMOSTAT);
+        vecType.push_back(ZCL_LUMI_DEVICEID_POWER);
+        vecType.push_back(22);
+
+        for(int_t i = 0; i < 5; i++) {
+            Device_t other = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+            other.Modify()->DeviceID = wNwk;
+            other.Modify()->Network = wNwk;
+            other.Modify()->MAC = ZbZdoCmd::s_mapEPInfor[wNwk].MAC;
+            other.Modify()->Model = ModelName;
+            other.Modify()->Manufacturer = String("Lumi R&D");
+            if(i == 4) {
+                other.Modify()->Endpoint = 49;
+            } else {
+                other.Modify()->Endpoint = 2 + i;
+            }
+            other.Modify()->Type = vecType[i];
+            other.Modify()->ControllerID = 1;
+        }
+
+    }
+    ZbDriver::s_pZbModel->UpdateChanges();
+    ZbDriver::GetInstance()->Init(false);
+    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
 }

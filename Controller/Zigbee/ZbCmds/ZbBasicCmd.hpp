@@ -10,17 +10,25 @@
 
 #include <typedefs.h>
 #include <zcl.hpp>
+#include <RTimer.hpp>
 #include <ZbPacket.hpp>
 #include <ZbModelDb.hpp>
 #include <ZbMessage.hpp>
 
 class ZbBasicCmd {
 private:
+    RTimer_p m_pTimer;
+    timerFunctor_t m_TimerFunctor;
+    int_t m_iTimerHandle;
+    u8_t m_byNetReqCount;
+
     ZbBasicCmd();
+    void_t HandleNetworkInfo(void_p);
 
 public:
     static ZbBasicCmd* s_pInstance;
     static ZbBasicCmd* GetInstance();
+    static bool_t IsNetworkAvail;
     ~ZbBasicCmd();
 
     void_t HCError(u8_t, u8_t);
@@ -34,7 +42,7 @@ public:
     void_t JoinNwkInfoReq();
     bool_t JoinNwkInfoRsp(ZbPacket_p);
 
-    void_t ResetDevice(Device_t, u8_t);
+    void_t ResetDevice(u16_t, u8_t);
 };
 
 typedef ZbBasicCmd ZbCmdBasic_t;

@@ -10,6 +10,7 @@
 
 #include <typedefs.h>
 #include <debug.hpp>
+#include <LogPlus.hpp>
 #include <ZbSocketCmd.hpp>
 #include <ZbModelDb.hpp>
 #include <ZbDriver.hpp>
@@ -125,20 +126,20 @@ ForwardFanStateToOutside(
  * @param  None
  * @retval None
  */
-void_t
-ForwardSensorStateToOutside(
-    const ZbDeviceDb_p device
-) {
-    Json::Value val;
-    val["level"] = std::to_string(device->State);
-    if(device->Endpoint.GetValue() != 1) {
-        Device_t masterDevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint =?").Bind(device->Network.GetValue()).Bind(1);
-        val["power"] = std::to_string(masterDevice.Modify()->Action[DI_Power].DP_AttributeData);
-    } else {
-        val["power"] = std::to_string(device->Action[DI_Power].DP_AttributeData);
-    }
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
-}
+//void_t
+//ForwardSensorStateToOutside(
+//    const ZbDeviceDb_p device
+//) {
+//    Json::Value val;
+//    val["level"] = std::to_string(device->State);
+//    if(device->Endpoint.GetValue() != 1) {
+//        Device_t masterDevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint =?").Bind(device->Network.GetValue()).Bind(1);
+//        val["power"] = std::to_string(masterDevice.Modify()->Action[DI_Power].DP_AttributeData);
+//    } else {
+//        val["power"] = std::to_string(device->Action[DI_Power].DP_AttributeData);
+//    }
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//}
 
 /**ower
  * @func
@@ -216,16 +217,16 @@ ForwardIrState(
             break;
 
         case 0x03: {
-            DEBUG2("Add new IrCmd %04X,", device->Action[DI_State].DP_AttributeID);
+            DEBUG2("Add new IrCmd %04X,", device->Action[DI_State].DP_ReserveData);
             Device_t pdevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
                     Bind(device->Network.GetValue()).Bind(device->Endpoint.GetValue());
             if(pdevice.Modify() == NULL) { return; }
 
             Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
-                    Bind(device->Action[DI_State].DP_AttributeID).Bind(device->Network.GetValue());
+                    Bind(device->Action[DI_State].DP_ReserveData).Bind(device->Network.GetValue());
             if(ircmd.Modify() == NULL) {
                     ZbDeviceDb_p pZbDevice = new ZbDeviceDb();
-                    pZbDevice->DeviceID  = device->Action[DI_State].DP_AttributeID;
+                    pZbDevice->DeviceID  = device->Action[DI_State].DP_ReserveData;
                     pZbDevice->Network = device->Network.GetValue();
                     pZbDevice->Model = String("IR-CMD");
                     pZbDevice->Endpoint = 1;
@@ -239,7 +240,7 @@ ForwardIrState(
                 ZbDriver::s_pZbModel->UpdateChanges();
             }
             jsonRetVal["state"] = std::to_string(0);
-            jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_AttributeID);
+            jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_ReserveData);
         }
             break;
 
@@ -250,10 +251,10 @@ ForwardIrState(
         case 0x05:
         case 0x06: {
             jsonRetVal["state"] = std::to_string(0);
-            jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_AttributeID);
+            jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_ReserveData);
             if(device->State == 0x06) {
                 Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
-                        Bind(device->Action[DI_State].DP_AttributeID).Bind(device->Network.GetValue());
+                        Bind(device->Action[DI_State].DP_ReserveData).Bind(device->Network.GetValue());
                 if(ircmd.Modify() != NULL) {
                     ircmd.Remove();
                     ZbDriver::s_pZbModel->UpdateChanges();

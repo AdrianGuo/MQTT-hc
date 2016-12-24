@@ -20,7 +20,7 @@ private:
    void_t ParseData(String strRawJsonCommand, int_t idwClientID);
 
 public:
-    SServer(int_t idw);
+    SServer(int_t idwPort);
     ~SServer();
 
     bool_t Serve();

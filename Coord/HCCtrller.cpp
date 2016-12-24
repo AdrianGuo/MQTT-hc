@@ -117,11 +117,13 @@
 HCCtrller::HCCtrller(
     const_char_p ipname,
     int_t ipport,
-    const_char_p cMacID
+    const_char_p cMacID,
+    int_t openedport
 ) : m_DbManager(),
     m_DevManager(),
     m_NetManager(cMacID),
     m_SessionClient (ipname, ipport),
+    m_SessionServer (openedport),
     m_pZwCtrller (NULL),
     m_pZbCtrller (NULL),
     m_pHCCtrllerLocker (new Locker()),
@@ -138,6 +140,7 @@ HCCtrller::HCCtrller(
 
     m_NetManager.SetSessionClient(&m_SessionClient);
     m_SessionClient.SClientRecvFunctor(&m_HCCtrllerFunctor);
+    m_SessionServer.RecvFunctor(&m_HCCtrllerFunctor);
     RegisterHandler();
 }
 
@@ -245,6 +248,8 @@ HCCtrller::RegisterHandler() {
     makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdLstDelRes));
     RegisterHandler(JsonDevSyncRes::GetStrCmd(),
     makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdSyncRes));
+    RegisterHandler(JsonAuthReq::GetStrCmd(),
+    makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager, &DevManager::HandlerDevCmdAuthReq));
 
     /* Network */
     RegisterHandler(JsonAuthRes::GetStrCmd(),
@@ -295,6 +300,19 @@ void_t
 HCCtrller::Connect() {
     m_boIsDebug = FALSE;
     m_NetManager.Connect();
+}
+
+
+/**
+ * @func   Connect
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+HCCtrller::Serve() {
+    m_SessionServer.Serve();
+    m_SessionServer.Start();
 }
 
 /**
@@ -410,6 +428,8 @@ HCCtrller::Process() {
                 delete pJsonCommand;
                 pJsonCommand = NULL;
             }
+        } else if (pJsonCommand->GetDesFlag() == JsonCommand::Flag::Client) {
+            m_SessionServer.JsCommandToPacket(pJsonCommand);
         } else {
             ProcessHandler(pJsonCommand);
         }

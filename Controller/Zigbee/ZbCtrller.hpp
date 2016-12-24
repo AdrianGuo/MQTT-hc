@@ -29,9 +29,8 @@ typedef ProcZbCmdFunctor_t*         ProcZbCmdFunctor_p;
 
 class ZbCtrller : public ICtrller {
 private:
-    Queue<ZbMessage_p>  m_queSendZbMsg;
-
     ZbDriver_p          m_pZbDriver;
+    Queue<ZbMessage_p>& m_queSendZbMsg;
     LThread_p           m_pZbCtrllerThread;
     Locker_p            m_pZbCtrllerLocker;
     CtrllerFunctor_p    m_pCtrllerFunctor;
@@ -44,12 +43,9 @@ private:
     typedef Map<String, HandlerZbCmdFunctor_t>          MapHandlerFunctor;
     MapHandlerFunctor   m_mapHandlerFunctor;
 
-    typedef Map<ZbMessage::Command, ProcZbCmdFunctor_t> MapProcFunctor;
-    MapProcFunctor      m_mapProcFunctor;
-
+    void_t RegisterZbSession();
+    void_t RegisterHandler();
     void_t RegisterHandler(String strJsonCommand, HandlerZbCmdFunctor_t funcTor);
-    void_t RegisterProcess(ZbMessage::Command ZbCommand, ProcZbCmdFunctor_t funcTor);
-    void_t ProcessProcess(ZbMessage_p pZbMessage);
 
     void_t HandlerCmdAdd(JsonCommand_p pJsonCommand);
     void_t HandlerCmdDel(JsonCommand_p pJsonCommand);
@@ -58,18 +54,7 @@ private:
     void_t HandlerCmdInfo(JsonCommand_p pJsonCommand);
     void_t HandlerCmdReset(JsonCommand_p pJsonCommand);
     void_t HandlerCmdRestart(JsonCommand_p pJsonCommand);
-
-    void_t ProcCmdAdd(ZbMessage_p pZbMessage);
-    void_t ProcCmdDel(ZbMessage_p pZbMessage);
-    void_t ProcCmdSet(ZbMessage_p pZbMessage);
-    void_t ProcCmdGet(ZbMessage_p pZbMessage);
-    void_t ProcCmdReset(ZbMessage_p pZbMessage);
-    void_t ProcCmdRestart(ZbMessage_p pZbMessage);
-    void_t ProcCmdInfo(ZbMessage_p pZbMessage);
-
-    void_t RegisterZbSession();
-    void_t RegisterHandler();
-    void_t RegisterProcess();
+    void_t HandlerCmdAuth(JsonCommand_p pJsonCommand);
 
 public:
     ZbCtrller(const_char_p chPortname);

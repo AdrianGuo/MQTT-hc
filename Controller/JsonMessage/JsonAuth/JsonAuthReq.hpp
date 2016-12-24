@@ -23,13 +23,23 @@
 
 class JsonAuthReq : public JsonMessageBase {
 public:
+    typedef struct {
+        String       mac;
+        u8_t         type;
+    } Device_t, *Device_p;
+private:
+    Device_t m_Client;
+    virtual bool_t ParseJsonValue(Json::Value& jsonValue);
+public:
     JsonAuthReq() {}
     virtual ~JsonAuthReq() {}
 
     static String GetStrCmd() { return "auth=req"; }
-    virtual void_t Refresh() {}
+    virtual void_t Refresh() { m_Client = {}; }
     virtual JsonCommand_p CreateJsonCommand(u16_t wMacID);
     virtual JsonCommand_p CreateJsonCommand(String strMacID);
+    virtual bool_t ParseJsonCommand(JsonCommand_p pJsonCommand);
+    Device_t Dev() const { return m_Client; }
 };
 
 /**
@@ -68,6 +78,35 @@ JsonAuthReq::CreateJsonCommand(
     pJsonCommand->SetJsonObject(root);
 
     return pJsonCommand;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+JsonAuthReq::ParseJsonValue(
+    Json::Value& jsonValue
+) {
+    if (!jsonValue.isMember("mac") || !jsonValue.isMember("type")) { return FALSE; }
+    m_Client.mac    = String(jsonValue["mac"].asCString());
+    m_Client.type   = atoi(jsonValue["type"].asCString());
+    return TRUE;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+JsonAuthReq::ParseJsonCommand(
+    JsonCommand_p pJsonCommand
+) {
+    return ParseJsonValue(pJsonCommand->GetJsonOjbect());
 }
 
 typedef JsonAuthReq  JsonAuthReq_t;

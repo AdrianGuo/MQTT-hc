@@ -31,6 +31,7 @@ public:
 
     static String GetStrCmd() { return "auth=res"; }
     virtual void_t Refresh() { m_ibyRet = -1; }
+    JsonCommand_p CreateJsonCommand(u8_t ret, u16_t devid);
     virtual bool_t ParseJsonCommand(JsonCommand_p pJsonCommand);
     i32_t Ret() const { return m_ibyRet; }
 };
@@ -63,4 +64,24 @@ JsonAuthRes::ParseJsonCommand(
     return ParseJsonValue(pJsonCommand->GetJsonOjbect());
 }
 
+/**
+ * @func   CreateJsonCommand
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline JsonCommand_p
+JsonAuthRes::CreateJsonCommand(
+    u8_t ret,
+    u16_t devid
+) {
+    JsonCommand_p pJsonCommand = new JsonCommand("auth=res");
+    Json::Value jsonValue;
+
+    jsonValue["ret"] = std::to_string(ret);
+    jsonValue["devid"] = std::to_string(devid);
+    pJsonCommand->SetJsonObject(jsonValue);
+
+    return pJsonCommand;
+}
 #endif /* !JSON_AUTH_RES_HPP_ */

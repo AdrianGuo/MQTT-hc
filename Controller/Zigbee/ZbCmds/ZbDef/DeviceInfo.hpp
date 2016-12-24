@@ -10,7 +10,7 @@
 
 #include <typedefs.h>
 #include <Queue.hpp>
-
+#include <LogPlus.hpp>
 #define READ_REQ            (0)
 #define WRITE_REQ           (1)
 #define SET_REQ             (2)
@@ -25,12 +25,9 @@ using namespace std;
  */
 typedef enum {
     //Basic for every device
-    DI_Using = 0,
-    DI_State,
+    DI_State = 0,
     DI_Model,
     DI_Manufacturer,
-    //PIR, Door, temperature, humidity, illuminance
-    DI_Power,
     //Dimmer, Curtain, Fan
     DI_OnOff,
     //IR
@@ -77,6 +74,7 @@ typedef struct DeviceProperty {
     u8_t            DP_AttributeDataSize;
     int_t           DP_AttributeData; //data type (4 bytes)!!!
     int_t           DP_PreValue;
+    int_t           DP_ReserveData;
 
     PendingReqs_t   DP_PendingReqs;
     bool_t          DP_IsResponsed = FALSE;

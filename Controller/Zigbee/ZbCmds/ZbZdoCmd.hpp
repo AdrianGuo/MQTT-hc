@@ -15,10 +15,14 @@
 #include <ZbDeviceDb.hpp>
 
 typedef struct {
-    u8_t byTotalEP   = 0;
-    u8_t byEPCount   = 0;
-    u8_t byTypeCount = 0;
-    Map<u16_t, u16_t> mapType;
+    String  MAC = "";
+    u8_t    byTotalEP       = 0;
+    u8_t    byEPCount       = 0;
+    u8_t    byTypeCount     = 0;
+    u8_t    byAEReqCount    = 0;
+    bool_t  IsAERequested   = FALSE;
+    bool_t  IsDone          = FALSE;
+    Map<u16_t, u16_t> mapType = {};
 } EPInfor_t;
 
 typedef Map<u16_t, EPInfor_t>   DeviceLogic_t;
@@ -26,11 +30,11 @@ typedef Map<u16_t, EPInfor_t>*  DeviceLogic_p;
 
 class ZbZdoCmd {
 private:
-    Map<u16_t,String> m_mapTemps;
-
     RTimer_p m_pTimer;
-    timerFunctor_t m_Functor;
-    int_t m_iHandle;
+    timerFunctor_t m_DAFunctor;
+    timerFunctor_t m_AEFunctor;
+    int_t m_iDAHandle;
+    int_t m_iAEHandle;
 
     ZbZdoCmd();
 
@@ -42,12 +46,18 @@ public:
     ~ZbZdoCmd();
     void_t ProcRecvMessage(void_p);
 
+    void_t IEEEAddrRequest(u16_t);
+    void_t IEEEAddrResponse(u8_p, u32_t);
     void_t DeviceAnnounce(u8_p, u32_t);
+    void_t ManualDeviceAnnounce(u16_t, String);
+    void_t HandleDeviceAnnounce(void_p);
     void_t ActiveEndpointRequest(u16_t);
     void_t ActiveEndpointResponse(u8_p, u32_t);
-    void_t NodeDescriptionRequest(Device_t);
-    void_t NodeDescriptionResponse(u8_p, u32_t);
-
+    void_t HandleActiveEndpoint(void_p);
+    void_t NodeDescRequest(u16_t);
+    void_t NodeDescResponse(u8_p, u32_t);
+    void_t SimpleDescRequest(Device_t);
+    void_t SimpleDescResponse(u8_p, u32_t);
     void_t LeaveRequest(u16_t);
     void_t LeaveResponse(u16_t, u8_p, u32_t);
 

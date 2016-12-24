@@ -28,7 +28,6 @@
 #include "ZbCtrller.hpp"
 #include "HCCtrller.hpp"
 #include "LogPlus.hpp"
-
 #ifdef MT7688
 #include "LED.hpp"
 #endif
@@ -70,8 +69,14 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef MT7688
-    LED led(0);
-    led.On();
+//    LED led(0);
+//    led.On();
+
+    LED ledNETN(18);
+    ledNETN.On();
+
+    LED ledNETE(19);
+    ledNETE.On();
 #endif
 
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
@@ -104,6 +109,7 @@ int main(int argc, char* argv[]) {
 
     if (pHcController != NULL) {
 //        pHcController->Debug();
+        pHcController->Serve();
         pHcController->Connect();
     }
 

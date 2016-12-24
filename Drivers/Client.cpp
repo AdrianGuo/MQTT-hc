@@ -6,6 +6,7 @@
  */
 
 #include <Client.hpp>
+#include <LogPlus.hpp>
 
 /**
  * @func

@@ -20,9 +20,11 @@ ZbModelDb::ZbModelDb(
 ) : DbContext(cDbName) {
     MapDbTable<ZbControllerDb>(ZbControllerDb::GetTableName());
     MapDbTable<ZbDeviceDb>(ZbDeviceDb::GetTableName());
+    MapDbTable<NetDeviceDb>(NetDeviceDb::GetTableName());
     CreateTables();
-    ZbControllers = Find<ZbControllerDb>();
-    ZbDevices = Find<ZbDeviceDb>();
+    ZbControllers   = Find<ZbControllerDb>();
+    ZbDevices       = Find<ZbDeviceDb>();
+    NetDevices      = Find<NetDeviceDb>();
 }
 
 /**

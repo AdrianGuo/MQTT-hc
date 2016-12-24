@@ -16,6 +16,7 @@
 class ZbZclGlobalCmd {
 private:
     ZbZclGlobalCmd();
+    void_t ProcessException(u16_t, u8_p);
 
 public:
     static ZbZclGlobalCmd* s_pInstance;
@@ -32,6 +33,8 @@ public:
     void_t WriteAttributeRequest(Device_t, DeviceProperties);
     void_t WriteAttributeRequest(Device_t, DeviceProperty);
     void_t WriteAttributeResponse(u8_p);
+
+    void_t Broadcast();
 };
 
 typedef ZbZclGlobalCmd ZbZclGlobalCmd_t;

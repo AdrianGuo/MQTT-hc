@@ -48,7 +48,7 @@ ForwardSetValueToDevice (
  */
 
 void_t
-ForwardSetValueToDimmerCurtain (
+ForwardSetValueToDimmer (
     ZbMessage_p pZbMessage,
     Device_t    device,
     Json::Value jsonVal
@@ -79,7 +79,55 @@ ForwardSetValueToDimmerCurtain (
             val = device->State;
             if(val > 2)  val -= 3;
         }
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
+    }
+}
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+
+void_t
+ForwardSetValueToCurtain (
+    ZbMessage_p pZbMessage,
+    Device_t    device,
+    Json::Value jsonVal
+) {
+    if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
+    u8_t val = atoi(jsonVal["level"].asCString());
+
+    if(jsonVal["state"].asString() == std::string("off")) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, 255);
+        return;
+    }
+
+    if(jsonVal["state"].asString() == std::string("stop")) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, (device->State - 3));
+        return;
+    }
+
+    if (jsonVal["state"].asString() == std::string("on") && (jsonVal["level"].asString() == std::string("-1"))) {
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+    } else {
+        if(val <= 55)
+            val *= 3;
+        else if(val > 55)
+            val = 165 + (val - 55) * 2;
+        else
+            val = 0;
+
+        if (jsonVal["state"].asString() == std::string("off")) {
+            val = 0;
+        } else if (jsonVal["state"].asString() == std::string("inc")) {
+            val = device->State;
+            if(val < 253)  val += 3;
+        } else if (jsonVal["state"].asString() == std::string("dec")) {
+            val = device->State;
+            if(val > 2)  val -= 3;
+        }
         ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
     }
 }

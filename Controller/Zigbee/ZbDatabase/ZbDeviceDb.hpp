@@ -20,6 +20,7 @@
 #define AttributeDataType(x)                Action[x].AttributeDataType
 #define AttributeDataSize(x)                Action[x].AttributeDataSize
 #define AttributeData(x)                    Action[x].DP_AttributeData
+#define ReserveData(x)                      Action[x].DP_ReserveData
 #define PreValue(x)                         Action[x].DP_PreValue
 #define DIName(x)                           Action[x].DP_DIName
 #define DIStringName(x)                     Action[x].DP_DIStringName

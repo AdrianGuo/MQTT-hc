@@ -32,9 +32,13 @@
 #define DEV_RESET                                       0x8E
 
 #define ZCL_CLUSTER_ID_LUMI_IR                          0xFC15
-#define ZCL_LUMI_DEVICEID_IR                            0x0015
+
 #define ATTRID_LUMI_IRCMD                               0x0000
 #define ATTRID_LUMI_IRSTATE                             0x0001
+
+#define ZCL_LUMI_DEVICEID_IR                            0x0015
+#define ZCL_LUMI_DEVICEID_SECURITY                      0x0016
+#define ZCL_LUMI_DEVICEID_POWER                         0x0017
 
 //Devices
 #define UNKNOWN_DEVICE                                  (-1)

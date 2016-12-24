@@ -26,7 +26,8 @@ public:
         InfoReq,
         ResetReq,
         RestartReq,
-        ManualRmv
+        ManualRmv,
+        AuthReq
     } Command;
 
 private:

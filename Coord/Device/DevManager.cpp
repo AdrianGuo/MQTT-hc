@@ -31,6 +31,7 @@
 #include "JsonDevLstDelRes.hpp"
 #include "JsonDevSync.hpp"
 #include "JsonDevSyncRes.hpp"
+#include "JsonAuthReq.hpp"
 
 #include "DevManager.hpp"
 
@@ -173,7 +174,8 @@ DevManager::HandlerDevCmdSet(
             zwDevice.value = lstSetDevice[i].value;
             zwDevice.netwk = lstSetDevice[i].netwk;
             lstSetZwDevice.push_back(zwDevice);
-        } else if (lstSetDevice[i].netwk == NetWk::Zigbee) { // Zigbee Device
+        } else if (lstSetDevice[i].netwk == NetWk::Zigbee ||
+                lstSetDevice[i].netwk == NetWk::Wifi) { // Zigbee Device
             JsonDevSet::Device_t zbDevice;
             zbDevice.devid = lstSetDevice[i].devid;
             zbDevice.order = lstSetDevice[i].order;
@@ -181,7 +183,7 @@ DevManager::HandlerDevCmdSet(
             zbDevice.value = lstSetDevice[i].value;
             zbDevice.netwk = lstSetDevice[i].netwk;
             lstSetZbDevice.push_back(zbDevice);
-        } else if (lstSetDevice[i].netwk == NetWk::Wifi) { // Wifi Device
+//        } else if (lstSetDevice[i].netwk == NetWk::Wifi) { // Wifi Device
 
         } else if (lstSetDevice[i].netwk == NetWk::Bluetooth) { // Bluetooth Device
 
@@ -241,14 +243,15 @@ DevManager::HandlerDevCmdGet(
             zwDevice.netwk = lstSetDevice[i].netwk;
             zwDevice.type  = lstSetDevice[i].type;
             lstGetZwDevice.push_back(zwDevice);
-        } else if (lstSetDevice[i].netwk == 1) { // Zigbee Device
+        } else if (lstSetDevice[i].netwk == 1 ||
+                lstSetDevice[i].netwk == 2) { // Zigbee Device
             JsonDevGet::Device_t zbDevice;
             zbDevice.devid = lstSetDevice[i].devid;
             zbDevice.order = lstSetDevice[i].order;
             zbDevice.netwk = lstSetDevice[i].netwk;
             zbDevice.type  = lstSetDevice[i].type;
             lstGetZbDevice.push_back(zbDevice);
-        } else if (lstSetDevice[i].netwk == 2) { // Wifi Device
+//        } else if (lstSetDevice[i].netwk == 2) { // Wifi Device
 
         } else if (lstSetDevice[i].netwk == 3) { // Bluetooth Device
 
@@ -585,4 +588,18 @@ void_t
 DevManager::HandlerDevCmdSyncRes(
     JsonCommand_p pJsonCommand
 ) {
+}
+
+/**
+ * @func   HandlerDevCmdSyncRes
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+DevManager::HandlerDevCmdAuthReq(
+    JsonCommand_p pJsonCommand
+) {
+    pJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
+    PushJsonCommand(pJsonCommand);
 }

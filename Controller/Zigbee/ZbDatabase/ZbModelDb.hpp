@@ -11,12 +11,15 @@
 #include "typedefs.h"
 #include "ZbControllerDb.hpp"
 #include "ZbDeviceDb.hpp"
+#include "NetDeviceDb.hpp"
 #include "DbContext.hpp"
 
 typedef DbPtr<ZbDeviceDb>                   Device_t;
-typedef DbPtr<ZbControllerDb>               Controller_t;
 typedef Collection<DbPtr<ZbDeviceDb>>       Devices_t;
 typedef Collection<DbPtr<ZbControllerDb>>   Controllers_t;
+typedef DbPtr<ZbControllerDb>               Controller_t;
+typedef DbPtr<NetDeviceDb>                  NetDevice_t;
+typedef Collection<DbPtr<NetDeviceDb>>      NetDevices_t;
 
 class ZbModelDb : public DbContext {
 private:
@@ -24,8 +27,9 @@ private:
 public:
     static ZbModelDb* CreateModel(const_char_p cDbName);
     virtual ~ZbModelDb();
-    Controllers_t ZbControllers;
-    Devices_t ZbDevices;
+    Controllers_t   ZbControllers;
+    Devices_t       ZbDevices;
+    NetDevices_t    NetDevices;
 
 };
 

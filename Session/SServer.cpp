@@ -133,7 +133,7 @@ SServer::BufferToJsCmdClass(
                 (*pClients)[idwClientId].Authenticate(TRUE);
                 (*pClients)[idwClientId].SetMAC(String(jsonVal["mac"].asCString()));
                 (*pClients)[idwClientId].SetType(String(jsonVal["type"].asCString()));
-            }else {
+            } else {
                 m_ServerSock.RemoveClient((*pClients)[idwClientId]);
                 delete pJsonCommand;
                 continue;
@@ -154,7 +154,6 @@ SServer::BufferToJsCmdClass(
                 continue;
             }
         }
-
         if (pJsonCommand->IsJsonAvailable()) {
             if (m_pHCCtrllerFunctor != NULL) {
                 m_pHCCtrllerFunctor->operator ()(pJsonCommand);
@@ -218,7 +217,7 @@ SServer::JsCommandToPacket(
     strOutput.remove_char(ENDLN); // remove all '\n' characters
     strOutput.remove_char(SPACE);  // remove all spaces
 
-    LOG_INFO("send %s", strOutput.c_str());
+    LOG_INFO("SServer: send %s", strOutput.c_str());
 
     Packet_p packet = new Packet(strOutput.size());
 

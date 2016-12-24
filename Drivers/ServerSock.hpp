@@ -36,8 +36,7 @@ private:
     int_t m_idwSockfd;
     int_t m_idwPort;
 
-    fd_set m_ReadFds;
-    fd_set m_WriteFds;
+    fd_set m_Fds;
     int_t m_idwNfds;
 
     bool_t m_boIsServed;

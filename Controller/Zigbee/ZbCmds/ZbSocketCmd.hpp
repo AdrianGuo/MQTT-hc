@@ -15,7 +15,11 @@
 #include <ZbDriver.hpp>
 #include <ZbModelDb.hpp>
 #include <JsonZigbeeSession.hpp>
+#include <JsonDevLstAdd.hpp>
 #include <DeviceInfo.hpp>
+
+#define NET_ZIGBEE      1
+#define NET_WIFI        2
 
 class ZbSocketCmd {
 private:
@@ -23,17 +27,21 @@ private:
 
     JsonSendZigbeeSession_p m_pJsonSendSession;
 
-    void_t SendJsonMessage(EvAct, JsonCommand_p);
+    void_t SendJsonMessage(EvAct, JsonCommand_p, JsonCommand::Flag);
 
 public:
     static ZbSocketCmd* s_pInstance;
     static ZbSocketCmd* GetInstance();
     ~ZbSocketCmd();
 
-    void_t SendLstAdd(Devices_t);
-    void_t SendLstDel(Devices_t);
-    void_t SendZbStt(Device_t, Json::Value);
-    void_t SendResetRes(u8_t);
+    void_t SendLstAdd(Devices_t, JsonCommand::Flag des = JsonCommand::Flag::Coord);
+    void_t SendLstAdd(Vector<JsonDevLstAdd::Device_t>, JsonCommand::Flag des = JsonCommand::Flag::Coord);
+    void_t SendLstDel(Devices_t, JsonCommand::Flag des = JsonCommand::Flag::Coord);
+    void_t SendZbStt(Device_t, Json::Value, JsonCommand::Flag des = JsonCommand::Flag::Coord);
+    void_t SendResetRes(u8_t, JsonCommand::Flag des = JsonCommand::Flag::Coord);
+
+    //Client
+    void_t SendAuthRes(NetDevice_t);
 };
 
 typedef ZbSocketCmd     ZbSocketCmd_t;
