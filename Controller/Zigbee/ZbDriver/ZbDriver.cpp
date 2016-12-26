@@ -492,7 +492,9 @@ ZbDriver::Init(
 ) {
     if(req) {
         m_pZbBasicCmd->NwkInfoReq();
-        while(ZbBasicCmd::IsNetworkAvail == FALSE);
+        while(m_pZbBasicCmd->IsNetworkAvail() != TRUE) {
+            LOG_DEBUG("Waiting zb's response...");
+        }
     }
 
     Controllers_t controllers = s_pZbModel->Find<ZbControllerDb>();

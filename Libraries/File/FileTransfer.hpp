@@ -26,8 +26,6 @@ private:
     String m_strPassword;
     String m_strLocation;
 
-    bool_t m_boIsConnected;
-
     LThread_p m_pBackupThread;
     LThread_p m_pRestoreThread;
     LThread_p m_pUpgradeThread;
@@ -39,6 +37,8 @@ private:
     timerFunctor_t m_FileTransferFunctor;
     int_t m_iFileTransferHandle;
 
+    Locker_p m_pLocker;
+
 public:
     typedef enum {
         BACKUP = 0,
@@ -49,9 +49,9 @@ public:
     FileTransfer(String strIP = SERVER_IP, String strPort = SERVER_PORT);
     ~FileTransfer();
 
-    void_t Connect();
+    bool   Connect();
     bool_t Login();
-    void_t Quit();
+    void_t Logout();
 
     void_t SetServerIP(String);
     void_t SetServerPort(String);

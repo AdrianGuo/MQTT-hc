@@ -37,10 +37,25 @@ public:
 			return FALSE;
 		bool_t result = FALSE;
 		switch (m_type) {
+
 		case 1: // cong tac
+		case 128: // Cam bien chuyen dong
+		case 129:  // Cam bien cua
+		case 130:  // Cam bien nhiet do
+		case 131:  // Cam bien do am
+		case 132:  // Cam bien anh sang
+		{
+			if (m_value.isMember("level") && m_valueCurrent.isMember("level")) {
+				int_t levelSetup = std::atoi(m_value["level"].asCString());
+				int_t levelCurrent = std::atoi(
+						m_valueCurrent["level"].asCString());
+				return CheckingValueLevel(levelSetup, levelCurrent);
+			}
+			break;
+		}
+
 		case 2: // dimmer
 		case 3: // quat
-		case 4: // rem
 		case 9: // binary input
 		{
 			if (m_value.isMember("level") && m_valueCurrent.isMember("level")
@@ -65,7 +80,29 @@ public:
 			}
 			break;
 		}
-		case 5: { // IR
+
+		case 4: // rem
+		{
+			if (m_value.isMember("level") && m_valueCurrent.isMember("level")
+					&& m_value.isMember("state")
+					&& m_valueCurrent.isMember("state")) {
+				String stateSetup = String(m_value["state"].asCString());
+				String stateCurrent = String(
+						m_valueCurrent["state"].asCString());
+				if (CheckingVlaueState(stateSetup, stateCurrent)) {
+					int_t levelSetup = std::atoi(m_value["level"].asCString());
+					int_t levelCurrent = std::atoi(
+							m_valueCurrent["level"].asCString());
+					return CheckingValueLevel(levelSetup, levelCurrent);
+				} else {
+					return FALSE;
+				}
+			}
+			break;
+		}
+
+		case 5:  // IR
+		{
 			if (m_value.isMember("act") && m_valueCurrent.isMember("act")
 					&& m_value.isMember("irid")
 					&& m_valueCurrent.isMember("irid")) {
@@ -91,7 +128,9 @@ public:
 			}
 			break;
 		}
-		case 6: { // RGB
+
+		case 6: // RGB
+		{
 			if (m_value.isMember("level") && m_valueCurrent.isMember("level")
 					&& m_value.isMember("state")
 					&& m_valueCurrent.isMember("state")) {
@@ -106,11 +145,14 @@ public:
 			}
 			break;
 		}
-		case 7: { // PIR dien
 
+		case 7:  // PIR dien
+		{
 			break;
 		}
-		case 8: { // Dieu hoa Daikin
+
+		case 8:  // Dieu hoa Daikin
+		{
 			return CheckingVlaueState(String(m_value.toStyledString().c_str()),
 					String(m_valueCurrent.toStyledString().c_str()));
 			break;

@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
 
     if (pHcController != NULL) {
 //        pHcController->Debug();
-        pHcController->Serve();
         pHcController->Connect();
+//        pHcController->Serve();
     }
 
     if (pZwController != NULL) {

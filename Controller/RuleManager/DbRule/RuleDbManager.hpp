@@ -11,6 +11,10 @@
 #include "String.hpp"
 #include "typedefs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 namespace Json {
 class Value;
 } /* namespace Json */
@@ -35,5 +39,9 @@ private:
 
 typedef RuleDbManager RuleDbManager_t;
 typedef RuleDbManager* RuleDbManager_p;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RULEDBMANAGER_HPP_ */

@@ -28,8 +28,6 @@ FileTransfer::FileTransfer(
     m_strPassword   = SERVER_PASSWORD;
     m_strLocation   = SERVER_LOCATION;
 
-    m_boIsConnected = FALSE;
-
     m_pBackupThread  = new LThread();
     m_pRestoreThread = new LThread();
     m_pUpgradeThread = new LThread();
@@ -42,6 +40,8 @@ FileTransfer::FileTransfer(
 
     m_pFileTransferTimer = RTimer::getTimerInstance();
     m_FileTransferFunctor = makeFunctor((timerFunctor_p) NULL, *this, &FileTransfer::HandleFileTransferProcess);
+
+    m_pLocker = new Locker();
 }
 
 /**
@@ -54,6 +54,7 @@ FileTransfer::~FileTransfer() {
     delete m_pBackupThread;
     delete m_pRestoreThread;
     delete m_pUpgradeThread;
+    delete m_pLocker;
 }
 
 /**
@@ -62,9 +63,9 @@ FileTransfer::~FileTransfer() {
  * @param  None
  * @retval None
  */
-void_t
+bool
 FileTransfer::Connect() {
-    m_boIsConnected = m_Ftp.Connect((m_strIP + ":" + m_strPort).c_str());
+    return m_Ftp.Connect((m_strIP + ":" + m_strPort).c_str());
 }
 
 /**
@@ -85,9 +86,8 @@ FileTransfer::Login() {
  * @retval None
  */
 void_t
-FileTransfer::Quit() {
+FileTransfer::Logout() {
     m_Ftp.Quit();
-    m_boIsConnected = FALSE;
 }
 
 /**
@@ -100,7 +100,9 @@ void_t
 FileTransfer::SetServerIP(
     String strIP
 ) {
+    m_pLocker->Lock();
     m_strIP = strIP;
+    m_pLocker->UnLock();
 }
 
 /**
@@ -113,7 +115,9 @@ void_t
 FileTransfer::SetServerPort(
     String strPort
 ) {
+    m_pLocker->Lock();
     m_strPort = strPort;
+    m_pLocker->UnLock();
 }
 
 /**
@@ -126,7 +130,9 @@ void_t
 FileTransfer::SetServerUser(
     String strUser
 ) {
+    m_pLocker->Lock();
     m_strUser = strUser;
+    m_pLocker->UnLock();
 }
 
 /**
@@ -139,7 +145,9 @@ void_t
 FileTransfer::SetServerPassword(
     String strPassword
 ) {
+    m_pLocker->Lock();
     m_strPassword = strPassword;
+    m_pLocker->UnLock();
 }
 
 /**
@@ -152,7 +160,9 @@ void_t
 FileTransfer::SetServerLocation(
     String strLocation
 ) {
+    m_pLocker->Lock();
     m_strLocation = strLocation;
+    m_pLocker->UnLock();
 }
 
 /**
@@ -183,10 +193,18 @@ void_p
 FileTransfer::Backup(
     void_p pBuffer
 ) {
-    if(m_boIsConnected == FALSE) {
+    if(!Connect()) {
         m_pBackupThread->Stop();
         return NULL;
     }
+
+    if (Login()) {
+
+        Logout();
+    }
+
+    m_pBackupThread->Stop();
+    return NULL;
 }
 
 /**
@@ -199,10 +217,18 @@ void_p
 FileTransfer::Restore(
     void_p pBuffer
 ) {
-    if(m_boIsConnected == FALSE) {
+    if(!Connect()) {
         m_pRestoreThread->Stop();
         return NULL;
     }
+
+    if (Login()) {
+
+        Logout();
+    }
+
+    m_pRestoreThread->Stop();
+    return NULL;
 }
 
 /**
@@ -215,10 +241,18 @@ void_p
 FileTransfer::Upgrade(
     void_p pBuffer
 ) {
-    if(m_boIsConnected == FALSE) {
+    if(!Connect()) {
         m_pUpgradeThread->Stop();
         return NULL;
     }
+
+    if (Login()) {
+
+        Logout();
+    }
+
+    m_pUpgradeThread->Stop();
+    return NULL;
 }
 
 /**

@@ -16,8 +16,6 @@
 #define NETWORK_REQ_NO          (5)
 
 ZbBasicCmd* ZbBasicCmd::s_pInstance = NULL;
-bool_t ZbBasicCmd::IsNetworkAvail = FALSE;
-
 
 /**
  * @func
@@ -26,6 +24,7 @@ bool_t ZbBasicCmd::IsNetworkAvail = FALSE;
  * @retval None
  */
 ZbBasicCmd::ZbBasicCmd() {
+    m_boIsNetAvail = FALSE;
     m_pTimer = RTimer::getTimerInstance();
     m_TimerFunctor = makeFunctor((timerFunctor_p) NULL, *this, &ZbBasicCmd::HandleNetworkInfo);
     m_byNetReqCount = 0;
@@ -150,7 +149,7 @@ ZbBasicCmd::NwkInfoRsp(
         controller.Modify()->Channel = *pbyBuffer;
     }
     ZbDriver::s_pZbModel->UpdateChanges();
-    IsNetworkAvail = TRUE;
+    m_boIsNetAvail = TRUE;
 }
 
 /**
@@ -222,6 +221,17 @@ ZbBasicCmd::ResetDevice(
  * @param  None
  * @retval None
  */
+bool_t
+ZbBasicCmd::IsNetworkAvail() {
+    return m_boIsNetAvail;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 void_t
 ZbBasicCmd::HandleNetworkInfo(
     void_p pBuffer
@@ -233,7 +243,7 @@ ZbBasicCmd::HandleNetworkInfo(
         return;
     }
 
-    if(IsNetworkAvail == FALSE) {
+    if(IsNetworkAvail() == FALSE) {
         NwkInfoReq();
     }
 }

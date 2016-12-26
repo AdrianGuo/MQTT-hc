@@ -110,7 +110,7 @@ void_t RuleCtrller::debug() {
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 			/*Dev stt*/
 			new JsonCommand("dev=stt",
-					"{\"dev\":[{\"devid\":\"55096\",\"ord\":\"5\",\"net\":\"1\",\"type\":\"1\",\"val\":{\"level\":\"1\",\"state\":\"off\"}},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"}}]}",
+					"{\"dev\":[{\"devid\":\"6820\",\"ord\":\"5\",\"net\":\"1\",\"type\":\"1\",\"val\":{\"level\":\"1\",\"state\":\"on\"}},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"}}]}",
 					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 	/*Delete*/
 //			new JsonCommand("rule=del", "{\"lst\":[\"4\",\"5\"]}",

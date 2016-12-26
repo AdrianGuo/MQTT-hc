@@ -17,6 +17,7 @@
 
 class ZbBasicCmd {
 private:
+    bool_t m_boIsNetAvail;
     RTimer_p m_pTimer;
     timerFunctor_t m_TimerFunctor;
     int_t m_iTimerHandle;
@@ -28,8 +29,9 @@ private:
 public:
     static ZbBasicCmd* s_pInstance;
     static ZbBasicCmd* GetInstance();
-    static bool_t IsNetworkAvail;
     ~ZbBasicCmd();
+
+    bool_t IsNetworkAvail();
 
     void_t HCError(u8_t, u8_t);
     void_t MCError(ZbPacket_p);

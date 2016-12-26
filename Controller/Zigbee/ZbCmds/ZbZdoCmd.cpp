@@ -91,10 +91,12 @@ ZbZdoCmd::ProcRecvMessage(
             break;
 
         case ZDO_ACTIVE_EP_RSP:
+            if (s_mapEPInfor[wNwk].IsDone == TRUE) { break; }
             ActiveEndpointResponse(pbyBuffer, idwLen);
         break;
 
         case ZDO_SIMPLE_DESC_RSP:
+            if (s_mapEPInfor[wNwk].IsDone == TRUE) { break; }
             SimpleDescResponse(pbyBuffer, idwLen);
         break;
 
@@ -283,7 +285,6 @@ ZbZdoCmd::ActiveEndpointResponse(
     pbyBuffer           += 2; //Ignore Cmd Payload Length
     u8_t byStatus       = *pbyBuffer++;
     u16_t wNwk          = BigWord(&pbyBuffer);
-    if (s_mapEPInfor[wNwk].IsDone == TRUE) { return; }
     u8_t byEndpointNo   = *pbyBuffer++;
     u8_t byEndpointList[byEndpointNo];
     if (byEndpointNo > 0) {
@@ -420,32 +421,40 @@ ZbZdoCmd::SimpleDescResponse(
     pbyBuffer       += 2; //Ignore Cmd Payload Length
     u8_t byStatus   = *pbyBuffer++;
     u16_t wNwk      = BigWord(&pbyBuffer);
-    if (s_mapEPInfor[wNwk].IsDone == TRUE) { return; }
     u8_t byLeng     = *pbyBuffer++;
-    switch (byStatus) {
-    case ZDO_STATUS_SUCCESS: {
+    if (byStatus == ZDO_STATUS_SUCCESS) {
         if (byLeng < 5) {
             LOG_WARN("NONFORMAT RSP!");
-            break;
+            return;
         }
         u8_t byEndpoint = *pbyBuffer++;
-        pbyBuffer       += 2; //Application profile identifier
-        u16_t wType     = BigWord(&pbyBuffer); //Application device identifier
-        Device_t device  = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-        if (device.Modify() == NULL) { break; }
+        pbyBuffer += 2; //Application profile identifier
+        u16_t wType = BigWord(&pbyBuffer); //Application device identifier
+
+        Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where(
+                "Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
+        if (device.Modify() == NULL) {
+            return;
+        }
+        if (wType == 0) {
+            SimpleDescRequest(device);
+            return;
+        }
         device.Modify()->Type = (int_t) wType;
         ZbDriver::s_pZbModel->Add(device);
-//        ZbDriver::s_pZbModel->UpdateChanges();
 
         //Only request model & manufacturer info to one of same type devices (send when get the last endpoint).
-        if(s_mapEPInfor[wNwk].byEPCount == 0) {
+        if (s_mapEPInfor[wNwk].byEPCount == 0) {
             s_mapEPInfor[wNwk].mapType[++s_mapEPInfor[wNwk].byTypeCount] = wType;
         } else {
             bool_t boCheck = TRUE;
-            for(u8_t i = 1; i <= s_mapEPInfor[wNwk].byEPCount; i++) {
-                if(s_mapEPInfor[wNwk].mapType[i] == wType) { boCheck = FALSE; break; }
+            for (u8_t i = 1; i <= s_mapEPInfor[wNwk].byEPCount; i++) {
+                if (s_mapEPInfor[wNwk].mapType[i] == wType) {
+                    boCheck = FALSE;
+                    break;
+                }
             }
-            if(boCheck == TRUE) {
+            if (boCheck == TRUE) {
                 s_mapEPInfor[wNwk].mapType[++s_mapEPInfor[wNwk].byTypeCount] = wType;
             }
         }
@@ -455,31 +464,31 @@ ZbZdoCmd::SimpleDescResponse(
             s_mapEPInfor[wNwk].IsDone = TRUE;
             Device_t device;
             Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-            bool_t boCheck = FALSE;
-            for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-                if((*it).Modify()->IsInterested()) {
+            u8_t byCheck = 0;
+            for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                if ((*it).Modify()->IsInterested()) {
                     device = *it;
-                    boCheck = TRUE;
-//                    (*it).Modify()->GenerateDeviceInfo();
+                    byCheck++;
+                }
+                if (device.Modify()->Type == 0) {
+                    s_mapEPInfor[wNwk].IsDone = FALSE;
+                    SimpleDescRequest(device);
+                    byCheck = 0;
                     break;
                 }
             }
-            if(!boCheck) { return; }
+            if (byCheck == 0) {
+                s_mapEPInfor[wNwk].IsDone = FALSE;
+                return;
+            }
             Vector<DeviceInfo> vDI;
             vDI.push_back(DI_Model);
             vDI.push_back(DI_Manufacturer);
             ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(device, vDI);
         }
-    }
-        break;
-    case ZDO_STATUS_INVALID_EP:
-    case ZDO_STATUS_NOT_ACTIVE:
-    case ZDO_STATUS_NO_DESCRIPTOR:
-    case ZDO_STATUS_INV_REQUESTTYPE:
-    case ZDO_STATUS_DEVICE_NOT_FOUND:
-    default:
-        LOG_WARN("INVALID EP|NOT ACTIVE|NO DESCRIPTOR|INV REQUESTTYPE|DEVICE NOT FOUND!");
-        break;
+    } else {
+        LOG_WARN(
+                "INVALID EP|NOT ACTIVE|NO DESCRIPTOR|INV REQUESTTYPE|DEVICE NOT FOUND!");
     }
 }
 
