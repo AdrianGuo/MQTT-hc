@@ -12,8 +12,8 @@
  * Last Changed:     Date: 14 Nov 2016 11:33:37
  *
  ******************************************************************************/
-#ifndef CONTROLLER_VALUEDEVICE_VALUEPIRSENSOR_HPP_
-#define CONTROLLER_VALUEDEVICE_VALUEPIRSENSOR_HPP_
+#ifndef VALUE_PIRSENSOR_HPP_
+#define VALUE_PIRSENSOR_HPP_
 
 #include "typedefs.h"
 #include "String.hpp"
@@ -124,4 +124,4 @@ ValuePirSensor::ParseValue(
     return TRUE;
 }
 
-#endif /* CONTROLLER_VALUEDEVICE_VALUEPIRSENSOR_HPP_ */
+#endif /* !VALUE_PIRSENSOR_HPP_ */

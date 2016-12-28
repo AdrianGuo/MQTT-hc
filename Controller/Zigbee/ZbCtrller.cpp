@@ -6,8 +6,8 @@
  */
 
 #include <stddef.h>
-#include "debug.hpp"
 #include "LogPlus.hpp"
+#include "LogCommand.hpp"
 #include "LThread.hpp"
 #include "JsonCommand.hpp"
 #include "zcl_lumi.hpp"
