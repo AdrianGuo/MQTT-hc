@@ -33,38 +33,11 @@
 
 #include "typedefs.h"
 #include "String.hpp"
-#include "JsonCommand.hpp"
 #include "LogPlus.hpp"
 
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
-#ifndef SPACE
-#define SPACE                              (' ')
-#endif /* SPACE */
-
-#ifndef ENDLN
-#define ENDLN                              ('\n')
-#endif /* ENDLN */
-
-#ifndef AT
-#define AT                                 ('@')
-#endif /* AT */
-
-#define LOGCOMMAND(logLevel, jsonCommand) \
-    ST(\
-        const String STA = String("$"); \
-        const String END = String("$end"); \
-        String strRecevCmd  = STA + (jsonCommand)->GetFullCommand() + (jsonCommand)->GetJsonValue() + END;\
-        strRecevCmd.remove_char(ENDLN); \
-        strRecevCmd.remove_char(SPACE); \
-        std::replace(strRecevCmd.begin(), strRecevCmd.end(), AT, SPACE); \
-        if ((logLevel) == Log::Level::eInfo) { \
-            LOG_INFO (" json %s", strRecevCmd.c_str()); \
-        } else if ((logLevel) == Log::Level::eDebug) { \
-            LOG_DEBUG(" json %s", strRecevCmd.c_str()); \
-        } \
-    )
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */

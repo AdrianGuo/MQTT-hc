@@ -74,11 +74,11 @@ NetManager::NetManager(
     m_boIsConnected (FALSE),
     m_pJsonNetSession (JsonNetSession::CreateSession()) {
     m_keepaliveTimerFunctor = makeFunctor(
-    (timerFunctor_p) NULL, *this, &NetManager::HandleKeepAliveProcess);
+    (TimerFunctor_p) NULL, *this, &NetManager::HandleKeepAliveProcess);
     m_authenRequestTimerFunctor = makeFunctor(
-    (timerFunctor_p) NULL, *this, &NetManager::HandleAuthenProcess);
+    (TimerFunctor_p) NULL, *this, &NetManager::HandleAuthenProcess);
     m_checkConectionTimerFunctor = makeFunctor(
-    (timerFunctor_p) NULL, *this, &NetManager::HandleConnectProcess);
+    (TimerFunctor_p) NULL, *this, &NetManager::HandleConnectProcess);
 
     RegisterNetSession();
 }

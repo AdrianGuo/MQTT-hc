@@ -16,14 +16,14 @@
 #ifndef JSONZWAVE_SESSION_HPP_
 #define JSONZWAVE_SESSION_HPP_
 
+#include <JsonMsgSession.hpp>
 #include "typedefs.h"
-#include "JsonMessageSession.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonRecvZwaveSession : public JsonMessageSession {
+class JsonRecvZwaveSession : public JsonMsgSession {
 private:
     JsonRecvZwaveSession() {}
     static JsonRecvZwaveSession* m_pInstance;
@@ -40,7 +40,7 @@ typedef JsonRecvZwaveSession* JsonRecvZwaveSession_p;
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonSendZwaveSession : public JsonMessageSession {
+class JsonSendZwaveSession : public JsonMsgSession {
 private:
     JsonSendZwaveSession() {}
     static JsonSendZwaveSession* m_pInstance;
@@ -56,7 +56,7 @@ typedef JsonSendZwaveSession* JsonSendZwaveSession_p;
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonSelfZwaveSession : public JsonMessageSession {
+class JsonSelfZwaveSession : public JsonMsgSession {
 private:
     JsonSelfZwaveSession() {}
     static JsonSelfZwaveSession* m_pInstance;

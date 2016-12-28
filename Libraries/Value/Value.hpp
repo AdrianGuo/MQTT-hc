@@ -6,7 +6,7 @@
 class Value {
 public:
     typedef enum {
-        type_none = 0,     // Stanadadr Type
+        type_none = 0,     // Standard Type
         type_bool,
         type_byte,
         type_decimal,

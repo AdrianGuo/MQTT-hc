@@ -25,6 +25,9 @@ public:
     ValueDevice(Value::Type_t typedevice) :
         Value (typedevice) {}
     virtual ~ValueDevice() {}
+
+    virtual bool_t CheckParam() const = 0;
+    virtual bool_t CheckJsVal(Json::Value jValue) const = 0;
     virtual bool_t ParseValue(Json::Value jValue) = 0;
     virtual Json::Value CreateJson() = 0;
 };

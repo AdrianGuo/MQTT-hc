@@ -31,6 +31,9 @@ public:
 
     static  Value::Type_t ValueType() { return Value::Type_t::type_dimmer; }
     virtual Json::Value CreateJson();
+
+    virtual bool_t CheckParam() const;
+    virtual bool_t CheckJsVal(Json::Value jsonValue) const;
     virtual bool_t ParseValue(Json::Value jsonValue);
 
     u8_t   Level() const { return m_byLevel;  }
@@ -44,7 +47,7 @@ typedef ValueDimmer  ValueDimmer_t;
 typedef ValueDimmer* ValueDimmer_p;
 
 /**
- * @func
+ * @func   ValueDimmer
  * @brief  None
  * @param  None
  * @retval None
@@ -57,7 +60,7 @@ ValueDimmer::ValueDimmer(
 }
 
 /**
- * @func
+ * @func   ValueDimmer
  * @brief  None
  * @param  None
  * @retval None
@@ -73,7 +76,7 @@ ValueDimmer::ValueDimmer(
 }
 
 /**
- * @func
+ * @func   CreateValue
  * @brief  None
  * @param  None
  * @retval None
@@ -86,7 +89,7 @@ ValueDimmer::CreateValue(
 }
 
 /**
- * @func
+ * @func   CreateJson
  * @brief  None
  * @param  None
  * @retval None
@@ -102,7 +105,33 @@ ValueDimmer::CreateJson() {
 }
 
 /**
- * @func
+ * @func   CheckParam
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+ValueDimmer::CheckParam() const {
+    return TRUE;
+}
+
+/**
+ * @func   CheckJsVal
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+ValueDimmer::CheckJsVal(
+    Json::Value jsonValue
+) const {
+    if (!jsonValue.isMember("level") || !jsonValue["state"]) { return FALSE; }
+
+    return TRUE;
+}
+
+/**
+ * @func   ParseValue
  * @brief  None
  * @param  None
  * @retval None
@@ -119,4 +148,4 @@ ValueDimmer::ParseValue(
     return TRUE;
 }
 
-#endif /* CONTROLLER_VALUEDEVICE_VALUEDIMMER_HPP_ */
+#endif /* VALUE_DIMMER_HPP_ */

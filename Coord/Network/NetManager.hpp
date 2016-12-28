@@ -50,9 +50,9 @@ private:
 
     threadFunctor_t m_NetCtrllerThreadFunctor;
 
-    timerFunctor_t m_checkConectionTimerFunctor;
-    timerFunctor_t m_authenRequestTimerFunctor;
-    timerFunctor_t m_keepaliveTimerFunctor;
+    TimerFunctor_t m_checkConectionTimerFunctor;
+    TimerFunctor_t m_authenRequestTimerFunctor;
+    TimerFunctor_t m_keepaliveTimerFunctor;
 
     u32_t m_dwAuthenRequestCount;
     u32_t m_dwKaliveRequestCount;

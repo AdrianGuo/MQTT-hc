@@ -68,5 +68,4 @@ public:
 typedef DevManager  DevManager_t;
 typedef DevManager* DevManager_p;
 
-
 #endif /* !DEVMANAGER_HPP_ */

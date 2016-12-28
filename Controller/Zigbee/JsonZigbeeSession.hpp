@@ -8,14 +8,14 @@
 #ifndef CONTROLLER_ZIGBEE_JSONZIGBEESESSION_HPP_
 #define CONTROLLER_ZIGBEE_JSONZIGBEESESSION_HPP_
 
+#include <JsonMsgSession.hpp>
 #include "typedefs.h"
-#include "JsonMessageSession.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonRecvZigbeeSession : public JsonMessageSession {
+class JsonRecvZigbeeSession : public JsonMsgSession {
 private:
     JsonRecvZigbeeSession() {}
     static JsonRecvZigbeeSession* m_pInstance;
@@ -32,7 +32,7 @@ typedef JsonRecvZigbeeSession* JsonRecvZigbeeSession_p;
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonSendZigbeeSession : public JsonMessageSession {
+class JsonSendZigbeeSession : public JsonMsgSession {
 private:
     JsonSendZigbeeSession() {}
     static JsonSendZigbeeSession* m_pInstance;

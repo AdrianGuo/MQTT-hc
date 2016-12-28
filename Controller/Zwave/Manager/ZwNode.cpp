@@ -32,8 +32,6 @@ ZwNode::MapValueToCmdClass() {
     BinarySwitchCmdClass::GetZwCmdClassId();
     m_mapValueToCmdClass[ValueDimmer::ValueType()] =
     MultilevelSwitchCmdClass::GetZwCmdClassId();
-    m_mapValueToCmdClass[ValuePirSensor::ValueType()] =
-    MultilevelSwitchCmdClass::GetZwCmdClassId();
 }
 
 /**
@@ -129,7 +127,7 @@ void_t
 ZwNode::SetNodeValue(
     ValueDevice_p pValueDevice,
     u8_p& pBuffer,
-    u8_p pLength
+    u8_p  pLength
 ) {
     Map<Value::Type_t, u8_t>::const_iterator_t it =
    m_mapValueToCmdClass.find(pValueDevice->GetType());

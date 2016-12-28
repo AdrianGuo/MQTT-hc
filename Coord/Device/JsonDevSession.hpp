@@ -15,14 +15,14 @@
 #ifndef JSONDEV_SESSION_HPP_
 #define JSONDEV_SESSION_HPP_
 
+#include <JsonMsgSession.hpp>
 #include "typedefs.h"
-#include "JsonMessageSession.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonRecvDevSession : public JsonMessageSession {
+class JsonRecvDevSession : public JsonMsgSession {
 private:
     JsonRecvDevSession() {}
     static JsonRecvDevSession* m_pInstance;
@@ -34,12 +34,11 @@ public:
 typedef JsonRecvDevSession  JsonRecvDevSession_t;
 typedef JsonRecvDevSession* JsonRecvDevSession_p;
 
-
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonSendDevSession : public JsonMessageSession {
+class JsonSendDevSession : public JsonMsgSession {
 private:
     JsonSendDevSession() {}
     static JsonSendDevSession* m_pInstance;

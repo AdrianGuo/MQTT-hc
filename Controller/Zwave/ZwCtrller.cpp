@@ -586,8 +586,8 @@ ZwCtrller::HandlerZwaveCmdSet(
 
     for (u32_t i = 0; i < lstSetZwDevice.size(); i++) {
         u8_t byNodeId = (u8_t) lstSetZwDevice[i].devid;
-        u8_t byOrder = lstSetZwDevice[i].order;
-        u8_t byType = lstSetZwDevice[i].type;
+        u8_t byOrder  = lstSetZwDevice[i].order;
+        u8_t byType   = lstSetZwDevice[i].type;
 
         ValueDevice_p pValueDevice =
         m_pZwDeviceValueMan->CreateValueDevice(byType, lstSetZwDevice[i].value);

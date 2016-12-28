@@ -7,15 +7,15 @@
 #include "Map.hpp"
 #include "Functor.hpp"
 
-typedef Functor1_t(void_p)      timerFunctor_t;
-typedef timerFunctor_t*         timerFunctor_p;
+typedef Functor1_t(void_p)      TimerFunctor_t;
+typedef TimerFunctor_t*         TimerFunctor_p;
 
 typedef struct {
     u32_t   start;
     u32_t   timeout;
     bool_t  activeflag;
     i8_t    repeats;
-    timerFunctor_p pTimerFunctor;
+    TimerFunctor_p pTimerFunctor;
     void_p  pBuffer;
 } SRTimer_t, *SRTimer_p;
 
@@ -44,7 +44,11 @@ public:
     void_t Process();
     u32_t getTickCount();
 
-    int_t StartTimer(i8_t ibyRepeat, u32_t dwTimeout, timerFunctor_p pTimerFunctor, void_p pBuffer);
+    int_t StartTimer(
+            i8_t ibyRepeat,
+            u32_t dwTimeout,
+            TimerFunctor_p pTimerFunctor,
+            void_p pBuffer);
     bool_t RestartTimer(u32_t dwTimerID, i8_t ibyRepeat, u32_t dwTimeout);
     bool_t CancelTimer(u32_t dwTimerID);
     bool_t IsExpired(u32_t dwTimerID);

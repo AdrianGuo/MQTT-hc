@@ -498,6 +498,7 @@ void_t
 DbManager::HandlerFloorCmdLstRes(
     JsonCommand_p pJsonCommand
 ) {
+
 }
 
 /**

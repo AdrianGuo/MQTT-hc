@@ -26,7 +26,7 @@
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
-class JsonMessageSession {
+class JsonMsgSession {
 private:
     typedef const std::type_info* const_type_info_ptr;
     typedef Map<const_type_info_ptr, JsonMessageBase_p> JsonTypeRegistry;
@@ -36,20 +36,20 @@ private:
     JsonNameRegistry m_JsonNameRegistry;
 public:
     template<class C> void_t MapJsonMessage(const String strJsonMessageName);
-    JsonMessageSession() {}
-    virtual ~JsonMessageSession();
+    JsonMsgSession() {}
+    virtual ~JsonMsgSession();
     template<class C> JsonMessageMap<C>* GetJsonMapping() const;
     JsonMessageBase_p GetJsonMapping(const String strJsonMessageName) const;
 };
 
 /**
- * @func   None
+ * @func   ~JsonMessageSession
  * @brief  None
  * @param  None
  * @retval None
  */
 inline
-JsonMessageSession::~JsonMessageSession() {
+JsonMsgSession::~JsonMsgSession() {
     for (JsonTypeRegistry::iterator_t it = m_JsonTypeRegistry.begin();
             it != m_JsonTypeRegistry.end(); it++) {
         delete it->second;
@@ -57,14 +57,14 @@ JsonMessageSession::~JsonMessageSession() {
 }
 
 /**
- * @func   None
+ * @func   MapJsonMessage
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline void_t
-JsonMessageSession::MapJsonMessage(
+JsonMsgSession::MapJsonMessage(
     const String strJsonMessageName
 ) {
     JsonMessageMap<C>* pJsonMessage = new JsonMessageMap<C>();
@@ -73,14 +73,14 @@ JsonMessageSession::MapJsonMessage(
 }
 
 /**
- * @func   None
+ * @func   GetJsonMapping
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline JsonMessageMap<C>*
-JsonMessageSession::GetJsonMapping() const {
+JsonMsgSession::GetJsonMapping() const {
     typedef typename std::remove_const<C>::type C_t;
     JsonTypeRegistry::const_iterator_t it = m_JsonTypeRegistry.find(&typeid(C_t));
     if (it != m_JsonTypeRegistry.end()) {
@@ -91,13 +91,13 @@ JsonMessageSession::GetJsonMapping() const {
 }
 
 /**
- * @func   None
+ * @func   GetJsonMapping
  * @brief  None
  * @param  None
  * @retval None
  */
 inline JsonMessageBase_p
-JsonMessageSession::GetJsonMapping(
+JsonMsgSession::GetJsonMapping(
     String strJsonMessageName
 ) const {
     JsonNameRegistry::const_iterator_t it = m_JsonNameRegistry.find(strJsonMessageName);

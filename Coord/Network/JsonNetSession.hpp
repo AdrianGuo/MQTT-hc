@@ -15,10 +15,10 @@
 #ifndef JSON_NETSESSION_HPP_
 #define JSON_NETSESSION_HPP_
 
+#include <JsonMsgSession.hpp>
 #include "typedefs.h"
-#include "JsonMessageSession.hpp"
 
-class JsonNetSession : public JsonMessageSession {
+class JsonNetSession : public JsonMsgSession {
 private:
     JsonNetSession() {}
     static JsonNetSession* m_instance;

@@ -66,7 +66,8 @@ RTimer::~RTimer() {
 RTimer_p
 RTimer::getTimerInstance() {
     u32_t dwthreadfd = (u32_t) pthread_self();
-    MapThreadToTimer::const_iterator_t it = m_mapThreadToTimer.find(dwthreadfd);
+    MapThreadToTimer::const_iterator_t it =
+    m_mapThreadToTimer.find(dwthreadfd);
     if (it == m_mapThreadToTimer.end()) {
         RTimer_p pTimer = new RTimer();
         m_mapThreadToTimer[dwthreadfd] = pTimer;
@@ -98,15 +99,18 @@ RTimer::getTickCount() {
  */
 void_t
 RTimer::Process() {
-    timerFunctor_t TimerFunctor;
-    void_p pParamter;
+    TimerFunctor_t TimerFunctor;
+    void_p pParamter = NULL;
 
     for (u32_t i = 0; i < MaxTimer; i++) {
-        if (IsExpired(i) && (m_Timer[i].pTimerFunctor != NULL) && m_Timer[i].activeflag) {
+        if (IsExpired(i) &&
+            (m_Timer[i].pTimerFunctor != NULL) &&
+            m_Timer[i].activeflag) {
             TimerFunctor = *m_Timer[i].pTimerFunctor;
             pParamter = m_Timer[i].pBuffer;
 
-            if ((m_Timer[i].repeats != RTimer::Repeat::Forever) && (m_Timer[i].repeats > 0)) {
+            if ((m_Timer[i].repeats != RTimer::Repeat::Forever) &&
+                (m_Timer[i].repeats > 0)) {
                 m_Timer[i].repeats--;
             }
 
@@ -132,7 +136,7 @@ int_t
 RTimer::StartTimer(
     i8_t ibyRepeat,
     u32_t dwTimeout,
-    timerFunctor_p pTimerFunctor,
+    TimerFunctor_p pTimerFunctor,
     void_p pBuffer
 ) {
     if (pTimerFunctor != NULL) { /* If Functor valid */
@@ -165,8 +169,11 @@ RTimer::RestartTimer(
     i8_t ibyRepeat,
     u32_t byTimeout
 ) {
-    if ((dwTimerID > MaxTimer) || (m_Timer[dwTimerID].pTimerFunctor == NULL) || (!m_Timer[dwTimerID].activeflag))
+    if ((dwTimerID > MaxTimer) ||
+        (m_Timer[dwTimerID].pTimerFunctor == NULL) ||
+        (!m_Timer[dwTimerID].activeflag)) {
         return FALSE;
+    }
 
     m_Timer[dwTimerID].start = getTickCount();
     m_Timer[dwTimerID].timeout = byTimeout;
@@ -185,8 +192,10 @@ bool_t
 RTimer::CancelTimer(
     u32_t dwTimerID
 ) {
-    if ((dwTimerID > MaxTimer) || (m_Timer[dwTimerID].pTimerFunctor == NULL))
+    if ((dwTimerID > MaxTimer) ||
+        (m_Timer[dwTimerID].pTimerFunctor == NULL)) {
         return FALSE;
+    }
 
     m_Timer[dwTimerID].start = 0;
     m_Timer[dwTimerID].timeout = 0;
@@ -209,8 +218,10 @@ bool_t
 RTimer::IsExpired(
     u32_t dwTimerID
 ) {
-    if ((dwTimerID > MaxTimer) || (m_Timer[dwTimerID].pTimerFunctor == NULL))
+    if ((dwTimerID > MaxTimer) ||
+        (m_Timer[dwTimerID].pTimerFunctor == NULL)) {
         return FALSE;
+    }
 
     bool_t boRetVal = FALSE;
     u32_t dwTickCount = getTickCount();

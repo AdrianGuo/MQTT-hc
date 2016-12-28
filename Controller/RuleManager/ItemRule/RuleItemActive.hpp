@@ -47,7 +47,7 @@ public:
 	}
 
 private:
-	bool_t GetRemainTime() {
+	bool_t GetRemainTime() { // Day chinh la waitimer
 		u64_t nElapsed = GetTickCountRule() - m_nStartTime;
 		if (nElapsed >= m_nDuration) {
 			return TRUE;

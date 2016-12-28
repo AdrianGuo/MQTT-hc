@@ -261,19 +261,19 @@ DevManager::HandlerDevCmdGet(
     if (lstGetZwDevice.size() > 0) {
         JsonMessagePtr<JsonDevGet> jsonZwGet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevGet>();
-        JsonCommand_p pJsonCommand =
+        JsonCommand_p pZwJsonCommand =
         jsonZwGet->CreateJsonCommand(lstGetZwDevice);
-        pJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
-        PushJsonCommand(pJsonCommand);
+        pZwJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
+        PushJsonCommand(pZwJsonCommand);
     }
 
     if (lstGetZbDevice.size() > 0) {
         JsonMessagePtr<JsonDevGet> jsonZbGet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevGet>();
-        JsonCommand_p pJsonCommand =
+        JsonCommand_p pZbJsonCommand =
         jsonZbGet->CreateJsonCommand(lstGetZbDevice);
-        pJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
-        PushJsonCommand(pJsonCommand);
+        pZbJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
+        PushJsonCommand(pZbJsonCommand);
     }
 }
 
@@ -287,12 +287,16 @@ void_t
 DevManager::HandlerDevCmdStt(
     JsonCommand_p pJsonCommand
 ) {
-    pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
-    PushJsonCommand(pJsonCommand);
+    JsonCommand_p pNwJsonCommand = new JsonCommand(pJsonCommand);
+    pNwJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
+    PushJsonCommand(pNwJsonCommand);
 
     JsonCommand_p pRuJsonCommand = new JsonCommand(pJsonCommand);
     pRuJsonCommand->SetDesFlag(JsonCommand::Flag::Rule);
     PushJsonCommand(pRuJsonCommand);
+
+    delete pJsonCommand;
+    pJsonCommand = NULL;
 }
 
 /**

@@ -16,14 +16,14 @@
 #ifndef JSONDB_SESSION_HPP_
 #define JSONDB_SESSION_HPP_
 
+#include <JsonMsgSession.hpp>
 #include "typedefs.h"
-#include "JsonMessageSession.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonRecvDbSession : public JsonMessageSession {
+class JsonRecvDbSession : public JsonMsgSession {
 private:
     JsonRecvDbSession() {}
     static JsonRecvDbSession* m_pInstance;
@@ -40,7 +40,7 @@ typedef JsonRecvDbSession* JsonRecvDbSession_p;
 /*                                   CLASS                                    */
 /******************************************************************************/
 
-class JsonSendDbSession : public JsonMessageSession {
+class JsonSendDbSession : public JsonMsgSession {
 private:
     JsonSendDbSession() {}
     static JsonSendDbSession* m_pInstance;

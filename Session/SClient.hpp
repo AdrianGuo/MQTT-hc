@@ -18,7 +18,7 @@ typedef HCCtrllerFunctor_t*                         HCCtrllerFunctor_p;
 class SClient {
 private:
     TCPClient_t m_ClientSock;
-    String       m_strRemainder;
+    String m_strRemainder;
     SClientFunctor_t    m_SClientSendFunctor;
     HCCtrllerFunctor_p  m_pHCCtrllerRecvFunctor;
     Vector<String>      m_vecStringJsonCommand;

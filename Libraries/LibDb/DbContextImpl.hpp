@@ -162,9 +162,10 @@ DbContext::Delete(
     pStatement->reset();
 
     pStatement->bind(0, dbPtr.GetId());
-    pStatement->execute();
-
-    pMapping->Registry.erase(dbPtr.GetId());
+    int_t iResult = pStatement->execute();
+    if ((iResult == SQLITE_DONE) || (iResult == SQLITE_OK)) {
+        pMapping->Registry.erase(dbPtr.GetId());
+    }
 }
 
 /**

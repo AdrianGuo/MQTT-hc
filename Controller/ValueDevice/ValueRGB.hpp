@@ -35,6 +35,9 @@ public:
 
     static  Value::Type_t ValueType() { return Value::Type_t::type_dimmer; }
     virtual Json::Value CreateJson();
+
+    virtual bool_t CheckParam() const { return TRUE; }
+    virtual bool_t CheckJsVal(Json::Value jValue) const { return TRUE; }
     virtual bool_t ParseValue(Json::Value jValue) { return FALSE; }
 };
 

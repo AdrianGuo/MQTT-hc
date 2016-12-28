@@ -170,7 +170,7 @@ public:
 		return m_cond;
 	}
 
-	void_t SetDataCurrent(String dataCurrent) {
+	void_t SetDataCurrent(String dataCurrent) { // Khong xu ly tong quat
 		Json::Reader reader;
 		Json::Value jsonValue = 0;
 		if (reader.parse(dataCurrent.element, jsonValue, false)) {

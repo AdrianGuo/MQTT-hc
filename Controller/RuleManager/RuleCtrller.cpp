@@ -19,7 +19,7 @@
 #include "JsonRuleGet.hpp"
 #include "JsonRuleInfor.hpp"
 #include "LogPlus.hpp"
-#include "HelperHc.hpp"
+#include "LogCommand.hpp"
 
 #include "RuleCtrller.hpp"
 /******************************************************************************/
