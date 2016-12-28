@@ -25,13 +25,16 @@ private:
     String m_strUser;
     String m_strPassword;
     String m_strLocation;
+    String m_strMD5;
 
     LThread_p m_pBackupThread;
     LThread_p m_pRestoreThread;
-    LThread_p m_pUpgradeThread;
+    LThread_p m_pUpgradeOSThread;
+    LThread_p m_pUpgradeHCThread;
     threadFunctor_t m_BackupFunctor;
     threadFunctor_t m_RestoreFunctor;
-    threadFunctor_t m_UpgradeFunctor;
+    threadFunctor_t m_UpgradeOSFunctor;
+    threadFunctor_t m_UpgradeHCFunctor;
 
     RTimer_p m_pFileTransferTimer;
     timerFunctor_t m_FileTransferFunctor;
@@ -43,7 +46,8 @@ public:
     typedef enum {
         BACKUP = 0,
         RESTORE,
-        UPGRADE
+        UPGRADE_OS,
+        UPGRADE_HC
     } Action;
 
     FileTransfer(String strIP = SERVER_IP, String strPort = SERVER_PORT);
@@ -58,13 +62,13 @@ public:
     void_t SetServerUser(String);
     void_t SetServerPassword(String);
     void_t SetServerLocation(String);
+    void_t SetMD5(String);
 
     void_t Do(FileTransfer::Action);
     void_p Backup(void_p);
     void_p Restore(void_p);
-    void_p Upgrade(void_p);
-    void_t UpgradeOS();
-    void_t UpgradeHC();
+    void_p UpgradeOS(void_p);
+    void_p UpgradeHC(void_p);
 
     void_t HandleFileTransferProcess(void_p pBuffer);
 };

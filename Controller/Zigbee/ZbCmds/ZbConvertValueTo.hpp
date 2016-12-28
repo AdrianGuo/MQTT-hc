@@ -61,7 +61,11 @@ ForwardSetValueToDimmer (
         return;
     }
     if (jsonVal["state"].asString() == std::string("on") && (jsonVal["level"].asString() == std::string("-1"))) {
-        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+        if(device.Modify()->Action[DI_State].DP_PreValue == 0) {
+            ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, 0xFF);
+        } else {
+            ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+        }
     } else {
         if(val <= 55)
             val *= 3;
@@ -155,7 +159,11 @@ ForwardSetValueToFan (
     }
 
     if ((jsonVal["state"].asString() == std::string("on")) && (jsonVal["level"].asString() == std::string("-1"))) {
-        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+        if(device.Modify()->Action[DI_State].DP_PreValue == 0) {
+            ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, 0xFF);
+        } else {
+            ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, device.Modify()->Action[DI_State].DP_PreValue);
+        }
     } else {
         if (jsonVal["state"].asString() == std::string("off")) {
             rcvVal = 0;

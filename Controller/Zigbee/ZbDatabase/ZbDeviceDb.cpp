@@ -406,11 +406,11 @@ ZbDeviceDb::OtherBrandsDevice() {
     DEBUG2("Device %s of %s at address %d.", Model.GetValue().c_str(), Manufacturer.GetValue().c_str(), Network.GetValue());
     bool_t boRetVal = TRUE;
     String prefixModel;
-    EPInfor_t EPsInfo = ZbZdoCmd::GetInstance()->GetDeviceLogic()[Network.GetValue()];
+    EPInfo_t EPsInfo = ZbZdoCmd::GetInstance()->GetDeviceLogic()[Network.GetValue()];
     switch (Type.GetValue()) {
         case ZCL_HA_DEVICEID_ON_OFF_LIGHT: {
             bool_t boCheck = FALSE;
-            for(Map<u16_t, u16_t>::const_iterator_t it = EPsInfo.mapType.begin(); it != EPsInfo.mapType.end(); it++) {
+            for(Map<u8_t, u16_t>::const_iterator_t it = EPsInfo.mapType.begin(); it != EPsInfo.mapType.end(); it++) {
                 if(it->second == ZCL_HA_DEVICEID_DIMMABLE_LIGHT) boCheck = TRUE;
             }
             if(boCheck) prefixModel = "LM-DZ"; //Curtain is OK. Fan???

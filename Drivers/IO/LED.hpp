@@ -7,7 +7,7 @@
 
 #ifndef DRIVERS_IO_LED_HPP_
 #define DRIVERS_IO_LED_HPP_
-#ifdef MT7688
+//#ifdef MT7688
 
 #include <typedefs.h>
 #include <mraa.hpp>
@@ -34,5 +34,5 @@ public:
     void_t FuncWrapper(void_p);
 };
 
-#endif
+//#endif
 #endif /* DRIVERS_IO_LED_HPP_ */

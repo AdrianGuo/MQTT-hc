@@ -28,9 +28,9 @@
 #include "ZbCtrller.hpp"
 #include "HcCtrller.hpp"
 #include "LogPlus.hpp"
-#ifdef MT7688
+//#ifdef MT7688
 #include "LED.hpp"
-#endif
+//#endif
 
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -69,16 +69,13 @@ int main(int argc, char* argv[]) {
         return (-1);
     }
 
-#ifdef MT7688
-//    LED led(0);
-//    led.On();
-
+//#ifdef MT7688
     LED ledNETN(18);
     ledNETN.On();
 
     LED ledNETE(19);
-    ledNETE.On();
-#endif
+    ledNETE.Off();
+//#endif
 
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
     LOG_DEBUG("start log");

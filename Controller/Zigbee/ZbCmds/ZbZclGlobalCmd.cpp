@@ -158,8 +158,9 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 ){
 //    LOG_DEBUG("ReadAttributeResponse.");
     u16_t wNwk              = LittleWord(&pbyBuffer);
+    if(wNwk == 0) return;
 
-    if(ZbZdoCmd::s_mapEPInfor.find(wNwk) == ZbZdoCmd::s_mapEPInfor.end()) {
+    if(ZbZdoCmd::s_mapEPInfo.find(wNwk) == ZbZdoCmd::s_mapEPInfo.end()) {
         ZbZdoCmd::GetInstance()->IEEEAddrRequest(wNwk);
     }
 
@@ -169,10 +170,6 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     u8_t byLength = *pbyBuffer++; //Payload's length
 
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-//    if(device.Modify() == NULL) {
-////        ZbZdoCmd::GetInstance()->LeaveRequest(wNwk); //Prevent Spamming!!!
-//        return;
-//    }
 
     if(device.Modify() == NULL &&
             wClusterID == ZCL_CLUSTER_ID_GEN_BASIC)
@@ -239,7 +236,6 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
     if(wClusterID == ZCL_CLUSTER_ID_GEN_BASIC) {
         Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-//        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(device->Type.GetValue());
         if(devices.size() == 0) { return; }
         for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
             if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
@@ -253,7 +249,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                 }
             } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
                 String ModelName = String((const char*) vpData[i]);
-                LOG_INFO("Device %s has joined.", ModelName.c_str());
+                LOG_INFO("Device %s at %04X has joined.", ModelName.c_str(), wNwk);
                 for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                     Device_t tempDevice = (*it);
                     if(tempDevice.Modify()->IsInterested()) {
@@ -263,29 +259,14 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                         ZbDriver::s_pZbModel->UpdateChanges();
 
                         //Request State
-                        Json::Value jsonDev, jsonVal;
-                        jsonDev["devid"] = std::to_string(tempDevice->DeviceID.GetValue());
-                        jsonDev["ord"] = std::to_string(tempDevice->Endpoint.GetValue());
-                        jsonDev["net"] = std::to_string(1);
-                        jsonDev["type"] = std::to_string(tempDevice->RealType);
-                        jsonVal["dev"].append(jsonDev);
-                        JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
-                        pJsonCommand->SetJsonObject(jsonVal);
-                        JsonDevGet_p pJsonDevGet = new JsonDevGet();
-                        pJsonDevGet->ParseJsonCommand(pJsonCommand);
-                        ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
-                        pZbMessage->SetCmdID(ZCL_CMD_REQ);
-                        ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
-                        pZbMessage = NULL;
-                        delete pJsonCommand;
-                        delete pJsonDevGet;
+                        RequestDevicesState(tempDevice);
                     }
-
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);
             }
             delete[] vpData[i];
         }
+        SaveDevicesInfo(wNwk);
         vpData.clear();
     } else {
         device.Modify()->ReceiveInforFromDevice(vResponseDP, vpData);
@@ -477,7 +458,7 @@ ZbZclGlobalCmd::ProcessException(
         Device_t first = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
         first.Modify()->DeviceID = wNwk;
         first.Modify()->Network = wNwk;
-        first.Modify()->MAC = ZbZdoCmd::s_mapEPInfor[wNwk].MAC;
+        first.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
         first.Modify()->Model = ModelName;
         first.Modify()->Manufacturer = String("Lumi R&D");
         first.Modify()->Endpoint = 1;
@@ -499,7 +480,7 @@ ZbZclGlobalCmd::ProcessException(
             Device_t other = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
             other.Modify()->DeviceID = wNwk;
             other.Modify()->Network = wNwk;
-            other.Modify()->MAC = ZbZdoCmd::s_mapEPInfor[wNwk].MAC;
+            other.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
             other.Modify()->Model = ModelName;
             other.Modify()->Manufacturer = String("Lumi R&D");
             if(i == 4) {
@@ -516,4 +497,59 @@ ZbZclGlobalCmd::ProcessException(
     ZbDriver::GetInstance()->Init(false);
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::RequestDevicesState(
+    Device_t device
+) {
+    Json::Value jsonDev, jsonVal;
+    jsonDev["devid"] = std::to_string(device->DeviceID.GetValue());
+    jsonDev["ord"] = std::to_string(device->Endpoint.GetValue());
+    jsonDev["net"] = std::to_string(1);
+    jsonDev["type"] = std::to_string(device->RealType);
+    jsonVal["dev"].append(jsonDev);
+    JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
+    pJsonCommand->SetJsonObject(jsonVal);
+    JsonDevGet_p pJsonDevGet = new JsonDevGet();
+    pJsonDevGet->ParseJsonCommand(pJsonCommand);
+    ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
+    pZbMessage->SetCmdID(ZCL_CMD_REQ);
+    ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
+    pZbMessage = NULL;
+    delete pJsonCommand;
+    delete pJsonDevGet;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::SaveDevicesInfo(
+    u16_t wNwk
+) {
+    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Model!=?").Bind(wNwk).Bind(String(""));
+    BackupDev_t tmpBu = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(ZbZdoCmd::s_mapEPInfo[wNwk].MAC);
+    if(ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE || device.Modify() == NULL || tmpBu.Modify() != NULL) return;
+    BackupDev_t BuDev = ZbDriver::s_pZbModel->Add(new BackupInfoDb());
+    BuDev.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+    BuDev.Modify()->Model = device->Model;
+    BuDev.Modify()->Manufacturer = device->Manufacturer;
+    BuDev.Modify()->EndpointNo = ZbZdoCmd::s_mapEPInfo[wNwk].byTotalEP;
+    int_t i = 1;
+    for(Map<u8_t, u16_t>::const_iterator_t it = ZbZdoCmd::s_mapEPInfo[wNwk].mapType.begin();
+            it != ZbZdoCmd::s_mapEPInfo[wNwk].mapType.end(); it++) {
+        *(BuDev.Modify()->EpOrd[i]) = it->first + it->second * 1000;
+        i++;
+    }
+    ZbDriver::s_pZbModel->UpdateChanges();
 }

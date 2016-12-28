@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include "LED.hpp"
 
 #include "LogPlus.hpp"
 #include "TCPClient.hpp"
@@ -157,6 +158,7 @@ TCPClient::RecvFunctor(
  */
 bool_t
 TCPClient::Connect() {
+    LED ledNETE(19);
     int idwSockfd = SOCKET_ERROR;
 
     LOG_DEBUG("connecting...");
@@ -165,6 +167,7 @@ TCPClient::Connect() {
     if ((idwSockfd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         LOG_ERROR("socket fail");
         m_boIsConnected = FALSE;
+        ledNETE.On();
         return FALSE;
     }
 
@@ -179,9 +182,11 @@ TCPClient::Connect() {
             if (idwResult == SOCKET_ERROR) {
                 LOG_ERROR("connect fail"); /* Debug */
                 m_boIsConnected = FALSE;
+                ledNETE.On();
                 return FALSE;
             } else {
                 m_boIsConnected = TRUE;
+                ledNETE.Off();
             }
         } else { /* If is non-blocking */
             fd_set rset, wset;
@@ -194,6 +199,7 @@ TCPClient::Connect() {
                     LOG_ERROR("connect fail");
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
+                    ledNETE.On();
                     return FALSE;
                 }
             }
@@ -212,6 +218,7 @@ TCPClient::Connect() {
             if ((idwResult == select(m_idwSockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
                 LOG_WARN("timeout");
                 m_boIsConnected = FALSE;
+                ledNETE.On();
                 close(m_idwSockfd);
                 idwError = ETIMEDOUT;
                 return FALSE;
@@ -223,22 +230,27 @@ TCPClient::Connect() {
                     /* Solaris pending error */
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
+                    ledNETE.On();
                     return FALSE;
                 } else {
                     LOG_INFO("connected");
                     m_boIsConnected = TRUE;
+                    ledNETE.Off();
                 }
             } else {
                 close(m_idwSockfd);
                 m_boIsConnected = FALSE;
+                ledNETE.On();
                 return FALSE;
             }
             done:
             m_boIsConnected = TRUE;
+            ledNETE.Off();
             if (idwError > 0) {
                 errno = idwError;
                 close(m_idwSockfd);
                 m_boIsConnected = FALSE;
+                ledNETE.On();
                 return FALSE;
             }
         }

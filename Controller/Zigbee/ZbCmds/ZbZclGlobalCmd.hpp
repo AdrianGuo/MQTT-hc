@@ -17,10 +17,12 @@ class ZbZclGlobalCmd {
 private:
     ZbZclGlobalCmd();
     void_t ProcessException(u16_t, u8_p);
+    void_t SaveDevicesInfo(u16_t);
 
 public:
     static ZbZclGlobalCmd* s_pInstance;
     static ZbZclGlobalCmd* GetInstance();
+    static void_t RequestDevicesState(Device_t);
 
     ~ZbZclGlobalCmd();
 

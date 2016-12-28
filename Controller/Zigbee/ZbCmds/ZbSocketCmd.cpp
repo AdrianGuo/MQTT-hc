@@ -132,11 +132,13 @@ ZbSocketCmd::SendLstDel(
 ) {
     Vector<JsonDevLstDel::Device_t> vecLstDev;
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-        JsonDevLstDel::Device_t temp;
-        temp.devid = (*it)->DeviceID.GetValue();
-        temp.netwk = NET_ZIGBEE;
-        temp.order = (*it)->Endpoint.GetValue();
-        vecLstDev.push_back(temp);
+        if((*it).Modify()->IsInterested()) {
+            JsonDevLstDel::Device_t temp;
+            temp.devid = (*it)->DeviceID.GetValue();
+            temp.netwk = NET_ZIGBEE;
+            temp.order = (*it)->Endpoint.GetValue();
+            vecLstDev.push_back(temp);
+        }
     }
     if(vecLstDev.size() > 0) {
         JsonMessagePtr<JsonDevLstDel> jsonZbLstDel = m_pJsonSendSession->GetJsonMapping<JsonDevLstDel>();

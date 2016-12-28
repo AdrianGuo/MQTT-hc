@@ -23,7 +23,6 @@
 #include "JsonDevReset.hpp"
 #include "JsonDevRestart.hpp"
 #include "JsonAuthReq.hpp"
-
 #include "ZbDriver.hpp"
 
 ZbDriver* ZbDriver::s_pInstance = NULL;
@@ -259,6 +258,7 @@ ZbDriver::ProcCmdAdd(
         byTime = 0xFE;
     } else if(pJsonDevAdd->Act() == 1) {
         byTime = 0x00;
+        ZbZclGlobalCmd::GetInstance()->Broadcast();
     }
     pZbMessage->Push(byTime);
     ZbBasicCmd::s_pInstance->JoinNwkAllow(pZbMessage);
@@ -488,45 +488,30 @@ ZbDriver::ProcCmdAuth(
  */
 void_t
 ZbDriver::Init(
-    bool req
+    bool stateReq
 ) {
-    if(req) {
+    if(stateReq) {
         m_pZbBasicCmd->NwkInfoReq();
         while(m_pZbBasicCmd->IsNetworkAvail() != TRUE) {
             LOG_DEBUG("Waiting zb's response...");
         }
     }
-
-    Controllers_t controllers = s_pZbModel->Find<ZbControllerDb>();
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Device_t temp = (*it);
-
+        u16_t wNwk = temp->Network.GetValue();
         //Load endpoints map
-        bool boCheck = false;
-        ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTotalEP++;
-        ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byEPCount =
-                ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTotalEP;
-        ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].MAC = temp->MAC.GetValue();
-        ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].IsDone = TRUE;
-        for(Map<u16_t, u16_t>::const_iterator_t it2 = ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].mapType.begin();
-                it2 != ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].mapType.end(); it2++) {
-            if(temp->Type.GetValue() == it2->second) {
-                boCheck = true;
-                break;
-            }
-        }
-        if(!boCheck) {
-            ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].mapType[ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTypeCount] = temp->Type.GetValue();
-            ZbZdoCmd::s_mapEPInfor[temp->Network.GetValue()].byTypeCount++;
-        }
-
+        ZbZdoCmd::s_mapEPInfo[wNwk].MAC = temp->MAC.GetValue();
+        ZbZdoCmd::s_mapEPInfo[wNwk].byTotalEP++;
+        ZbZdoCmd::s_mapEPInfo[wNwk].IsDone = TRUE;
+        ZbZdoCmd::s_mapEPInfo[wNwk].vEPList.push_back(temp->Endpoint.GetValue());
+        ZbZdoCmd::s_mapEPInfo[wNwk].mapType[temp->Endpoint.GetValue()] = temp->Type.GetValue();
 
         //Generate device info and request state.
         if(temp.Modify()->IsInterested()) {
             temp.Modify()->GenerateDeviceInfo();
 
-            if (req) {
+            if (stateReq) {
                 Json::Value jsonVal, jsonDev;
                 jsonDev["devid"] = std::to_string(temp->DeviceID.GetValue());
                 jsonDev["ord"] = std::to_string(temp->Endpoint.GetValue());

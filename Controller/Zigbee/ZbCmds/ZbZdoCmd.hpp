@@ -13,20 +13,20 @@
 #include <string>
 #include <RTimer.hpp>
 #include <ZbDeviceDb.hpp>
+#include <BackupInfo.hpp>
 
 typedef struct {
     String  MAC = "";
     u8_t    byTotalEP       = 0;
-    u8_t    byEPCount       = 0;
-    u8_t    byTypeCount     = 0;
     u8_t    byAEReqCount    = 0;
     bool_t  IsAERequested   = FALSE;
     bool_t  IsDone          = FALSE;
-    Map<u16_t, u16_t> mapType = {};
-} EPInfor_t;
+    Vector<u8_t>        vEPList;
+    Map<u8_t, u16_t>    mapType;
+} EPInfo_t;
 
-typedef Map<u16_t, EPInfor_t>   DeviceLogic_t;
-typedef Map<u16_t, EPInfor_t>*  DeviceLogic_p;
+typedef Map<u16_t, EPInfo_t>   DeviceLogic_t;
+typedef Map<u16_t, EPInfo_t>*  DeviceLogic_p;
 
 class ZbZdoCmd {
 private:
@@ -37,11 +37,12 @@ private:
     int_t m_iAEHandle;
 
     ZbZdoCmd();
+    void_t RestoreBuDevice(u16_t, BackupDev_t);
 
 public:
     static ZbZdoCmd* s_pInstance;
     static ZbZdoCmd* GetInstance();
-    static DeviceLogic_t s_mapEPInfor;
+    static DeviceLogic_t s_mapEPInfo;
 
     ~ZbZdoCmd();
     void_t ProcRecvMessage(void_p);

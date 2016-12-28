@@ -12,14 +12,17 @@
 #include "ZbControllerDb.hpp"
 #include "ZbDeviceDb.hpp"
 #include "NetDeviceDb.hpp"
+#include "BackupInfo.hpp"
 #include "DbContext.hpp"
 
 typedef DbPtr<ZbDeviceDb>                   Device_t;
 typedef Collection<DbPtr<ZbDeviceDb>>       Devices_t;
-typedef Collection<DbPtr<ZbControllerDb>>   Controllers_t;
 typedef DbPtr<ZbControllerDb>               Controller_t;
+typedef Collection<DbPtr<ZbControllerDb>>   Controllers_t;
 typedef DbPtr<NetDeviceDb>                  NetDevice_t;
 typedef Collection<DbPtr<NetDeviceDb>>      NetDevices_t;
+typedef DbPtr<BackupInfoDb>                 BackupDev_t;
+typedef Collection<DbPtr<BackupInfoDb>>     BackupDevs_t;
 
 class ZbModelDb : public DbContext {
 private:
@@ -30,7 +33,7 @@ public:
     Controllers_t   ZbControllers;
     Devices_t       ZbDevices;
     NetDevices_t    NetDevices;
-
+    BackupDevs_t    BackupDevs;
 };
 
 typedef ZbModelDb  ZbModelDb_t;
