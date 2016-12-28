@@ -14,18 +14,17 @@
 
 class IOManager {
 private:
-    IOManager(int_t, int_t, int_t);
+    IOManager(int_t, int_t);
 
 public:
     LED      LED1;
     LED      LED2;
-    LED      LED3;
     Button   Button1;
 
     ~IOManager();
 
     static IOManager* s_pInstance;
-    IOManager* GetInstance(int_t, int_t, int_t);
+    IOManager* GetInstance(int_t, int_t);
 
     void_t   Inform(u8_t);
 };

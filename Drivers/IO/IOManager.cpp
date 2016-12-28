@@ -18,11 +18,9 @@ IOManager* IOManager::s_pInstance = NULL;
  */
 IOManager::IOManager(
     int_t LED1Pin,
-    int_t LED2Pin,
-    int_t LED3Pin
+    int_t LED2Pin
 ) : LED1(LED1Pin),
-    LED2(LED2Pin),
-    LED3(LED3Pin)
+    LED2(LED2Pin)
 {
 
 }
@@ -46,11 +44,10 @@ IOManager::~IOManager() {
 IOManager*
 IOManager::GetInstance(
     int_t LED1Pin,
-    int_t LED2Pin,
-    int_t LED3Pin
+    int_t LED2Pin
 ) {
     if(s_pInstance == NULL) {
-        s_pInstance = new IOManager(LED1Pin, LED2Pin, LED3Pin );
+        s_pInstance = new IOManager(LED1Pin, LED2Pin);
     }
     return s_pInstance;
 }
