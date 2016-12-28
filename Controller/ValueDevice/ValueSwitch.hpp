@@ -178,7 +178,7 @@ ValueSwitch::ParseValue(
 ) {
     if (!jsonValue.isMember("level") || !jsonValue["state"]) { return FALSE; }
 
-    if (CheckJsVal(jsonValue)) {
+    if (!CheckJsVal(jsonValue)) {
         return FALSE;
     }
 
