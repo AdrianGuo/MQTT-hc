@@ -26,6 +26,7 @@
 #include <string>
 #include "typedefs.h"
 #include "LogPlus.hpp"
+#include "LogCommand.hpp"
 #include "HelperHc.hpp"
 #include "LThread.hpp"
 
@@ -306,6 +307,7 @@ void_t
 ZwCtrller::ProcessHandler(
     JsonCommand_p pJsonCommand
 ) {
+    LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
     String strJsonCommandName = pJsonCommand->GetFullCommand();
 
     MapHandlerFunctor::const_iterator_t it =
@@ -396,7 +398,7 @@ ZwCtrller::ZwCtrlllerThreadProc(
         }
         m_pZwCtrllerLocker->UnLock();
         ProcessProc(pZwMessage);
-        usleep(50);
+        usleep(5000);
     }
 
     pthread_exit(NULL);
@@ -661,7 +663,7 @@ ZwCtrller::ProcZwaveCmdAddNode(
     m_pZwCtrllerLocker->Lock();
     if (m_boAddNodeSend) {
         if (!m_boAddNodeRecv) {
-            LOG_INFO("wait for add device: ++");
+            LOG_INFO("wait add: ++");
         } else {
             LOG_INFO("wait add: --");
         }
