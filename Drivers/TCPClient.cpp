@@ -273,8 +273,7 @@ TCPClient::Close() {
     m_pClientSockLocker->Lock();
     if ((idwResult = shutdown(m_idwSockfd, SHUT_RDWR)) == SOCKET_ERROR) {
         m_pClientSockLocker->UnLock();
-        LOG_ERROR("shutdown fail");
-        return FALSE;
+        LOG_ERROR("shutdown fail errno %d", idwResult);
     }
     m_pClientSockLocker->UnLock();
 
