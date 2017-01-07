@@ -110,10 +110,10 @@ void_t RuleCtrller::debug() {
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 			/*Dev stt*/
 			new JsonCommand("dev=stt",
-					"{\"dev\":[{\"devid\":\"6820\",\"ord\":\"5\",\"net\":\"1\",\"type\":\"1\",\"val\":{\"level\":\"1\",\"state\":\"on\"}},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"}}]}",
+					"{\"dev\":[{\"devid\":\"22595\",\"ord\":\"1\",\"net\":\"1\",\"type\":\"1\",\"val\":{\"level\":\"0\",\"state\":\"off\"}},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"}}]}",
 					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 	/*Delete*/
-//			new JsonCommand("rule=del", "{\"lst\":[\"4\",\"5\"]}",
+//			new JsonCommand("rule=del", "{\"ruleid\":\"5373\"}",
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 	/*Enable*/
 //			new JsonCommand("rule=ena", "{\"ruleid\":\"4\", \"act\":\"0\"}",
@@ -181,6 +181,7 @@ void_t RuleCtrller::PushResJsonCommand(JsonCommand_p pJsonCommand,
 		bool_t result) {
 	pJsonCommand->SetFullCommand(
 			pJsonCommand->GetFullCommand() + String("res"));
+	pJsonCommand->SetSrcFlag(JsonCommand::Rule);
 	pJsonCommand->SetDesFlag(JsonCommand::NetWork);
 	if (result) {
 		pJsonCommand->GetJsonOjbect()["ret"] = String("0").element;
@@ -295,18 +296,18 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
 		m_pRuleCtrllerLocker->UnLock();
 
 		if (pJsonCommand != NULL) {
+			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
+					pJsonCommand->GetFullCommand().element.c_str(),
+					pJsonCommand->GetJsonValue().element.c_str());
 			String strJsonCommandName = pJsonCommand->GetFullCommand();
 			MapHandlerFunctor::const_iterator_t it = m_mapHandlerFunctor.find(
 					strJsonCommandName);
 			if (it != m_mapHandlerFunctor.end()) {
 				m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
 			}
-//			LOG_DEBUG("%s", pJsonCommand->GetJsonValue().element);
 		}
-
 		m_ruleManager.Process();
-
-		usleep(5000);
+		usleep(50000);
 	}
 
 	pthread_exit(NULL);
@@ -402,6 +403,8 @@ void_t RuleCtrller::HandlerRuleCmdGet(JsonCommand_p pJsonCommand) {
  */
 void_t RuleCtrller::HandlerRuleCmdInfor(JsonCommand_p pJsonCommand) {
 // TODO
+	delete pJsonCommand;
+	pJsonCommand = NULL;
 }
 
 /**
@@ -411,6 +414,8 @@ void_t RuleCtrller::HandlerRuleCmdInfor(JsonCommand_p pJsonCommand) {
  * @retval None
  */
 void_t RuleCtrller::HandlerDevCmdStt(JsonCommand_p pJsonCommand) {
-	Json::Value & jsonValue = pJsonCommand->GetJsonOjbect();
+	Json::Value jsonValue = pJsonCommand->GetJsonOjbect();
 	m_ruleManager.ProcessEvent(jsonValue, EventManager::Dev);
+	delete pJsonCommand;
+	pJsonCommand = NULL;
 }

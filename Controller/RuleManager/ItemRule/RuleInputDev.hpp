@@ -15,6 +15,17 @@
 #include <string>
 
 class RuleInputDev {
+
+private:
+	typedef enum {
+		Equal = 0, 				// ==
+		NotEqual = 1, 			// !=
+		LessThan = 2, 			// <
+		GreaterThan = 3, 		// >
+		LessThanOrEqual = 4, 	//<=
+		GreaterThanOrEqual = 5 	//>=
+	} TypeCond;
+
 public:
 	RuleInputDev(int_t key, int_t type, int_t cond, String data) {
 		m_key = key;
@@ -39,24 +50,19 @@ public:
 		switch (m_type) {
 
 		case 1: // cong tac
-		case 128: // Cam bien chuyen dong
-		case 129:  // Cam bien cua
-		case 130:  // Cam bien nhiet do
-		case 131:  // Cam bien do am
-		case 132:  // Cam bien anh sang
+		case 9: // binary input
+		case 4: // rem
 		{
-			if (m_value.isMember("level") && m_valueCurrent.isMember("level")) {
-				int_t levelSetup = std::atoi(m_value["level"].asCString());
-				int_t levelCurrent = std::atoi(
-						m_valueCurrent["level"].asCString());
-				return CheckingValueLevel(levelSetup, levelCurrent);
+			if (m_value.isMember("state") && m_valueCurrent.isMember("state")) {
+				String stateSetup = String(m_value["state"].asCString());
+				String stateCurrent = String(
+						m_valueCurrent["state"].asCString());
+				return CheckingVlaueState(stateSetup, stateCurrent);
 			}
 			break;
 		}
-
 		case 2: // dimmer
 		case 3: // quat
-		case 9: // binary input
 		{
 			if (m_value.isMember("level") && m_valueCurrent.isMember("level")
 					&& m_value.isMember("state")
@@ -65,6 +71,8 @@ public:
 				String stateCurrent = String(
 						m_valueCurrent["state"].asCString());
 				if (CheckingVlaueState(stateSetup, stateCurrent)) {
+					if (m_cond == TypeCond::Equal)
+						return TRUE;
 					if (IsCheckingLevel(stateSetup)) {
 						int_t levelSetup = std::atoi(
 								m_value["level"].asCString());
@@ -74,26 +82,6 @@ public:
 					} else {
 						return TRUE;
 					}
-				} else {
-					return FALSE;
-				}
-			}
-			break;
-		}
-
-		case 4: // rem
-		{
-			if (m_value.isMember("level") && m_valueCurrent.isMember("level")
-					&& m_value.isMember("state")
-					&& m_valueCurrent.isMember("state")) {
-				String stateSetup = String(m_value["state"].asCString());
-				String stateCurrent = String(
-						m_valueCurrent["state"].asCString());
-				if (CheckingVlaueState(stateSetup, stateCurrent)) {
-					int_t levelSetup = std::atoi(m_value["level"].asCString());
-					int_t levelCurrent = std::atoi(
-							m_valueCurrent["level"].asCString());
-					return CheckingValueLevel(levelSetup, levelCurrent);
 				} else {
 					return FALSE;
 				}
@@ -157,6 +145,21 @@ public:
 					String(m_valueCurrent.toStyledString().c_str()));
 			break;
 		}
+
+		case 128:	// Cam bien chuyen dong
+		case 129:	// Cam bien cua
+		case 130:	// Cam bien nhiet do
+		case 131:	// Cam bien do am
+		case 132:	// Cam bien anh sang
+		{
+			if (m_value.isMember("level") && m_valueCurrent.isMember("level")) {
+				int_t levelSetup = std::atoi(m_value["level"].asCString());
+				int_t levelCurrent = std::atoi(
+						m_valueCurrent["level"].asCString());
+				return CheckingValueLevel(levelSetup, levelCurrent);
+			}
+			break;
+		}
 		}
 
 		return result;
@@ -189,16 +192,9 @@ private:
 	Json::Value m_value;
 	Json::Value m_valueCurrent;
 
-	typedef enum {
-		Equal = 0, 				// ==
-		NotEqual = 1, 			// !=
-		LessThan = 2, 			// <
-		GreaterThan = 3, 		// >
-		LessThanOrEqual = 4, 	//<=
-		GreaterThanOrEqual = 5 	//>=
-	} TypeCond;
-
 	bool_t CheckingValueLevel(int_t levelSetup, int_t levelCurrent) {
+		if (levelSetup == -1)
+			return TRUE;
 		switch (m_cond) {
 		case Equal: {
 			if (levelSetup == levelCurrent)

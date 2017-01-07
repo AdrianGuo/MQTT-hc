@@ -54,6 +54,9 @@ public:
 	 * @retval None
 	 */
 	void SetData(const String& data) {
+		if (this->m_data == data) {
+			return;
+		}
 		this->m_data = data;
 		for (int_t nIndex = 0; nIndex < (int_t) m_vecRules.size(); nIndex++) {
 			if (m_vecRules[nIndex] != NULL) {

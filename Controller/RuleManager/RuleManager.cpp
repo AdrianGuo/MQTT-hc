@@ -147,16 +147,13 @@ bool_t RuleManager::EditRule(Json::Value& jsonValue) {
  * @retval None
  */
 bool_t RuleManager::DeleteRule(JsonRuleDel_t jsonValue) {
-	Vector<int_t> vecLstRule = jsonValue.GetVecLstRule();
-	for (int_t index = 0; index < (int_t) vecLstRule.size(); ++index) {
-		int_t idRule = vecLstRule[index];
-		int_t indexRule = GetIndexRule(idRule);
-		if (indexRule != -1) {
-			RmRegisterOutput(idRule);
-			m_eventManager.RmRegister(idRule);
-			RemoveRuleIndex(indexRule);
-			m_dbManager.DeleteRule(idRule);
-		}
+	int_t idRule = jsonValue.getRuleId();
+	int_t indexRule = GetIndexRule(idRule);
+	if (indexRule != -1) {
+		RmRegisterOutput(idRule);
+		m_eventManager.RmRegister(idRule);
+		RemoveRuleIndex(indexRule);
+		m_dbManager.DeleteRule(idRule);
 	}
 	return TRUE;
 }
@@ -285,9 +282,9 @@ void_t RuleManager::ProcessCheckRule() {
  * @retval None
  */
 void_t RuleManager::ProcessOutRule() {
-	Json::Value vecDevAct(Json::arrayValue);
-	bool_t isDevAct = FALSE;
 	for (int_t nIndex = 0; nIndex < (int_t) m_vecItemsAct.size(); nIndex++) {
+		Json::Value vecDevAct(Json::arrayValue);
+		bool_t isDevAct = FALSE;
 		if (m_vecItemsAct[nIndex].IsActive()) {
 			if (m_vecItemsAct[nIndex].GetType() == RuleItemActive::Dev) {
 				isDevAct = TRUE;
@@ -302,14 +299,14 @@ void_t RuleManager::ProcessOutRule() {
 				// TODO truong hop dau ra la canh ...
 			}
 		}
-	}
-	if (isDevAct) {
-		Json::Value dataResult;
-		dataResult["dev"] = vecDevAct;
-		JsonCommand_p pJsonCommandResult = new JsonCommand("dev=set",
-				String(dataResult.toStyledString().c_str()), JsonCommand::Rule,
-				JsonCommand::Coord);
-		PushJsonCommand(pJsonCommandResult);
+		if (isDevAct) {
+			Json::Value dataResult;
+			dataResult["dev"] = vecDevAct;
+			JsonCommand_p pJsonCommandResult = new JsonCommand("dev=set",
+					String(dataResult.toStyledString().c_str()),
+					JsonCommand::Rule, JsonCommand::Coord);
+			PushJsonCommand(pJsonCommandResult);
+		}
 	}
 
 // TODO chưa kiểm tra đầu ra cảnh ...

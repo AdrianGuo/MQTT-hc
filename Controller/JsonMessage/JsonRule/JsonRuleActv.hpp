@@ -47,7 +47,7 @@ private:
 	bool_t ParseJsonValue(Json::Value& jsonValue);
 };
 
-typedef JsonRuleActv  JsonRuleAct_t;
+typedef JsonRuleActv JsonRuleAct_t;
 typedef JsonRuleActv* JsonRuleAct_p;
 
 /**
@@ -56,10 +56,7 @@ typedef JsonRuleActv* JsonRuleAct_p;
  * @param  None
  * @retval None
  */
-inline bool_t
-JsonRuleActv::ParseJsonCommand(
-    JsonCommand_p pJsonCommand
-) {
+inline bool_t JsonRuleActv::ParseJsonCommand(JsonCommand_p pJsonCommand) {
 	return ParseJsonValue(pJsonCommand->GetJsonOjbect());
 }
 
@@ -69,10 +66,7 @@ JsonRuleActv::ParseJsonCommand(
  * @param  None
  * @retval None
  */
-inline bool_t
-JsonRuleActv::ParseJsonValue(
-    Json::Value& jsonValue
-) {
+inline bool_t JsonRuleActv::ParseJsonValue(Json::Value& jsonValue) {
 	if (!jsonValue.isMember("ruleid")) {
 		return FALSE;
 	}
@@ -86,10 +80,7 @@ JsonRuleActv::ParseJsonValue(
  * @param  None
  * @retval None
  */
-inline JsonCommand_p
-JsonRuleActv::CreateJsonCommand(
-    int_t ruleID
-) {
+inline JsonCommand_p JsonRuleActv::CreateJsonCommand(int_t ruleID) {
 	JsonCommand_p pJsonCommand = new JsonCommand("rule=actv");
 	Json::Value jsonValue;
 
