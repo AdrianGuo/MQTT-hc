@@ -1,5 +1,4 @@
 #include "typedefs.h"
-#include "debug.hpp"
 #include "JsonCommand.hpp"
 
 /**

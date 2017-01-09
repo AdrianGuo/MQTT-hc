@@ -307,7 +307,7 @@ void_t
 ZwCtrller::ProcessHandler(
     JsonCommand_p pJsonCommand
 ) {
-    LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
+    LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
     String strJsonCommandName = pJsonCommand->GetFullCommand();
 
     MapHandlerFunctor::const_iterator_t it =

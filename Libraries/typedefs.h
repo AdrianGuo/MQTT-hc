@@ -22,9 +22,11 @@
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
 #include <bits/wordsize.h>
+#ifdef MT7688
 #include <string>
 #include <sstream>
 #include <cstdlib>
+#endif /* MT7688 */
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
@@ -46,20 +48,24 @@ typedef void_t*                 void_p;
 typedef unsigned char           u8_t;       // 1 byte
 typedef unsigned short          u16_t;      // 2 byte
 
-// #if __WORDSIZE == 64
+#if __WORDSIZE == 64
 typedef unsigned int            u32_t;      // 4 byte
 typedef unsigned long int       u64_t;
-// #elif __WORDSIZE == 32
-// #endif
+#elif __WORDSIZE == 32
+typedef unsigned int            u32_t;      // 4 byte
+typedef unsigned long long       u64_t;
+#endif
 
 typedef signed char             i8_t;       // 1 byte
 typedef signed short            i16_t;      // 2 byte
 
-// #if __WORDSIZE == 64
+#if __WORDSIZE == 64
 typedef signed int              i32_t;      // 4 byte
 typedef signed long int         i64_t;
-// #elif __WORDSIZE == 32
-// #endif
+#elif __WORDSIZE == 32
+typedef signed int              i32_t;      // 4 byte
+typedef signed long long         i64_t;
+#endif
 
 typedef signed int              int_t;
 typedef signed int*             int_p;
@@ -68,26 +74,30 @@ typedef unsigned char*          u8_p;       // 1 byte
 typedef unsigned char**         u8_pp;
 typedef unsigned short*         u16_p;      // 2 byte
 
-//#if __WORDSIZE == 64
+#if __WORDSIZE == 64
 typedef unsigned int*           u32_p;      // 4 byte
 typedef unsigned long int*      u64_p;
-//#elif __WORDSIZE == 32
-//#else
-//typedef unsigned int*           u32_p;      // 4 byte
-//typedef unsigned long int*      u64_p;
-//#endif
+#elif __WORDSIZE == 32
+typedef unsigned int*           u32_p;      // 4 byte
+typedef unsigned long long*      u64_p;
+#else
+typedef unsigned int*           u32_p;      // 4 byte
+typedef unsigned long int*      u64_p;
+#endif
 
 typedef signed char*            i8_p;       // 1 byte
 typedef signed short*           i16_p;      // 2 byte
 
-//#if __WORDSIZE == 64
+#if __WORDSIZE == 64
+typedef signed int*             i32_p;      // 4 byte
+typedef signed long int*        i64_p;
+#elif __WORDSIZE == 32
 typedef signed int*             i32_p;      // 4 byte
 typedef signed long long*       i64_p;
-//#elif __WORDSIZE == 32
-//#else
-//typedef signed int*             i32_p;      // 4 byte
-//typedef signed long long*       i64_p;
-//#endif
+#else
+typedef signed int*             i32_p;      // 4 byte
+typedef signed long long*       i64_p;
+#endif
 
 typedef float                   flo_t;
 typedef float*                  flo_p;
@@ -148,7 +158,7 @@ namespace std {
         return atoi(string.c_str());
     }
 }
-#endif
+#endif /* MT7688 */
 
 /******************************************************************************/
 /*                              PRIVATE DATA                                  */
