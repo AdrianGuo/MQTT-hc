@@ -8,7 +8,7 @@
 #include "ValuePtr.hpp"
 #include "ZwDriver.hpp"
 
-#define NUM_NODE_BITFIELD_BYTES          29
+#define NUM_NODE_BITFIELD_BYTES          (29)
 
 /**
  * @func   ZwDriver
@@ -558,23 +558,11 @@ ZwDriver::ProcSendMessage(
 
     LOG_INFO("send command %2d", ++m_dwCountCommand);
 
-//    LOG_DEBUG("send: Func: %02x Node: %03d EndP: %03d Cb: %03d",
-//                    pCurrZwMsg->GetFunctionId(),
-//                    pCurrZwMsg->GetTargetNodeId(),
-//                    pCurrZwMsg->GetExpectedEndpointId(),
-//                    pCurrZwMsg->GetCallbackId());
-//
-//    LOG_DEBUG("expc: Func: %02x Node: %03d CmdC:  %02X Cb: %03d",
-//                    m_byExpectedFuncId.GetValue(),
-//                    m_byExpectedNodeId.GetValue(),
-//                    m_byExpectedCmdCId.GetValue(),
-//                    m_byExpectedCbakId.GetValue());
-
     if (pCurrZwMsg->Length() > 0) {
         pZwPacket->Push(pCurrZwMsg->GetBuffer(), pCurrZwMsg->Length());
     }
 
-    LOG_INFO("data: %s", pZwPacket->PrintfPacket().c_str());
+    LOG_INFO("send %s", pZwPacket->PrintfPacket().c_str());
 
     m_evPacketSignal->Reset();
     m_SessionZwSerial.PushZwPacket(pZwPacket);
@@ -682,7 +670,7 @@ ZwDriver::HandleSerialApiGetInitDataResponse(
         }
 
         m_byExpectedCbakId  = 0;
-        m_byExpectedNodeId      = 0;
+        m_byExpectedNodeId  = 0;
         m_byExpectedFuncId  = 0;
         m_byExpectedCmdCId  = 0;
         m_evPacketSignal->Set();
@@ -707,9 +695,9 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
         u8_p pbyBuffer = pZwPacket->GetBuffer();
         m_pbySerialApiVersion[0]    = pbyBuffer[0];
         m_pbySerialApiVersion[1]    = pbyBuffer[1];
-        m_wManuFacturerId           = MERGE(pbyBuffer[2], pbyBuffer[3]);
-        m_wProductType              = MERGE(pbyBuffer[4], pbyBuffer[5]);
-        m_wProductId                = MERGE(pbyBuffer[6], pbyBuffer[7]);
+        m_wManuFacturerId = MERGE(pbyBuffer[2], pbyBuffer[3]);
+        m_wProductType    = MERGE(pbyBuffer[4], pbyBuffer[5]);
+        m_wProductId      = MERGE(pbyBuffer[6], pbyBuffer[7]);
 
         for (u8_t i = 0; i < 32; i++) {
             m_pbyApiMask[i] = pbyBuffer[8 + i];
@@ -724,7 +712,7 @@ ZwDriver::HandleSerialApiGetCapabilitiesResponse(
         }
 
         m_byExpectedCbakId  = 0;
-        m_byExpectedNodeId      = 0;
+        m_byExpectedNodeId  = 0;
         m_byExpectedFuncId  = 0;
         m_byExpectedCmdCId  = 0;
         m_evPacketSignal->Set();

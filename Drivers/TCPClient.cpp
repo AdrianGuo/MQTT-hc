@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "LED.hpp"
 
 #include "LogPlus.hpp"
 #include "TCPClient.hpp"
@@ -158,16 +157,14 @@ TCPClient::RecvFunctor(
  */
 bool_t
 TCPClient::Connect() {
-    LED ledNETE(19);
-    int idwSockfd = SOCKET_ERROR;
+    int_t idwSockfd = SOCKET_ERROR;
 
-    LOG_DEBUG("connecting...");
+    LOG_DEBUG("TCPClient connecting...");
 
     /* Set socket fd */
     if ((idwSockfd = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
-        LOG_ERROR("socket fail");
+        LOG_ERROR("socket fail [%d]", errno);
         m_boIsConnected = FALSE;
-        ledNETE.On();
         return FALSE;
     }
 
@@ -180,13 +177,11 @@ TCPClient::Connect() {
 
         if (m_boIsBlocked) { /* If is blocking */
             if (idwResult == SOCKET_ERROR) {
-                LOG_ERROR("connect fail"); /* Debug */
+                LOG_ERROR("connect fail [%d]", errno); /* Debug */
                 m_boIsConnected = FALSE;
-                ledNETE.On();
                 return FALSE;
             } else {
                 m_boIsConnected = TRUE;
-                ledNETE.Off();
             }
         } else { /* If is non-blocking */
             fd_set rset, wset;
@@ -199,7 +194,6 @@ TCPClient::Connect() {
                     LOG_ERROR("connect fail");
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
-                    ledNETE.On();
                     return FALSE;
                 }
             }
@@ -218,7 +212,6 @@ TCPClient::Connect() {
             if ((idwResult == select(m_idwSockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
                 LOG_WARN("timeout");
                 m_boIsConnected = FALSE;
-                ledNETE.On();
                 close(m_idwSockfd);
                 idwError = ETIMEDOUT;
                 return FALSE;
@@ -230,27 +223,22 @@ TCPClient::Connect() {
                     /* Solaris pending error */
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
-                    ledNETE.On();
                     return FALSE;
                 } else {
                     LOG_INFO("connected");
                     m_boIsConnected = TRUE;
-                    ledNETE.Off();
                 }
             } else {
                 close(m_idwSockfd);
                 m_boIsConnected = FALSE;
-                ledNETE.On();
                 return FALSE;
             }
             done:
             m_boIsConnected = TRUE;
-            ledNETE.Off();
             if (idwError > 0) {
                 errno = idwError;
                 close(m_idwSockfd);
                 m_boIsConnected = FALSE;
-                ledNETE.On();
                 return FALSE;
             }
         }
@@ -273,19 +261,19 @@ TCPClient::Close() {
     m_pClientSockLocker->Lock();
     if ((idwResult = shutdown(m_idwSockfd, SHUT_RDWR)) == SOCKET_ERROR) {
         m_pClientSockLocker->UnLock();
-        LOG_ERROR("shutdown fail errno %d", idwResult);
+        LOG_ERROR("shutdown fail error [%d]", errno);
     }
     m_pClientSockLocker->UnLock();
 
     m_pClientSockLocker->Lock();
     if ((idwResult = close(m_idwSockfd)) == SOCKET_ERROR) {
         m_pClientSockLocker->UnLock();
-        LOG_ERROR("close socket %d fail", m_idwSockfd);
+        LOG_ERROR("close socket %d fail error [%d]", m_idwSockfd, errno);
         return FALSE;
     }
     m_pClientSockLocker->UnLock();
 
-    LOG_INFO("after close sockfd %d", m_idwSockfd);
+    LOG_INFO("closed sockfd %d", m_idwSockfd);
 
     m_pClientSockLocker->Lock();
     m_boIsConnected = FALSE;
@@ -352,7 +340,7 @@ TCPClient::IsWritable(
 
     if (idwResult == 0) {
     } else if (idwResult == -1) {
-        LOG_ERROR("writable error"); /* error */
+        LOG_ERROR("writable error [%d]", errno); /* error */
     } else {
         m_pClientSockLocker->Lock();
         if (FD_ISSET(m_idwSockfd, &Writefds)) {
@@ -398,7 +386,7 @@ TCPClient::IsReadable(
 
     if (idwResult == 0) {
     } else if (idwResult == -1) {
-        LOG_ERROR("readable error"); /* error */
+        LOG_ERROR("readable error [%d]", errno); /* error */
     } else {
         m_pClientSockLocker->Lock();
         if (FD_ISSET(m_idwSockfd, &Readfds)) {
@@ -431,13 +419,13 @@ TCPClient::Start() {
     bool_t boRetVal = FALSE;
 
     m_pClientSockLocker->Lock();
-    LOG_INFO("start");
+    LOG_INFO("start thread TCPClient");
     if (!m_boIsStarted) {
         if (m_pClientSockThread->Start()) {
             m_boIsStarted = TRUE;
             boRetVal = TRUE;
         } else {
-            LOG_ERROR("thread fail");
+            LOG_ERROR("thread TCPClient fail");
         }
     }
     m_pClientSockLocker->UnLock();
@@ -478,8 +466,11 @@ TCPClient::ClientSockThreadProc(
             if (!m_queClientSockPacket.empty()) {
                 pPacket = m_queClientSockPacket.front();
                 if (pPacket != NULL) {
-                    send(m_idwSockfd, pPacket->GetBuffer(), pPacket->Length(), 0);
+                    int_t iLength = send(m_idwSockfd, pPacket->GetBuffer(), pPacket->Length(), 0);
                     m_queClientSockPacket.pop();
+                    if (iLength < 0) {
+                        LOG_DEBUG("send data error [%d]", errno);
+                    }
                 }
             }
             m_pClientSockLocker->UnLock();
@@ -513,12 +504,12 @@ TCPClient::SetNonBlocking() {
     LOG_INFO("set non-blocking");
 
     if ((idwFlags = fcntl(m_idwSockfd, F_GETFL, 0)) < 0) {
-        LOG_ERROR("get error"); /* Debug */
+        LOG_ERROR("get error [%d]", errno); /* Debug */
         return FALSE;
     }
 
     if ((idwResult = fcntl(m_idwSockfd, F_SETFL, idwFlags | O_NONBLOCK)) < 0) {
-        LOG_ERROR("set error"); /* Debug */
+        LOG_ERROR("set error [%d]", errno); /* Debug */
         fcntl(m_idwSockfd, F_SETFL, idwFlags); /* Restore if error */
         return FALSE;
     }
@@ -541,12 +532,12 @@ TCPClient::SetBlocking() {
     LOG_INFO("set blocking");
 
     if ((idwFlags = fcntl(m_idwSockfd, F_GETFL, 0)) < 0) {
-        LOG_ERROR("get error");/* Debug */
+        LOG_ERROR("get error [%d]", errno);/* Debug */
         return FALSE;
     }
 
     if ((idwResult = fcntl(m_idwSockfd, F_SETFL, idwFlags & (~O_NONBLOCK))) < 0) {
-        LOG_ERROR("set error"); /* Debug */
+        LOG_ERROR("set error [%d]", errno); /* Debug */
         fcntl(m_idwSockfd, F_SETFL, idwFlags); /* Restore if error */
         return FALSE;
     }

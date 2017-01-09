@@ -1,8 +1,8 @@
 #ifndef SSERVER_HPP_
 #define SSERVER_HPP_
 
+#include <TCPServer.hpp>
 #include "JsonCommand.hpp"
-#include "ServerSock.hpp"
 
 #define CMDCLASS                                    0
 #define CMD                                         1
@@ -13,7 +13,7 @@ typedef HCCtrllerFunctor_t*                         HCCtrllerFunctor_p;
 
 class SServer {
 private:
-   ServerSock_t m_ServerSock;
+   TCPServer_t m_ServerSock;
    SServerFunctor_t m_SServerFunctor;
    HCCtrllerFunctor_p m_pHCCtrllerFunctor;
 

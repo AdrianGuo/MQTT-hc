@@ -376,7 +376,7 @@ NetManager::StartHandleConnect() {
     if (m_iConnectionTimerHandle == -1) {
         m_iConnectionTimerHandle = m_pNetCtrllerTimer->StartTimer(
         RTimer::Repeat::Forever, ConnectTimeout, &m_checkConectionTimerFunctor, NULL);
-        LOG_INFO("start timer %d [connect]", m_iConnectionTimerHandle);
+        LOG_INFO("start timer %2d [connect]", m_iConnectionTimerHandle);
     } else {
         LOG_INFO("connect working");
     }
@@ -391,7 +391,7 @@ NetManager::StartHandleConnect() {
 void_t
 NetManager::StopHandleConnect() {
     if (m_iConnectionTimerHandle != -1) {
-        LOG_INFO("stop timer %d [connect]", m_iConnectionTimerHandle);
+        LOG_INFO(" stop timer %2d [connect]", m_iConnectionTimerHandle);
         m_pNetCtrllerTimer->CancelTimer(m_iConnectionTimerHandle);
         m_iConnectionTimerHandle = -1;
     } else {
@@ -410,7 +410,7 @@ NetManager::StartHandleAuthen() {
     if (m_iAuthenRequestTimerHandle == -1) {
         m_iAuthenRequestTimerHandle = m_pNetCtrllerTimer->StartTimer(
         RTimer::Repeat::Forever, AuthenTimeout, &m_authenRequestTimerFunctor, NULL);
-        LOG_INFO("start timer %d [authen]", m_iAuthenRequestTimerHandle);
+        LOG_INFO("start timer %2d [authen]", m_iAuthenRequestTimerHandle);
     } else {
         LOG_INFO("authen working");
     }
@@ -425,7 +425,7 @@ NetManager::StartHandleAuthen() {
 void_t
 NetManager::StopHandleAuthen() {
     if (m_iAuthenRequestTimerHandle != -1) {
-        LOG_INFO("stop timer %d [authen]", m_iAuthenRequestTimerHandle);
+        LOG_INFO(" stop timer %2d [authen]", m_iAuthenRequestTimerHandle);
         m_pNetCtrllerTimer->CancelTimer(m_iAuthenRequestTimerHandle);
         m_iAuthenRequestTimerHandle = -1;
     } else {
@@ -444,7 +444,7 @@ NetManager::StartHandleKeepAlive() {
     if (m_iKeepAliveTimerHandle == -1) {
         m_iKeepAliveTimerHandle = m_pNetCtrllerTimer->StartTimer(
         RTimer::Repeat::Forever, KaliveTimeout, &m_keepaliveTimerFunctor, NULL);
-        LOG_INFO("start timer %d [kalive]", m_iKeepAliveTimerHandle);
+        LOG_INFO("start timer %2d [kalive]", m_iKeepAliveTimerHandle);
     } else {
         LOG_INFO("kalive working");
     }
@@ -459,7 +459,7 @@ NetManager::StartHandleKeepAlive() {
 void_t
 NetManager::StopHandleKeepAlive() {
     if (m_iKeepAliveTimerHandle != -1) {
-        LOG_INFO("stop timer %d [kalive]", m_iKeepAliveTimerHandle);
+        LOG_INFO(" stop timer %2d [kalive]", m_iKeepAliveTimerHandle);
         m_pNetCtrllerTimer->CancelTimer(m_iKeepAliveTimerHandle);
         m_iKeepAliveTimerHandle = -1;
     } else {

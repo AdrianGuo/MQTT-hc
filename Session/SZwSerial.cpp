@@ -10,7 +10,7 @@
 #define WAIT_ACK2                       1000
 
 /**
- * @func
+ * @func   SZwSerial
  * @brief  None
  * @param  None
  * @retval None
@@ -32,7 +32,7 @@ SZwSerial::SZwSerial(
 }
 
 /**
- * @func
+ * @func   ~SZwSerial
  * @brief  None
  * @param  None
  * @retval None
@@ -45,7 +45,7 @@ SZwSerial::~SZwSerial() {
 }
 
 /**
- * @func
+ * @func   GetNamePort
  * @brief  None
  * @param  None
  * @retval None
@@ -56,7 +56,7 @@ SZwSerial::GetNamePort() {
 }
 
 /**
- * @func
+ * @func   SZwSerialRecvFunctor
  * @brief  None
  * @param  None
  * @retval None
@@ -73,7 +73,7 @@ SZwSerial::SZwSerialRecvFunctor(
 }
 
 /**
- * @func
+ * @func   Start
  * @brief  None
  * @param  None
  * @retval None
@@ -84,7 +84,7 @@ SZwSerial::Start() {
 }
 
 /**
- * @func
+ * @func   Connect
  * @brief  None
  * @param  None
  * @retval None
@@ -95,7 +95,7 @@ SZwSerial::Connect() {
 }
 
 /**
- * @func
+ * @func   Close
  * @brief  None
  * @param  None
  * @retval None
@@ -106,7 +106,7 @@ SZwSerial::Close() {
 }
 
 /**
- * @func
+ * @func   BufferToZwPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -122,7 +122,7 @@ SZwSerial::BufferToZwPacket(
 }
 
 /**
- * @func
+ * @func   ParseData
  * @brief  None
  * @param  None
  * @retval None
@@ -189,6 +189,7 @@ SZwSerial::ParseData(
     case FRS_CHECKSUM:
         if (m_pZwavePacket->IsChecksumValid(byData)) {
             m_Serial.PushData(ACK);
+            LOG_INFO("recv %s", m_pZwavePacket->PrintfPacket().c_str());
             if (m_pDriverRecvFunctor != NULL) {
                 (*m_pDriverRecvFunctor)(m_pZwavePacket);
                 m_pZwavePacket = NULL;

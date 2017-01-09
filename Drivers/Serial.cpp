@@ -1,8 +1,3 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <sys/signal.h>
-#include <sys/select.h>
 /*******************************************************************************
  *
  * Copyright (c) 2016
@@ -21,6 +16,11 @@
  * Note:
  *
  ******************************************************************************/
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <sys/signal.h>
+#include <sys/select.h>
 #include "LogPlus.hpp"
 #include "Serial.hpp"
 
@@ -122,7 +122,7 @@ Serial::SerialThreadProc(
                 pSendPacket = NULL;
             }
         }
-        usleep(50);
+        usleep(50000);
     }
     m_pSerialLocker->UnLock();
 

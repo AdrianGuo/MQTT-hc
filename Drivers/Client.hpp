@@ -69,4 +69,5 @@ public:
 
 typedef Client  Client_t;
 typedef Client* Client_p;
+
 #endif /* CLIENT_HPP_ */
