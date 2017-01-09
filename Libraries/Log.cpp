@@ -29,7 +29,7 @@ const_char_p LogLevelString[] = {
 };
 
 /**
- * @func
+ * @func   Log
  * @brief  None
  * @param  None
  * @retval None
@@ -47,7 +47,7 @@ Log::Log(
 }
 
 /**
- * @func
+ * @func   Release
  * @brief  None
  * @param  None
  * @retval None
@@ -85,7 +85,7 @@ Log::Create(
 }
 
 /**
- * @func
+ * @func   ~Log
  * @brief  None
  * @param  None
  * @retval None
@@ -99,7 +99,7 @@ Log::~Log() {
 }
 
 /**
- * @func
+ * @func   Write
  * @brief  None
  * @param  None
  * @retval None
@@ -109,18 +109,20 @@ Log::Write(
     Level level,
     const_char_p format, ...
 ) {
+    m_pInstance->m_pLocker->Lock();
     if ((m_pLogImpl != NULL) && (m_pInstance != NULL)) {
+        m_pInstance->m_pLocker->UnLock();
         m_pInstance->m_pLocker->Lock();
         va_list args;
         va_start(args, format);
         m_pInstance->m_pLogImpl->Write(level, format, args);
         va_end(args);
-        m_pInstance->m_pLocker->UnLock();
     }
+    m_pInstance->m_pLocker->UnLock();
 }
 
 /**
- * @func
+ * @func   Queue
  * @brief  None
  * @param  None
  * @retval None
@@ -137,7 +139,7 @@ Log::Queue(
 }
 
 /**
- * @func
+ * @func   PushQueue
  * @brief  None
  * @param  None
  * @retval None

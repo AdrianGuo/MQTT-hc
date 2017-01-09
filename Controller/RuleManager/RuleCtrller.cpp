@@ -227,7 +227,7 @@ void_t RuleCtrller::Start() {
  * @retval None
  */
 void_t RuleCtrller::ProcessHandler(JsonCommand_p pJsonCommand) {
-    LOGCOMMAND(Log::Level::eDebug, pJsonCommand);
+    LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
 	m_pRuleCtrllerLocker->Lock();
 	m_queRuleCtrllerJsonCommand.push(pJsonCommand);
 	m_pRuleCtrllerLocker->UnLock();

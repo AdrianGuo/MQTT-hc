@@ -32,7 +32,7 @@
 #define AT                                 ('@')
 #endif /* AT */
 
-#define LOGCOMMAND(logLevel, jsonCommand) \
+#define LOG_COMMAND(logLevel, jsonCommand) \
     ST(\
         const String STA = String("$"); \
         const String END = String("$end"); \
@@ -47,4 +47,4 @@
         } \
     )
 
-#endif /* LIBRARIES_LOGCOMMAND_HPP_ */
+#endif /* LOG_COMMAND_HPP_ */
