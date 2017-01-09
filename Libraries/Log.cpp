@@ -111,8 +111,6 @@ Log::Write(
 ) {
     m_pInstance->m_pLocker->Lock();
     if ((m_pLogImpl != NULL) && (m_pInstance != NULL)) {
-        m_pInstance->m_pLocker->UnLock();
-        m_pInstance->m_pLocker->Lock();
         va_list args;
         va_start(args, format);
         m_pInstance->m_pLogImpl->Write(level, format, args);

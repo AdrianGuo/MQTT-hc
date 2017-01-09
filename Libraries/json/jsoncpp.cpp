@@ -241,7 +241,7 @@ static inline void fixNumericLocaleInput(char* begin, char* end) {
 #if !defined(WINCE) && defined(__STDC_SECURE_LIB__) && _MSC_VER >= 1500 // VC++ 9.0 and above 
 #define snprintf sprintf_s
 #elif _MSC_VER >= 1900 // VC++ 14.0 and above
-#define snprintf snprintf
+#define snprintf std::snprintf
 #else
 #define snprintf _snprintf
 #endif
@@ -249,7 +249,11 @@ static inline void fixNumericLocaleInput(char* begin, char* end) {
 #define snprintf snprintf
 #elif __cplusplus >= 201103L
 #if !defined(__MINGW32__) && !defined(__CYGWIN__)
+#ifdef MT7688
 #define snprintf snprintf
+#else /* MT7688 */
+#define snprintf std::snprintf
+#endif /* MT7688 */
 #endif
 #endif
 
@@ -4128,7 +4132,7 @@ Value& Path::make(Value& root) const {
 #if !defined(WINCE) && defined(__STDC_SECURE_LIB__) && _MSC_VER >= 1500 // VC++ 9.0 and above
 #define snprintf sprintf_s
 #elif _MSC_VER >= 1900 // VC++ 14.0 and above
-#define snprintf snprintf
+#define snprintf std::snprintf
 #else
 #define snprintf _snprintf
 #endif
@@ -4136,7 +4140,11 @@ Value& Path::make(Value& root) const {
 #define snprintf snprintf
 #elif __cplusplus >= 201103L
 #if !defined(__MINGW32__) && !defined(__CYGWIN__)
+#ifdef MT7688
 #define snprintf snprintf
+#else /* MT7688 */
+#define snprintf std::snprintf
+#endif /* MT7688 */
 #endif
 #endif
 

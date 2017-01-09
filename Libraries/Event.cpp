@@ -121,13 +121,10 @@ Event::Wait(
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &iOldSate);
 
                 if (idwResult == ETIMEDOUT) {
-//                    debug_event("wait timeout");
                     boRetVal = FALSE;
                     break;
                 } else if (idwResult == EVENT_SUCCESS) {
-//                    debug_event("wait success");
                 } else {
-//                    debug_event("wait fail");
                     boRetVal = FALSE;
                     break;
                 }
@@ -141,9 +138,7 @@ Event::Wait(
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &iOldSate);
 
                 if (idwResult == EVENT_SUCCESS) {
-//                    debug_event("wait success");
                 } else {
-//                    debug_event("wait fail");
                     boRetVal = FALSE;
                     break;
                 }

@@ -81,7 +81,7 @@ LogImpl::ToEscapeCode(
         break;
 
     case Log::Level::eDebug:
-        dwCode = 34;
+        dwCode = 36;
         break;
 
     case Log::Level::eError:

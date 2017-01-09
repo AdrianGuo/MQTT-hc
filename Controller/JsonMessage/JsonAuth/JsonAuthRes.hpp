@@ -37,7 +37,7 @@ public:
 };
 
 /**
- * @func
+ * @func   ParseJsonValue
  * @brief  None
  * @param  None
  * @retval None
@@ -52,7 +52,7 @@ JsonAuthRes::ParseJsonValue(
 }
 
 /**
- * @func
+ * @func   ParseJsonCommand
  * @brief  None
  * @param  None
  * @retval None

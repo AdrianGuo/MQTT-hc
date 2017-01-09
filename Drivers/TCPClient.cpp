@@ -333,7 +333,9 @@ TCPClient::IsWritable(
     int_t idwResult;
 
     FD_ZERO(&Writefds);
+    m_pClientSockLocker->Lock();
     FD_SET(m_idwSockfd, &Writefds);
+    m_pClientSockLocker->UnLock();
 
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
@@ -344,15 +346,19 @@ TCPClient::IsWritable(
     }
     timeout.tv_usec = dwMsecTimeout * 1000;
 
+    m_pClientSockLocker->Lock();
     idwResult = select(m_idwSockfd + 1, NULL, &Writefds, NULL, &timeout);
+    m_pClientSockLocker->UnLock();
 
     if (idwResult == 0) {
     } else if (idwResult == -1) {
         LOG_ERROR("writable error"); /* error */
     } else {
+        m_pClientSockLocker->Lock();
         if (FD_ISSET(m_idwSockfd, &Writefds)) {
             boRetVal = TRUE;
         }
+        m_pClientSockLocker->UnLock();
     }
     return boRetVal;
 }
@@ -373,7 +379,9 @@ TCPClient::IsReadable(
     int_t idwResult;
 
     FD_ZERO(&Readfds);
+    m_pClientSockLocker->Lock();
     FD_SET(m_idwSockfd, &Readfds);
+    m_pClientSockLocker->UnLock();
 
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
@@ -384,15 +392,19 @@ TCPClient::IsReadable(
     }
     timeout.tv_usec = dwMsecTimeout * 1000;
 
+    m_pClientSockLocker->Lock();
     idwResult = select(m_idwSockfd + 1, &Readfds, NULL, NULL, &timeout);
+    m_pClientSockLocker->UnLock();
 
     if (idwResult == 0) {
     } else if (idwResult == -1) {
         LOG_ERROR("readable error"); /* error */
     } else {
+        m_pClientSockLocker->Lock();
         if (FD_ISSET(m_idwSockfd, &Readfds)) {
             boRetVal = TRUE;
         }
+        m_pClientSockLocker->UnLock();
     }
     return boRetVal;
 }
@@ -451,7 +463,9 @@ TCPClient::ClientSockThreadProc(
         m_pClientSockLocker->UnLock();
 
         if (IsConnected() && IsReadable(100)) {
+            m_pClientSockLocker->Lock();
             int_t iLength = recv(m_idwSockfd, m_pbBuffer, BUFFER_SOCKET_SIZE, 0);
+            m_pClientSockLocker->UnLock();
             if ((m_pSClientRecvFunctor != NULL) && (iLength > 0)) {
                 (*m_pSClientRecvFunctor)((u8_p)m_pbBuffer, iLength);
             }
@@ -470,7 +484,7 @@ TCPClient::ClientSockThreadProc(
             }
             m_pClientSockLocker->UnLock();
         }
-        usleep(500);
+        usleep(50000);
     }
     m_pClientSockLocker->UnLock();
 
