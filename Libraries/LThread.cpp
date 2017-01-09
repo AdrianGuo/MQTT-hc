@@ -21,7 +21,6 @@ LThread::Execute(
     void_p pArguments
 ) {
     LThread_p pThread = (LThread_p) pArguments;
-//    DEBUG2("execute thread %d", pThread->GetThreadIndex());
     LOG_INFO("execute thread %d", pThread->GetThreadIndex());
     pThread->Process(pThread->m_pArguments);
 
@@ -72,7 +71,6 @@ LThread::~LThread() {
 bool_t
 LThread::Start() {
     if (m_pThreadFunctor != NULL) {
-//        DEBUG2("start thread %d", m_byThreadIndex);
         LOG_INFO("start thread %d", m_byThreadIndex);
         if (pthread_create(&m_threadId, NULL, LThread::Execute, (void*) this) == THREAD_SUCCESS) {
             return TRUE;
@@ -90,7 +88,6 @@ LThread::Start() {
  */
 bool_t
 LThread::Stop() {
-//    DEBUG2("stop thread %d", m_byThreadIndex);
     LOG_INFO("stop thread %d", m_byThreadIndex);
     pthread_exit(NULL);
 
@@ -107,7 +104,9 @@ void_t
 LThread::Process(
     void_p pArguments
 ) {
-    (*m_pThreadFunctor)(pArguments);
+    if (m_pThreadFunctor != NULL) {
+        (*m_pThreadFunctor)(pArguments);
+    }
 }
 
 /**

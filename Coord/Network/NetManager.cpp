@@ -345,7 +345,7 @@ NetManager::HandleKeepAliveProcess(
     void_p pBuffer
 ) {
     if (m_boIsAlived) {
-        LOG_INFO("keep alive");
+        LOG_INFO("keepalive");
         m_boIsAlived = FALSE; // reset avlie state
         m_boIsConnected = TRUE;
         m_dwKaliveRequestCount++;

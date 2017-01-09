@@ -12,6 +12,8 @@
  * Last Changed:     Date: 5 Dec 2016 09:46:10
  *
  ******************************************************************************/
+
+#include "LogCommand.hpp"
 #include "JsonDevGet.hpp"
 #include "JsonDevSet.hpp"
 #include "JsonDevStt.hpp"
@@ -31,7 +33,6 @@
 #include "JsonDevLstDelRes.hpp"
 #include "JsonDevSync.hpp"
 #include "JsonDevSyncRes.hpp"
-#include "JsonAuthReq.hpp"
 
 #include "DevManager.hpp"
 
@@ -161,51 +162,50 @@ DevManager::HandlerDevCmdSet(
     delete pJsonCommand;
     pJsonCommand = NULL;
 
-    Vector<JsonDevSet::Device_t> lstSetDevice = jsonDeviceSet->LstDev();
-    Vector<JsonDevSet::Device_t> lstSetZwDevice;
-    Vector<JsonDevSet::Device_t> lstSetZbDevice;
+    Vector<JsonDevSet::Device_t> lstDevSet = jsonDeviceSet->LstDev();
+    Vector<JsonDevSet::Device_t> lstZwDevice;
+    Vector<JsonDevSet::Device_t> lstZbDevice;
 
-    for (u32_t i = 0; i < lstSetDevice.size(); i++) {
-        if (lstSetDevice[i].netwk == NetWk::Zwave) { // Zwave Device
+    for (u32_t i = 0; i < lstDevSet.size(); i++) {
+        if (lstDevSet[i].netwk == NetWk::Zwave) { // Zwave Device
             JsonDevSet::Device_t zwDevice;
-            zwDevice.devid = lstSetDevice[i].devid;
-            zwDevice.order = lstSetDevice[i].order;
-            zwDevice.type  = lstSetDevice[i].type;
-            zwDevice.value = lstSetDevice[i].value;
-            zwDevice.netwk = lstSetDevice[i].netwk;
-            lstSetZwDevice.push_back(zwDevice);
-        } else if (lstSetDevice[i].netwk == NetWk::Zigbee ||
-                lstSetDevice[i].netwk == NetWk::Wifi) { // Zigbee Device
+            zwDevice.devid = lstDevSet[i].devid;
+            zwDevice.order = lstDevSet[i].order;
+            zwDevice.type  = lstDevSet[i].type;
+            zwDevice.value = lstDevSet[i].value;
+            zwDevice.netwk = lstDevSet[i].netwk;
+            lstZwDevice.push_back(zwDevice);
+        } else if (lstDevSet[i].netwk == NetWk::Zigbee) { // Zigbee Device
             JsonDevSet::Device_t zbDevice;
-            zbDevice.devid = lstSetDevice[i].devid;
-            zbDevice.order = lstSetDevice[i].order;
-            zbDevice.type  = lstSetDevice[i].type;
-            zbDevice.value = lstSetDevice[i].value;
-            zbDevice.netwk = lstSetDevice[i].netwk;
-            lstSetZbDevice.push_back(zbDevice);
-//        } else if (lstSetDevice[i].netwk == NetWk::Wifi) { // Wifi Device
+            zbDevice.devid = lstDevSet[i].devid;
+            zbDevice.order = lstDevSet[i].order;
+            zbDevice.type  = lstDevSet[i].type;
+            zbDevice.value = lstDevSet[i].value;
+            zbDevice.netwk = lstDevSet[i].netwk;
+            lstZbDevice.push_back(zbDevice);
+        } else if (lstDevSet[i].netwk == NetWk::Wifi) { // Wifi Device
 
-        } else if (lstSetDevice[i].netwk == NetWk::Bluetooth) { // Bluetooth Device
+        } else if (lstDevSet[i].netwk == NetWk::Bluetooth) { // Bluetooth Device
 
         }
     }
 
-    if (lstSetZwDevice.size() > 0) {
+    if (lstZwDevice.size() > 0) {
         JsonMessagePtr<JsonDevSet> jsonZwDeviceSet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevSet>();
-        JsonCommand_p pJsonCommand =
-        jsonZwDeviceSet->CreateJsonCommand(lstSetZwDevice);
-        pJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
-        PushJsonCommand(pJsonCommand);
+        JsonCommand_p pZwJsonCommand =
+        jsonZwDeviceSet->CreateJsonCommand(lstZwDevice);
+        pZwJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
+        PushJsonCommand(pZwJsonCommand);
     }
 
-    if (lstSetZbDevice.size() > 0) {
+    if (lstZbDevice.size() > 0) {
         JsonMessagePtr<JsonDevSet> jsonZbDeviceSet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevSet>();
-        JsonCommand_p pJsonCommand =
-        jsonZbDeviceSet->CreateJsonCommand(lstSetZbDevice);
-        pJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
-        PushJsonCommand(pJsonCommand);
+        JsonCommand_p pZbJsonCommand =
+        jsonZbDeviceSet->CreateJsonCommand(lstZbDevice);
+        pZbJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
+        PushJsonCommand(pZbJsonCommand);
     }
 }
 
@@ -219,10 +219,10 @@ void_t
 DevManager::HandlerDevCmdGet(
     JsonCommand_p pJsonCommand
 ) {
-    JsonMessagePtr<JsonDevGet> jsonDeviceSet =
+    JsonMessagePtr<JsonDevGet> jsonDeviceGet =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevGet>();
 
-    if (!jsonDeviceSet->ParseJsonCommand(pJsonCommand)) {
+    if (!jsonDeviceGet->ParseJsonCommand(pJsonCommand)) {
         delete pJsonCommand;
         pJsonCommand = NULL;
         return;
@@ -231,47 +231,46 @@ DevManager::HandlerDevCmdGet(
     delete pJsonCommand;
     pJsonCommand = NULL;
 
-    Vector<JsonDevGet::Device_t> lstSetDevice = jsonDeviceSet->LstDev();
-    Vector<JsonDevGet::Device_t> lstGetZwDevice;
-    Vector<JsonDevGet::Device_t> lstGetZbDevice;
+    Vector<JsonDevGet::Device_t> lstDevGet = jsonDeviceGet->LstDev();
+    Vector<JsonDevGet::Device_t> lstZwDevice;
+    Vector<JsonDevGet::Device_t> lstZbDevice;
 
-    for (u32_t i = 0; i < lstSetDevice.size(); i++) {
-        if (lstSetDevice[i].netwk == NetWk::Zwave) { // Zwave Device
+    for (u32_t i = 0; i < lstDevGet.size(); i++) {
+        if (lstDevGet[i].netwk == NetWk::Zwave) { // Zwave Device
             JsonDevGet::Device_t zwDevice;
-            zwDevice.devid = lstSetDevice[i].devid;
-            zwDevice.order = lstSetDevice[i].order;
-            zwDevice.netwk = lstSetDevice[i].netwk;
-            zwDevice.type  = lstSetDevice[i].type;
-            lstGetZwDevice.push_back(zwDevice);
-        } else if (lstSetDevice[i].netwk == 1 ||
-                lstSetDevice[i].netwk == 2) { // Zigbee Device
+            zwDevice.devid = lstDevGet[i].devid;
+            zwDevice.order = lstDevGet[i].order;
+            zwDevice.netwk = lstDevGet[i].netwk;
+            zwDevice.type  = lstDevGet[i].type;
+            lstZwDevice.push_back(zwDevice);
+        } else if (lstDevGet[i].netwk == 1) { // Zigbee Device
             JsonDevGet::Device_t zbDevice;
-            zbDevice.devid = lstSetDevice[i].devid;
-            zbDevice.order = lstSetDevice[i].order;
-            zbDevice.netwk = lstSetDevice[i].netwk;
-            zbDevice.type  = lstSetDevice[i].type;
-            lstGetZbDevice.push_back(zbDevice);
-//        } else if (lstSetDevice[i].netwk == 2) { // Wifi Device
+            zbDevice.devid = lstDevGet[i].devid;
+            zbDevice.order = lstDevGet[i].order;
+            zbDevice.netwk = lstDevGet[i].netwk;
+            zbDevice.type  = lstDevGet[i].type;
+            lstZbDevice.push_back(zbDevice);
+        } else if (lstDevGet[i].netwk == 2) { // Wifi Device
 
-        } else if (lstSetDevice[i].netwk == 3) { // Bluetooth Device
+        } else if (lstDevGet[i].netwk == 3) { // Bluetooth Device
 
         }
     }
 
-    if (lstGetZwDevice.size() > 0) {
+    if (lstZwDevice.size() > 0) {
         JsonMessagePtr<JsonDevGet> jsonZwGet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevGet>();
         JsonCommand_p pZwJsonCommand =
-        jsonZwGet->CreateJsonCommand(lstGetZwDevice);
+        jsonZwGet->CreateJsonCommand(lstZwDevice);
         pZwJsonCommand->SetDesFlag(JsonCommand::Flag::Zwave);
         PushJsonCommand(pZwJsonCommand);
     }
 
-    if (lstGetZbDevice.size() > 0) {
+    if (lstZbDevice.size() > 0) {
         JsonMessagePtr<JsonDevGet> jsonZbGet =
         m_pJsonSendDevSession->GetJsonMapping<JsonDevGet>();
         JsonCommand_p pZbJsonCommand =
-        jsonZbGet->CreateJsonCommand(lstGetZbDevice);
+        jsonZbGet->CreateJsonCommand(lstZbDevice);
         pZbJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
         PushJsonCommand(pZbJsonCommand);
     }
@@ -287,16 +286,39 @@ void_t
 DevManager::HandlerDevCmdStt(
     JsonCommand_p pJsonCommand
 ) {
+    JsonMessagePtr<JsonDevStt> jsonDevStt =
+    m_pJsonRecvDevSession->GetJsonMapping<JsonDevStt>();
+
+    if (!jsonDevStt->ParseJsonCommand(pJsonCommand)) {
+        delete pJsonCommand;
+        pJsonCommand = NULL;
+        return;
+    }
+    // Send to Server
     JsonCommand_p pNwJsonCommand = new JsonCommand(pJsonCommand);
     pNwJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
     PushJsonCommand(pNwJsonCommand);
-
+    // Send to Rule module
     JsonCommand_p pRuJsonCommand = new JsonCommand(pJsonCommand);
     pRuJsonCommand->SetDesFlag(JsonCommand::Flag::Rule);
     PushJsonCommand(pRuJsonCommand);
+    // Store Value
+    Vector<JsonDevStt::Device_t> lstDevStt = jsonDevStt->LstDev();
+    for (u32_t i = 0; i < lstDevStt.size(); i++) {
+        String strKey("dev_");
+        strKey += std::to_string(lstDevStt[i].devid).c_str();
+        strKey += "type_";
+        strKey += std::to_string(lstDevStt[i].type ).c_str();
+        strKey += "ord_";
+        strKey += std::to_string(lstDevStt[i].order).c_str();
+        strKey += "net_";
+        strKey += std::to_string(lstDevStt[i].netwk).c_str();
 
-    delete pJsonCommand;
-    pJsonCommand = NULL;
+        String strVal(lstDevStt[i].value.toStyledString().c_str());
+        strVal.remove_char(ENDLN);
+        strVal.remove_char(SPACE);
+        m_StoreValue[strKey] = strVal;
+    }
 }
 
 /**
@@ -309,10 +331,10 @@ void_t
 DevManager::HandlerDevCmdAdd(
     JsonCommand_p pJsonCommand
 ) {
-    JsonMessagePtr<JsonDevAdd> jsonDeviceAdd =
+    JsonMessagePtr<JsonDevAdd> jsonDevAdd =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevAdd>();
 
-    if (!jsonDeviceAdd->ParseJsonCommand(pJsonCommand)) {
+    if (!jsonDevAdd->ParseJsonCommand(pJsonCommand)) {
         delete pJsonCommand;
         pJsonCommand = NULL;
         return;
@@ -321,7 +343,7 @@ DevManager::HandlerDevCmdAdd(
     delete pJsonCommand;
     pJsonCommand = NULL;
 
-    i8_t ibAction = jsonDeviceAdd->Act();
+    i8_t ibAction = jsonDevAdd->Act();
 
     JsonMessagePtr<JsonDevAdd> jsonAdd =
     m_pJsonSendDevSession->GetJsonMapping<JsonDevAdd>();
@@ -333,7 +355,6 @@ DevManager::HandlerDevCmdAdd(
     JsonCommand_p pJsonCmdZbAdd = jsonAdd->CreateJsonCommand(ibAction);
     pJsonCmdZbAdd->SetDesFlag(JsonCommand::Flag::Zigbee);
     PushJsonCommand(pJsonCmdZbAdd);
-
 }
 
 /**
@@ -457,8 +478,8 @@ DevManager::HandlerDevCmdLstDel(
 
 /**
  * @func   HandlerDevCmdReset
- * @brief  None
- * @param  None
+ * @brief  Process command dev=reset{...}
+ * @param[in] JsonCommand Object
  * @retval None
  */
 void_t
@@ -513,10 +534,10 @@ void_t
 DevManager::HandlerDevCmdRestart(
     JsonCommand_p pJsonCommand
 ) {
-    JsonMessagePtr<JsonDevRestart> jsonDeviceReset =
+    JsonMessagePtr<JsonDevRestart> jsonDeviceRestart =
     m_pJsonRecvDevSession->GetJsonMapping<JsonDevRestart>();
 
-    if (!jsonDeviceReset->ParseJsonCommand(pJsonCommand)) {
+    if (!jsonDeviceRestart->ParseJsonCommand(pJsonCommand)) {
         delete pJsonCommand;
         pJsonCommand = NULL;
         return;
@@ -525,8 +546,8 @@ DevManager::HandlerDevCmdRestart(
     delete pJsonCommand;
     pJsonCommand = NULL;
 
-    JsonMessagePtr<JsonDevReset> jsonRestart =
-    m_pJsonSendDevSession->GetJsonMapping<JsonDevReset>();
+    JsonMessagePtr<JsonDevRestart> jsonRestart =
+    m_pJsonSendDevSession->GetJsonMapping<JsonDevRestart>();
 
     JsonCommand_p pJsonCmdZwRestart = jsonRestart->CreateJsonCommand();
     pJsonCmdZwRestart->SetDesFlag(JsonCommand::Flag::Zwave);
@@ -596,18 +617,4 @@ void_t
 DevManager::HandlerDevCmdSyncRes(
     JsonCommand_p pJsonCommand
 ) {
-}
-
-/**
- * @func   HandlerDevCmdSyncRes
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-DevManager::HandlerDevCmdAuthReq(
-    JsonCommand_p pJsonCommand
-) {
-    pJsonCommand->SetDesFlag(JsonCommand::Flag::Zigbee);
-    PushJsonCommand(pJsonCommand);
 }

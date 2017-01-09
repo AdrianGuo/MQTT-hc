@@ -16,6 +16,8 @@
 #define DEVMANAGER_HPP_
 
 #include "typedefs.h"
+#include "Map.hpp"
+#include "String.hpp"
 #include "DbModel.hpp"
 #include "Functor.hpp"
 #include "ICtrller.hpp"
@@ -38,6 +40,8 @@ private:
     JsonSendDevSession_p m_pJsonSendDevSession;
     CtrllerFunctor_p m_pCtrllerFunctor;
 
+    typedef Map<String , String> StoreValue;
+    StoreValue m_StoreValue;
     void_t RegisterDevSession();
 public:
     void_t HandlerDevCmdSet(JsonCommand_p pJsonCommand);
@@ -61,8 +65,6 @@ public:
     void_t HandlerDevCmdLstDelRes(JsonCommand_p pJsonCommand);
 
     void_t HandlerDevCmdSyncRes(JsonCommand_p pJsonCommand);
-
-    void_t HandlerDevCmdAuthReq(JsonCommand_p pJsonCommand);
 };
 
 typedef DevManager  DevManager_t;

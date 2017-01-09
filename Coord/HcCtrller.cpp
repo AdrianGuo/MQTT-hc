@@ -448,6 +448,7 @@ HcCtrller::Process() {
             if (m_NetManager.IsAuthenticated() && !m_boIsDebug) {
                 m_SessionClient.JsCommandToPacket(pJsonCommand);
             }
+
             if (m_boIsDebug) {
                 m_SessionClient.JsCommandToPacket(pJsonCommand);
             }

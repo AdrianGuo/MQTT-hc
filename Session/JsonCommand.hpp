@@ -11,8 +11,8 @@ private:
     u32_t m_dwSrcFlag;
     u32_t m_dwDesFlag;
 
-    bool_t m_boJsonAvailable;
     Json::Value m_jsonValue;
+    bool_t m_boJsonAvailable;
 
     u32_t m_dwClientId;
 

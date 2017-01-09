@@ -556,7 +556,7 @@ ZwDriver::ProcSendMessage(
                                 pCurrZwMsg->GetFunctionId(),
                                 pCurrZwMsg->Length());
 
-    LOG_INFO("send command %d", ++m_dwCountCommand);
+    LOG_INFO("send command %2d", ++m_dwCountCommand);
 
 //    LOG_DEBUG("send: Func: %02x Node: %03d EndP: %03d Cb: %03d",
 //                    pCurrZwMsg->GetFunctionId(),
@@ -602,7 +602,7 @@ ZwDriver::ProcSendMessage(
             LOG_INFO("send command %2d done", m_dwCountCommand);
         }
     } else {
-        LOG_INFO("send command %d done", m_dwCountCommand);
+        LOG_INFO("send command %2d done", m_dwCountCommand);
     }
 
     if (pCurrZwMsg != NULL) {
