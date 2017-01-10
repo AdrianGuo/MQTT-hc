@@ -21,7 +21,7 @@ private:
     mraa::Result    m_Result;
     RTimer_p        m_pRTimer;
     Locker_p        m_pLocker;
-    timerFunctor_t  m_Functor;
+    TimerFunctor_t  m_Functor;
 public:
     LED(int_t);
     ~LED();

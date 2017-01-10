@@ -37,7 +37,7 @@ private:
     threadFunctor_t m_UpgradeHCFunctor;
 
     RTimer_p m_pFileTransferTimer;
-    timerFunctor_t m_FileTransferFunctor;
+    TimerFunctor_t m_FileTransferFunctor;
     int_t m_iFileTransferHandle;
 
     Locker_p m_pLocker;

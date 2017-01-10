@@ -21,7 +21,7 @@ LED::LED(int_t GPIONo) : m_LED(GPIONo) {
     m_Result    = m_LED.dir(mraa::DIR_OUT);
     m_pRTimer   = RTimer::getTimerInstance();
     m_pLocker   = new Locker();
-    m_Functor   = makeFunctor((timerFunctor_p) NULL, *this, &LED::FuncWrapper);
+    m_Functor   = makeFunctor((TimerFunctor_p) NULL, *this, &LED::FuncWrapper);
 
     if (m_Result != mraa::SUCCESS) {
         mraa::printError(m_Result);
@@ -84,7 +84,7 @@ LED::Toggle() {
  */
 void_t
 LED::Blink(u32_t dwDuty) {
-//    m_Functor = makeFunctor((timerFunctor_p) NULL, *this, &LED::Toggle);
+//    m_Functor = makeFunctor((TimerFunctor_p) NULL, *this, &LED::Toggle);
 //    m_pRTimer->StartTimer(RTimer::Repeat::OneTime,  dwTime, &m_Functor, NULL);
 }
 

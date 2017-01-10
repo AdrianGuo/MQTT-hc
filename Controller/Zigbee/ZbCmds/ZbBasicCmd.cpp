@@ -26,7 +26,7 @@ ZbBasicCmd* ZbBasicCmd::s_pInstance = NULL;
 ZbBasicCmd::ZbBasicCmd() {
     m_boIsNetAvail = FALSE;
     m_pTimer = RTimer::getTimerInstance();
-    m_TimerFunctor = makeFunctor((timerFunctor_p) NULL, *this, &ZbBasicCmd::HandleNetworkInfo);
+    m_TimerFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbBasicCmd::HandleNetworkInfo);
     m_byNetReqCount = 0;
 }
 

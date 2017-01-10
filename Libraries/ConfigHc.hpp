@@ -15,12 +15,4 @@
 #ifndef CONFIG_HC_HPP_
 #define CONFIG_HC_HPP_
 
-#ifndef PATH_RAM
-#define PATH_RAM        ("/tmp/")
-#endif /* PATH_RAM */
-
-#ifndef PATH_FLASH
-#define PATH_FLASH      ("/Lumi/")
-#endif /* PATH_FLASH */
-
 #endif /* !CONFIG_HC_HPP_ */

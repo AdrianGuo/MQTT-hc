@@ -511,7 +511,7 @@ ZbDriver::Init(
         if(temp.Modify()->IsInterested()) {
             temp.Modify()->GenerateDeviceInfo();
 
-            if (stateReq) {
+            if (stateReq && temp->RealType != LUMI_DEVICE_IR) {
                 Json::Value jsonVal, jsonDev;
                 jsonDev["devid"] = std::to_string(temp->DeviceID.GetValue());
                 jsonDev["ord"] = std::to_string(temp->Endpoint.GetValue());

@@ -31,9 +31,9 @@ DeviceLogic_t ZbZdoCmd::s_mapEPInfo = {};
  */
 ZbZdoCmd::ZbZdoCmd() {
     m_pTimer = RTimer::getTimerInstance();
-    m_DAFunctor = makeFunctor((timerFunctor_p) NULL, *this, &ZbZdoCmd::HandleDeviceAnnounce);
+    m_DAFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleDeviceAnnounce);
     m_iDAHandle = -1;
-    m_AEFunctor = makeFunctor((timerFunctor_p) NULL, *this, &ZbZdoCmd::HandleActiveEndpoint);
+    m_AEFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleActiveEndpoint);
     m_iAEHandle = -1;
 }
 

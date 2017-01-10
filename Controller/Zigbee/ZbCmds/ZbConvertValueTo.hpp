@@ -207,6 +207,7 @@ ForwardSetValueToIr (
 //    ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_State);
 //    while()
 
+    device.Modify()->ReserveData(DI_IR_Data) = byAct;
     if(byAct == 0) { //Learn
         ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Learn);
     } else if (byAct == 1) { //Stop
@@ -238,6 +239,7 @@ ForwardSetValueToIr (
                 ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_Active, atoi(jsonVal["irid"].asCString()));
             } else {
                 Json::Value jsonRetVal;
+                jsonRetVal["act"] = std::to_string(byAct);
                 jsonRetVal["state"] = std::to_string(3);
                 jsonRetVal["irid"] = jsonVal["irid"].asString();
                 ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);

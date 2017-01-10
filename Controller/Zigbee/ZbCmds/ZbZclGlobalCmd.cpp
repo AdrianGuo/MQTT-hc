@@ -259,7 +259,8 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                         ZbDriver::s_pZbModel->UpdateChanges();
 
                         //Request State
-                        RequestDevicesState(tempDevice);
+                        if(tempDevice->RealType != LUMI_DEVICE_IR)
+                            RequestDevicesState(tempDevice);
                     }
                 }
                 ZbSocketCmd::GetInstance()->SendLstAdd(devices);

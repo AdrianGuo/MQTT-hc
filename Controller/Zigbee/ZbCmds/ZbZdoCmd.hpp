@@ -31,8 +31,8 @@ typedef Map<u16_t, EPInfo_t>*  DeviceLogic_p;
 class ZbZdoCmd {
 private:
     RTimer_p m_pTimer;
-    timerFunctor_t m_DAFunctor;
-    timerFunctor_t m_AEFunctor;
+    TimerFunctor_t m_DAFunctor;
+    TimerFunctor_t m_AEFunctor;
     int_t m_iDAHandle;
     int_t m_iAEHandle;
 

@@ -16,11 +16,11 @@
 #define CONFIG_DB_HPP_
 
 #ifndef PATH_RAM
-#define PATH_RAM        ("/home/osboxes/git/newhc_/")
+#define PATH_RAM        ("/tmp/")
 #endif /* PATH_RAM */
 
 #ifndef PATH_FLASH
-#define PATH_FLASH      ("/home/osboxes/")
+#define PATH_FLASH      ("/Lumi/")
 #endif /* PATH_FLASH */
 
 #endif /* CONFIG_DB_HPP_ */

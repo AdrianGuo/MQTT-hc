@@ -202,6 +202,7 @@ ForwardIrState(
     ZbDeviceDb_p device
 ){
     Json::Value jsonRetVal;
+    jsonRetVal["act"] = std::to_string(device->Action[DI_IR_Data].DP_ReserveData);
     DEBUG2("Received IR State: %d", device->State);
     switch (device->State) {
         case 0x00:

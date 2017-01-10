@@ -34,7 +34,6 @@
 #include "ICtrller.hpp"
 #include "Locker.hpp"
 #include "SClient.hpp"
-#include "SServer.hpp"
 #include "DbModel.hpp"
 #include "DbManager.hpp"
 #include "DevManager.hpp"
@@ -58,7 +57,6 @@ private:
     RuManager_t  m_RuManager;
 
     SClient_t    m_SessionClient;
-    SServer_t    m_SessionServer;
 
     ZwCtrller_p  m_pZwCtrller;
     ZbCtrller_p  m_pZbCtrller;
@@ -83,13 +81,11 @@ private:
 public:
     HcCtrller(const_char_p ipname = "",
               int_t ipport = -1,
-              const_char_p cMacID = "",
-              int_t openedport = 1235);
+              const_char_p cMacID = "");
     virtual ~HcCtrller();
 
     void_t Debug();
     void_t Connect();
-    void_t Serve();
     void_t AddZwCtrller(ZwCtrller_p pZwCtrller);
     void_t AddZbCtrller(ZbCtrller_p pZbCtrller);
     void_t AddRuleCtrller(RuleCtrller_p pRuleCtrller);

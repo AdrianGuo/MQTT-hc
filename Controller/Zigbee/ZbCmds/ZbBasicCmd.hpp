@@ -19,7 +19,7 @@ class ZbBasicCmd {
 private:
     bool_t m_boIsNetAvail;
     RTimer_p m_pTimer;
-    timerFunctor_t m_TimerFunctor;
+    TimerFunctor_t m_TimerFunctor;
     int_t m_iTimerHandle;
     u8_t m_byNetReqCount;
 

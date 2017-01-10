@@ -117,6 +117,9 @@ ZbDeviceDb::ReceiveInforFromDevice(
     u8_t byLimit = vDP.size();
 
     switch (RealType) {
+/*
+ *  LUMI_DEVICE_SWITCH, LUMI_DEVICE_INPUT
+ */
         case LUMI_DEVICE_SWITCH:
         case LUMI_DEVICE_INPUT: {
             for(u8_t i = 0; i < byLimit; i++) {
@@ -127,7 +130,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
         }
             break;
 /*
- *
+ * LUMI_DEVICE_DIMMER, LUMI_DEVICE_CURTAIN, LUMI_DEVICE_FAN
  */
         case LUMI_DEVICE_DIMMER:
         case LUMI_DEVICE_CURTAIN:
@@ -158,7 +161,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
         }
             break;
 /*
- *
+ * LUMI_DEVICE_IR
  */
         case LUMI_DEVICE_IR: {
             for(u8_t i = 0; i < byLimit; i++) {
@@ -178,7 +181,8 @@ ZbDeviceDb::ReceiveInforFromDevice(
         }
             break;
 /*
- *
+ * LUMI_DEVICE_DOOR, LUMI_DEVICE_PIR, LUMI_DEVICE_POWER
+ * LUMI_DEVICE_TEMPERATURE, LUMI_DEVICE_HUMIDITY, LUMI_DEVICE_ILLUMINANCE
  */
         case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_PIR:
@@ -200,7 +204,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
         }
             break;
 /*
- *
+ * LUMI_DEVICE_RGB
  */
         case LUMI_DEVICE_RGB: {
             for (u8_t i = 0; i < byLimit; i++) {
@@ -220,7 +224,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
         }
             break;
 /*
- *
+ * LUMI_DEVICE_DAIKIN
  */
         case LUMI_DEVICE_DAIKIN: {
             for(u8_t i = 0; i < byLimit; i++) {

@@ -53,7 +53,7 @@ FileTransfer::FileTransfer(
     m_pUpgradeHCThread->RegThreadFunctor(&m_UpgradeHCFunctor);
 
     m_pFileTransferTimer = RTimer::getTimerInstance();
-    m_FileTransferFunctor = makeFunctor((timerFunctor_p) NULL, *this, &FileTransfer::HandleFileTransferProcess);
+    m_FileTransferFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &FileTransfer::HandleFileTransferProcess);
 
     m_pLocker = new Locker();
 }
