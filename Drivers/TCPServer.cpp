@@ -236,7 +236,7 @@ TCPServer::MessageThread(
             for (int_t fd = 0; fd < m_idwNfds; fd++) {
                 if (m_mapClients.find(fd) != m_mapClients.end()) {
                     // Receive messages
-                    if (FD_ISSET(fd, &m_ReadFds)) {
+                    if (FD_ISSET(fd, &readfds)) {
                         m_mapClients[fd].SetCount();
 
                         u8_p m_pByBuffer = new u8_t[BUFFER_SOCKET_SIZE];
@@ -248,7 +248,7 @@ TCPServer::MessageThread(
                         delete m_pByBuffer;
                     }
                     // Send messages
-                    if (FD_ISSET(fd, &m_WriteFds)) {
+                    if (FD_ISSET(fd, &writefds)) {
                         while (m_mapClients[fd].PendingMessages() > 0) {
                             Packet_p pPacket = NULL;
                             pPacket = m_mapClients[fd].Front();
