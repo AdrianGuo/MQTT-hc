@@ -33,7 +33,7 @@ public:
 		m_type = type;
 		Json::Reader reader;
 		Json::Value jsonValue = 0;
-		reader.parse(data.element, jsonValue, false);
+		reader.parse(data, jsonValue, false);
 		m_value = jsonValue["val"];
 		m_valueCurrent = 0;
 	}
@@ -176,7 +176,7 @@ public:
 	void_t SetDataCurrent(String dataCurrent) { // Khong xu ly tong quat
 		Json::Reader reader;
 		Json::Value jsonValue = 0;
-		if (reader.parse(dataCurrent.element, jsonValue, false)) {
+		if (reader.parse(dataCurrent, jsonValue, false)) {
 			if (jsonValue.isMember("val")) {
 				m_valueCurrent = jsonValue["val"];
 			}

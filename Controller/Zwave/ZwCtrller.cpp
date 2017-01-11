@@ -310,7 +310,7 @@ ZwCtrller::ProcessHandler(
     LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
     String strJsonCommandName = pJsonCommand->GetFullCommand();
 
-    MapHandlerFunctor::const_iterator_t it =
+    MapHandlerFunctor::const_iterator it =
     m_mapHandlerFunctor.find(strJsonCommandName);
     if (it != m_mapHandlerFunctor.end()) {
         m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
@@ -344,7 +344,7 @@ ZwCtrller::ProcessProc(
     if (pZwMessage == NULL) { return; }
 
     ZwMessage::Command zwCommand = pZwMessage->GetZwCommad();
-    MapProcFunctor::const_iterator_t it = m_mapProcFunctor.find(zwCommand);
+    MapProcFunctor::const_iterator it = m_mapProcFunctor.find(zwCommand);
     if (it != m_mapProcFunctor.end()) {
         m_mapProcFunctor[zwCommand](pZwMessage);
     }

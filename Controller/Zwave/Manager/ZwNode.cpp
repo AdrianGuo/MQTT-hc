@@ -83,7 +83,7 @@ ZwNode::ZwNode(
  * @retval None
  */
 ZwNode::~ZwNode() {
-    for (ZwEnpoint::iterator_t it = m_ZwEndpoints.begin();
+    for (ZwEnpoint::iterator it = m_ZwEndpoints.begin();
             it != m_ZwEndpoints.end(); it++) {
         delete it->second;
     }
@@ -100,7 +100,7 @@ ZwMessage_p
 ZwNode::SetNodeValue(
     ValueDevice_p pValueDevice
 ) {
-    Map<Value::Type_t, u8_t>::const_iterator_t it =
+    Map<Value::Type_t, u8_t>::const_iterator it =
     m_mapValueToCmdClass.find(pValueDevice->GetType());
 
     if (it != m_mapValueToCmdClass.end()) {
@@ -129,7 +129,7 @@ ZwNode::SetNodeValue(
     u8_p& pBuffer,
     u8_p  pLength
 ) {
-    Map<Value::Type_t, u8_t>::const_iterator_t it =
+    Map<Value::Type_t, u8_t>::const_iterator it =
    m_mapValueToCmdClass.find(pValueDevice->GetType());
 
    if (it != m_mapValueToCmdClass.end()) {
@@ -167,7 +167,7 @@ ZwCmdClass_p
 ZwNode::GetZwCmdClass(
     const u8_t byZwCmdClassId
 ) {
-    MapCmdClass::iterator_t it = m_mZwCmdClass.find(byZwCmdClassId);
+    MapCmdClass::iterator it = m_mZwCmdClass.find(byZwCmdClassId);
     if (it != m_mZwCmdClass.end()) {
         return it->second;
     }
@@ -210,7 +210,7 @@ void_t
 ZwNode::RmvZwCmdClass(
     const u8_t byZwCmdClassId
 ) {
-    MapCmdClass::iterator_t it = m_mZwCmdClass.find(byZwCmdClassId);
+    MapCmdClass::iterator it = m_mZwCmdClass.find(byZwCmdClassId);
     if (it == m_mZwCmdClass.end()) {
         return ;
     }
@@ -338,7 +338,7 @@ ZwNode_p
 ZwNode::GetEndpoint(
     u8_t byEndpointId
 ) {
-    ZwEnpoint::iterator_t it = m_ZwEndpoints.find(byEndpointId);
+    ZwEnpoint::iterator it = m_ZwEndpoints.find(byEndpointId);
     if (it != m_ZwEndpoints.end()) {
         return it->second;
     }
@@ -375,7 +375,7 @@ void_t
 ZwNode::RmvEndpoint(
     u8_t byEndpointId
 ) {
-    ZwEnpoint::iterator_t it = m_ZwEndpoints.find(byEndpointId);
+    ZwEnpoint::iterator it = m_ZwEndpoints.find(byEndpointId);
     if (it == m_ZwEndpoints.end()) {
         return ;
     }

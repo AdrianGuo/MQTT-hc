@@ -116,7 +116,7 @@ Json::Value RuleDbManager::GetRule(int_t id) {
 bool_t RuleDbManager::AddRule(int_t id, String data) {
 	std::string idString = std::to_string(id);
 	std::string cmd = "INSERT INTO 'RULE' VALUES(" + idString + ",'"
-			+ data.element + "');";
+			+ data + "');";
 	return ExecDbCmd(String(cmd.c_str()));
 }
 
@@ -128,7 +128,7 @@ bool_t RuleDbManager::AddRule(int_t id, String data) {
  */
 bool_t RuleDbManager::UpdateRule(int_t id, String data) {
 	std::string idString = std::to_string(id);
-	std::string cmd = "UPDATE RULE SET DATA='" + data.element + "' WHERE ID="
+	std::string cmd = "UPDATE RULE SET DATA='" + data + "' WHERE ID="
 			+ idString;
 	return ExecDbCmd(String(cmd.c_str()));
 }
@@ -183,8 +183,8 @@ bool_t RuleDbManager::ExecDbCmd(String cmd) {
 		// Set PRAGMA
 		sqlite3_exec(db, "PRAGMA encoding = \"UTF-8\"", 0, 0, 0);
 		sqlite3_exec(db, "PRAGMA foreign_keys = ON", 0, 0, 0);
-//		LOG_DEBUG("ExecCmd = %s", cmd.element);
-		int_t reslutExecCmd = sqlite3_exec(db, cmd.element.c_str(), 0, 0, 0);
+//		LOG_DEBUG("ExecCmd = %s", cmd);
+		int_t reslutExecCmd = sqlite3_exec(db, cmd.c_str(), 0, 0, 0);
 		// Close slqlite connection;
 		sqlite3_close(db);
 		if (reslutExecCmd == 0)

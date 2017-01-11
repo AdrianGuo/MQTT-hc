@@ -227,7 +227,7 @@ LogImpl::Queue(
  */
 void_t
 LogImpl::PushQueue() {
-    List<String>::iterator_t it = m_queLog.begin();
+    List<String>::iterator it = m_queLog.begin();
     while (it != m_queLog.end()) {
         String strTemp = *it;
         Log::Write(Log::Level::eAll, "%s", strTemp.c_str());

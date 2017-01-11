@@ -241,8 +241,8 @@ bool_t RuleManager::GetInforRule(Json::Value& jsonValue) {
 void_t RuleManager::PushJsonCommand(void_p pBuffer) {
 	JsonCommand_p pJsonCommandResult = (JsonCommand_p) pBuffer;
 	if (pJsonCommandResult != NULL) {
-		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().element.c_str(),
-				pJsonCommandResult->GetJsonValue().element.c_str());
+		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().c_str(),
+				pJsonCommandResult->GetJsonValue().c_str());
 	}
 
 	if ((m_pCtrllerFunctor != NULL) && (pBuffer != NULL)) {
@@ -290,7 +290,7 @@ void_t RuleManager::ProcessOutRule() {
 				isDevAct = TRUE;
 				Json::Reader reader;
 				Json::Value jsonValue = 0;
-				reader.parse(m_vecItemsAct[nIndex].GetData().element, jsonValue,
+				reader.parse(m_vecItemsAct[nIndex].GetData(), jsonValue,
 						false);
 				vecDevAct.append(jsonValue);
 				m_vecItemsAct.erase(m_vecItemsAct.begin() + nIndex);

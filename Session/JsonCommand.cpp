@@ -33,7 +33,7 @@ JsonCommand::JsonCommand(
     m_dwDesFlag (dwDesFlag),
     m_dwClientId (0){
     Json::Reader reader;
-    m_boJsonAvailable = reader.parse(strJson.element, m_jsonValue, false);
+    m_boJsonAvailable = reader.parse(strJson, m_jsonValue, false);
 
 }
 
@@ -84,7 +84,7 @@ JsonCommand::SetJsonObject(
     String strJson
 ) {
     Json::Reader reader;
-    m_boJsonAvailable = reader.parse(strJson.element, m_jsonValue, false);
+    m_boJsonAvailable = reader.parse(strJson, m_jsonValue, false);
 }
 
 /**
@@ -132,7 +132,7 @@ JsonCommand::GetJsonOjbect() {
 String
 JsonCommand::GetJsonValue() {
     String strValue;
-    strValue.element = m_jsonValue.toStyledString();
+    strValue = m_jsonValue.toStyledString();
     return strValue;
 }
 

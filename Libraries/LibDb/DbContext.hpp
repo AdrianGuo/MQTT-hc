@@ -188,7 +188,7 @@ template<class C>
 inline DbContext::MapTable<C>*
 DbContext::GetMapping() const {
     typedef typename std::remove_const<C>::type C_t;
-    ClassRegistry::const_iterator_t it = m_classRegistry.find(&typeid(C_t));
+    ClassRegistry::const_iterator it = m_classRegistry.find(&typeid(C_t));
     if (it != m_classRegistry.end()) {
         return dynamic_cast<MapTable<C>*>(it->second);
     }
@@ -208,7 +208,7 @@ DbContext::GetColumns(
     Vector<ValueDb>& result
 ) {
     typedef typename std::remove_const<C>::type C_t;
-    ClassRegistry::const_iterator_t it = m_classRegistry.find(&typeid(C_t));
+    ClassRegistry::const_iterator it = m_classRegistry.find(&typeid(C_t));
     IMapTable_p pMapTable = NULL;
     if (it != m_classRegistry.end()) {
         pMapTable = it->second;
@@ -229,7 +229,7 @@ template<class C>
 inline const String
 DbContext::TableName() const {
     typedef typename std::remove_const<C>::type C_t;
-    ClassRegistry::const_iterator_t it = m_classRegistry.find(&typeid(C_t));
+    ClassRegistry::const_iterator it = m_classRegistry.find(&typeid(C_t));
     if (it != m_classRegistry.end()) {
         return it->second->TableName;
     }
@@ -247,7 +247,7 @@ inline SqlStatement_p
 DbContext::GetStatement(
     u32_t dwStatementId
 ) const {
-    ClassRegistry::const_iterator_t it = m_classRegistry.find(&typeid(C));
+    ClassRegistry::const_iterator it = m_classRegistry.find(&typeid(C));
     String strSql = it->second->Statements[dwStatementId];
 
     return new Sqlite3Statement(m_pDatabase, strSql);

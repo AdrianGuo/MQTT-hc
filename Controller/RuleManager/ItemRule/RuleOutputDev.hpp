@@ -20,7 +20,7 @@ public:
 		m_timer = timer;
 		Json::Reader reader;
 		Json::Value jsonValue = 0;
-		reader.parse(data.element, jsonValue, false);
+		reader.parse(data, jsonValue, false);
 		jsonValue.removeMember("timer");
 		m_data = String(jsonValue.toStyledString().c_str());
 	}

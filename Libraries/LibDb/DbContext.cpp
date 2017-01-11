@@ -38,7 +38,7 @@ IMapTable_p
 DbContext::GetMapping(
     const String strTableName
 ) const {
-    TableRegistry::const_iterator_t it = m_tableRegistry.find(strTableName);
+    TableRegistry::const_iterator it = m_tableRegistry.find(strTableName);
     if (it != m_tableRegistry.end()) {
         return it->second;
     }
@@ -87,7 +87,7 @@ DbContext::UpdateChanges() {
 
     m_vecObjecToAdd.clear();
 
-    List<DbPtrBase_p>::iterator_t it = m_lstObjectManager.begin();
+    List<DbPtrBase_p>::iterator it = m_lstObjectManager.begin();
 
     while (it != m_lstObjectManager.end()) {
        (*it)->UpdateChange();
@@ -165,7 +165,7 @@ DbContext::CreateTables() {
 
     Set<String> tablesCreated;
 
-    for (ClassRegistry::iterator_t it = m_classRegistry.begin();
+    for (ClassRegistry::iterator it = m_classRegistry.begin();
             it != m_classRegistry.end(); it++) {
         CreateTable(it->second, tablesCreated);
     }
@@ -179,7 +179,7 @@ DbContext::CreateTables() {
  */
 void_t
 DbContext::DropTables() {
-    for (ClassRegistry::iterator_t it = m_classRegistry.begin();
+    for (ClassRegistry::iterator it = m_classRegistry.begin();
             it != m_classRegistry.end(); it++) {
         it->second->DropTable(*this);
     }
@@ -193,12 +193,12 @@ DbContext::DropTables() {
  */
 void_t
 DbContext::InitSchema() {
-    for (ClassRegistry::const_iterator_t it = m_classRegistry.begin();
+    for (ClassRegistry::const_iterator it = m_classRegistry.begin();
             it != m_classRegistry.end(); it++) {
         it->second->InitMapTable(*this);
     }
 
-    for (ClassRegistry::const_iterator_t it = m_classRegistry.begin();
+    for (ClassRegistry::const_iterator it = m_classRegistry.begin();
                 it != m_classRegistry.end(); it++) {
         InitStatements(it->second);
     }

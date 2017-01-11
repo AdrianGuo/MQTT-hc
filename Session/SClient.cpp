@@ -185,8 +185,8 @@ SClient::JsCommandToPacket(
     String strOutput = STA + pJsonCommand->GetFullCommand() +
                        pJsonCommand->GetJsonValue() + END;
 
-    strOutput.remove_char(ENDLN); // remove all '\n' characters
-    strOutput.remove_char(SPACE); // remove all spaces
+    strOutput.erase(std::remove(strOutput.begin(), strOutput.end(), ENDLN), strOutput.end()); //remove_char(ENDLN); // remove all '\n' characters
+    strOutput.erase(std::remove(strOutput.begin(), strOutput.end(), SPACE), strOutput.end()); //remove_char(SPACE); // remove all spaces
     std::replace(strOutput.begin(), strOutput.end(), AT, SPACE);
 
     LOG_INFO(" send %s", strOutput.c_str());
@@ -194,7 +194,7 @@ SClient::JsCommandToPacket(
     Packet_p packet = new Packet(strOutput.size());
 
     void_p pByBuffer = malloc(strOutput.size() + 1);
-    memcpy(pByBuffer, &strOutput.element[0], strOutput.size());
+    memcpy(pByBuffer, &strOutput[0], strOutput.size());
     packet->Push((u8_p) pByBuffer, strOutput.size());
 
     if (pJsonCommand != NULL) {

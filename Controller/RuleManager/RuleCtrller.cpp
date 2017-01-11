@@ -126,7 +126,7 @@ void_t RuleCtrller::debug() {
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 //---------------------------------------------------------------------------//
 	String strJsonCommandName = pJsonCommand->GetFullCommand();
-	MapHandlerFunctor::const_iterator_t it = m_mapHandlerFunctor.find(
+	MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
 			strJsonCommandName);
 	if (it != m_mapHandlerFunctor.end()) {
 		m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
@@ -184,9 +184,9 @@ void_t RuleCtrller::PushResJsonCommand(JsonCommand_p pJsonCommand,
 	pJsonCommand->SetSrcFlag(JsonCommand::Rule);
 	pJsonCommand->SetDesFlag(JsonCommand::NetWork);
 	if (result) {
-		pJsonCommand->GetJsonOjbect()["ret"] = String("0").element;
+		pJsonCommand->GetJsonOjbect()["ret"] = String("0");
 	} else {
-		pJsonCommand->GetJsonOjbect()["ret"] = String("1").element;
+		pJsonCommand->GetJsonOjbect()["ret"] = String("1");
 	}
 	PushJsonCommand(pJsonCommand);
 }
@@ -200,8 +200,8 @@ void_t RuleCtrller::PushResJsonCommand(JsonCommand_p pJsonCommand,
 void_t RuleCtrller::PushJsonCommand(void_p pInBuffer) {
 	JsonCommand_p pJsonCommandResult = (JsonCommand_p) pInBuffer;
 	if (pJsonCommandResult != NULL) {
-//		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().element.c_str(),
-//				pJsonCommandResult->GetJsonValue().element.c_str());
+//		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().c_str(),
+//				pJsonCommandResult->GetJsonValue().c_str());
 	}
 	if ((m_pCtrllerFunctor != NULL) && (pInBuffer != NULL)) {
 //		m_pCtrllerFunctor->operator ()((JsonCommand_p) pInBuffer);
@@ -297,10 +297,10 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
 
 		if (pJsonCommand != NULL) {
 			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
-					pJsonCommand->GetFullCommand().element.c_str(),
-					pJsonCommand->GetJsonValue().element.c_str());
+					pJsonCommand->GetFullCommand().c_str(),
+					pJsonCommand->GetJsonValue().c_str());
 			String strJsonCommandName = pJsonCommand->GetFullCommand();
-			MapHandlerFunctor::const_iterator_t it = m_mapHandlerFunctor.find(
+			MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
 					strJsonCommandName);
 			if (it != m_mapHandlerFunctor.end()) {
 				m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);

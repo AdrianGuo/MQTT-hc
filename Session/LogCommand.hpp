@@ -37,8 +37,8 @@
         const String STA = String("$"); \
         const String END = String("$end"); \
         String strRecevCmd = STA + (jsonCommand)->GetFullCommand() + (jsonCommand)->GetJsonValue() + END;\
-        strRecevCmd.remove_char(ENDLN); \
-        strRecevCmd.remove_char(SPACE); \
+        strRecevCmd.erase(std::remove(strRecevCmd.begin(), strRecevCmd.end(), ENDLN), strRecevCmd.end()); \
+        strRecevCmd.erase(std::remove(strRecevCmd.begin(), strRecevCmd.end(), SPACE), strRecevCmd.end()); \
         std::replace(strRecevCmd.begin(), strRecevCmd.end(), AT, SPACE); \
         if ((logLevel) == Log::Level::eInfo) { \
             LOG_INFO (" json %s", strRecevCmd.c_str()); \

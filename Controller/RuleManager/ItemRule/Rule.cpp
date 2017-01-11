@@ -182,7 +182,7 @@ void_t Rule::LoadData(Json::Value& jsonValue) {
  */
 void_t Rule::DisplayInfor() {
 	LOG_DEBUG("Rule:\tid = %d\tname = %s\ttype = %d\tenable = %d", m_id,
-			m_name.element.c_str(), m_type, m_enable);
+			m_name.c_str(), m_type, m_enable);
 }
 
 /**

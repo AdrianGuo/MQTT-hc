@@ -114,7 +114,7 @@ ZbDriver::ProcSendMessage(
     ZbMessage_p pZbMessage
 ) {
     ZbMessage::Command ZbCommand = pZbMessage->GetZbCommad();
-    MapProcFunctor::const_iterator_t it = m_mapProcFunctor.find(ZbCommand);
+    MapProcFunctor::const_iterator it = m_mapProcFunctor.find(ZbCommand);
     if (it != m_mapProcFunctor.end()) {
         m_mapProcFunctor[ZbCommand](pZbMessage);
     }
@@ -277,7 +277,7 @@ ZbDriver::ProcCmdReset(
     ZbSocketCmd::GetInstance()->SendResetRes(0);
     DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
     if(mapDeviceNwk.size() > 0) {
-        for(DeviceLogic_t::iterator_t it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
+        for(DeviceLogic_t::iterator it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
             ZbZdoCmd::GetInstance()->LeaveRequest(it->first);
         }
     }
@@ -296,7 +296,7 @@ ZbDriver::ProcCmdDel(
     ZbSocketCmd::GetInstance()->SendResetRes(0);
     DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
     if(mapDeviceNwk.size() > 0) {
-        for(DeviceLogic_t::iterator_t it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
+        for(DeviceLogic_t::iterator it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
             ZbZdoCmd::GetInstance()->LeaveRequest(it->first);
         }
     }

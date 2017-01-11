@@ -50,7 +50,7 @@ public:
  */
 inline
 JsonMsgSession::~JsonMsgSession() {
-    for (JsonTypeRegistry::iterator_t it = m_JsonTypeRegistry.begin();
+    for (JsonTypeRegistry::iterator it = m_JsonTypeRegistry.begin();
             it != m_JsonTypeRegistry.end(); it++) {
         delete it->second;
     }
@@ -82,7 +82,7 @@ template<class C>
 inline JsonMessageMap<C>*
 JsonMsgSession::GetJsonMapping() const {
     typedef typename std::remove_const<C>::type C_t;
-    JsonTypeRegistry::const_iterator_t it = m_JsonTypeRegistry.find(&typeid(C_t));
+    JsonTypeRegistry::const_iterator it = m_JsonTypeRegistry.find(&typeid(C_t));
     if (it != m_JsonTypeRegistry.end()) {
         return dynamic_cast<JsonMessageMap<C>*>(it->second);
     }
@@ -100,7 +100,7 @@ inline JsonMessageBase_p
 JsonMsgSession::GetJsonMapping(
     String strJsonMessageName
 ) const {
-    JsonNameRegistry::const_iterator_t it = m_JsonNameRegistry.find(strJsonMessageName);
+    JsonNameRegistry::const_iterator it = m_JsonNameRegistry.find(strJsonMessageName);
     if (it != m_JsonNameRegistry.end()) {
         return it->second;
     }

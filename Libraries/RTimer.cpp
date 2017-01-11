@@ -66,7 +66,7 @@ RTimer::~RTimer() {
 RTimer_p
 RTimer::getTimerInstance() {
     u32_t dwthreadfd = (u32_t) pthread_self();
-    MapThreadToTimer::const_iterator_t it =
+    MapThreadToTimer::const_iterator it =
     m_mapThreadToTimer.find(dwthreadfd);
     if (it == m_mapThreadToTimer.end()) {
         RTimer_p pTimer = new RTimer();

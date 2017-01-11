@@ -394,7 +394,7 @@ ZbDeviceDb::GenerateDeviceInfo(
     }
 
     //Add DeviceInfo name to DP
-    for(Action_t::const_iterator_t it = Action.begin(); it != Action.end(); it++) {
+    for(Action_t::const_iterator it = Action.begin(); it != Action.end(); it++) {
         Action[it->first].DP_DIName = it->first;
     }
 }
@@ -414,7 +414,7 @@ ZbDeviceDb::OtherBrandsDevice() {
     switch (Type.GetValue()) {
         case ZCL_HA_DEVICEID_ON_OFF_LIGHT: {
             bool_t boCheck = FALSE;
-            for(Map<u8_t, u16_t>::const_iterator_t it = EPsInfo.mapType.begin(); it != EPsInfo.mapType.end(); it++) {
+            for(Map<u8_t, u16_t>::const_iterator it = EPsInfo.mapType.begin(); it != EPsInfo.mapType.end(); it++) {
                 if(it->second == ZCL_HA_DEVICEID_DIMMABLE_LIGHT) boCheck = TRUE;
             }
             if(boCheck) prefixModel = "LM-DZ"; //Curtain is OK. Fan???

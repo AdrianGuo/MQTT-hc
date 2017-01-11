@@ -223,7 +223,7 @@ DbContext::Load(
     const typename ConfigTable<C>::IdType& id
 ) {
     MapTable<C>* pMapping = GetMapping<C>();
-    typename MapTable<C>::Registry_t::iterator_t it = pMapping->Registry.find(id);
+    typename MapTable<C>::Registry_t::iterator it = pMapping->Registry.find(id);
 
     if (it == pMapping->Registry.end()) {
         SqlStatement_p pSqlStatement = GetStatement<C>(SELECTBYID);
@@ -249,7 +249,7 @@ DbContext::Refresh(
 ) {
     MapTable<C>* pMapping = GetMapping<C>();
     DbPtrCore<C>* pdbPtrCore;
-    typename MapTable<C>::Registry_t::iterator_t it = pMapping->Registry.find(id);
+    typename MapTable<C>::Registry_t::iterator it = pMapping->Registry.find(id);
 
     if (it == pMapping->Registry.end()) {
         pdbPtrCore = new DbPtrCore<C>(NULL, this);
@@ -281,7 +281,7 @@ DbContext::LoadId(
     DbPtrCore<C>* pdbPtrCore = new DbPtrCore<C>(NULL, this);
     Load(*pdbPtrCore, pSqlStatement, iColumn); // Chu y
 
-    typename MapTable<C>::Registry_t::iterator_t it =
+    typename MapTable<C>::Registry_t::iterator it =
     pMapping->Registry.find(pdbPtrCore->GetId());
 
     if (it == pMapping->Registry.end()) {

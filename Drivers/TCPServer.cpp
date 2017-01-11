@@ -322,7 +322,7 @@ TCPServer::RemoveClient(
     m_mapClients.erase(client.GetSocketFd());
     m_pServerSockLocker->Lock();
     m_idwNfds = 0;
-    for (MapClients_t::const_iterator_t it = m_mapClients.begin();
+    for (MapClients_t::const_iterator it = m_mapClients.begin();
             it != m_mapClients.end(); it++) {
         if(m_idwNfds < (it->first + 1))
             m_idwNfds = it->first + 1;
@@ -355,7 +355,7 @@ TCPServer::HandleKeepAliveProcess(
     void_p pBuffer
 ) {
     LOG_DEBUG("Handle clients alive state.");
-    for (MapClients_t::const_iterator_t it = m_mapClients.begin();
+    for (MapClients_t::const_iterator it = m_mapClients.begin();
             it != m_mapClients.end(); it++) {
         if (m_mapClients[it->first].IsAlive()) {
             m_mapClients[it->first].SetAlive(FALSE);

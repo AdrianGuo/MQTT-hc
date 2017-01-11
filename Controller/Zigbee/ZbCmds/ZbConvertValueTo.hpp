@@ -109,7 +109,8 @@ ForwardSetValueToCurtain (
     }
 
     if(jsonVal["state"].asString() == std::string("stop")) {
-        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, (device->State - 3));
+        device.Modify()->Action[DI_State].DP_ReserveData = 1;
+        ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, (device->State));
         return;
     }
 
@@ -218,6 +219,7 @@ ForwardSetValueToIr (
     } else if ((byAct == 3) || (byAct == 4)) { //Enable || Disable
         if(isIrcmd) {
             Json::Value jsonRetVal;
+            jsonRetVal["act"] = std::to_string(byAct);
             if(ircmd.Modify() != NULL) {
                 jsonRetVal["state"] = std::to_string(0);
                 jsonRetVal["irid"] = jsonVal["irid"].asString();
@@ -338,7 +340,7 @@ ForwardSetValueToDaikin (
     DeviceProperties vDP;
     Json::Value::Members keys = jsonVal.getMemberNames();
     for(Json::Value::Members::const_iterator it = keys.begin(); it != keys.end(); it++) {
-        for(Action_t::const_iterator_t it2 = device.Modify()->Action.begin(); it2 != device.Modify()->Action.end(); it2++) {
+        for(Action_t::const_iterator it2 = device.Modify()->Action.begin(); it2 != device.Modify()->Action.end(); it2++) {
             if(it2->second.DP_DIStringName == (std::string) (*it)) {
                 DeviceProperty temp;
                 temp.DP_ClusterID = it2->second.DP_ClusterID;
@@ -396,7 +398,7 @@ ForwardGetRequestsToDevice(
     Device_t    device
 ) {
     Vector<DeviceInfo> vDI;
-    for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
+    for(Action_t::const_iterator it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
         if((it->first != DI_Model) && (it->first != DI_Model)) {
             vDI.push_back(it->first);
         }

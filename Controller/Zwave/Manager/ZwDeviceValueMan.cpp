@@ -88,7 +88,7 @@ ZwDeviceValueMan::CreateValueDevice(
     u8_t byTypeDev,
     Json::Value jsonValue
 ) {
-    Map<u8_t, funcCreateValue>::iterator_t it =
+    Map<u8_t, funcCreateValue>::iterator it =
     m_mapTypeDeviceValue.find(byTypeDev);
 
     if (it != m_mapTypeDeviceValue.end()) {

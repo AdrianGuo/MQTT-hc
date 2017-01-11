@@ -147,7 +147,7 @@ String
 ZwCmdClassMap::operator[] (
     u8_t bCmdClass
 ) {
-    Map<u8_t, String>::const_iterator_t it =
+    Map<u8_t, String>::const_iterator it =
             m_mapCmdClass.find(bCmdClass);
     if (it != m_mapCmdClass.end()) {
         return m_mapCmdClass[bCmdClass];

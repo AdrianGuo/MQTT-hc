@@ -315,8 +315,8 @@ DevManager::HandlerDevCmdStt(
         strKey += std::to_string(lstDevStt[i].netwk).c_str();
 
         String strVal(lstDevStt[i].value.toStyledString().c_str());
-        strVal.remove_char(ENDLN);
-        strVal.remove_char(SPACE);
+        strVal.erase(std::remove(strVal.begin(), strVal.end(), ENDLN), strVal.end()); //remove_char(ENDLN);
+        strVal.erase(std::remove(strVal.begin(), strVal.end(), SPACE), strVal.end()); //remove_char(SPACE);
         m_StoreValue[strKey] = strVal;
     }
 }

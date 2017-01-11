@@ -200,7 +200,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
              byCheck++;
              if(byCheck == 1) {
                  s_mapEPInfo[wNwk].byTotalEP   = s_mapEPInfo[tempDevice.Modify()->Network].byTotalEP;
-                 for(Map<u8_t, u16_t>::const_iterator_t it2 = s_mapEPInfo[tempDevice.Modify()->Network].mapType.begin();
+                 for(Map<u8_t, u16_t>::const_iterator it2 = s_mapEPInfo[tempDevice.Modify()->Network].mapType.begin();
                          it2 != s_mapEPInfo[tempDevice.Modify()->Network].mapType.end(); it2++) {
                      s_mapEPInfo[wNwk].mapType[it2->first] = it2->second;
                  }
@@ -218,7 +218,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
          ZbDriver::s_pZbModel->UpdateChanges();
          ZbSocketCmd::GetInstance()->SendLstDel(devices);
 
-         for(Map<u8_t, u16_t>::const_iterator_t it3 = s_mapEPInfo[wNwk].mapType.begin();
+         for(Map<u8_t, u16_t>::const_iterator it3 = s_mapEPInfo[wNwk].mapType.begin();
                  it3 != s_mapEPInfo[wNwk].mapType.end(); it3++) {
              Map<u16_t,bool_t> mapCheck;
              if(ZbDeviceDb::IsInterested(it3->second)) {
@@ -453,7 +453,7 @@ ZbZdoCmd::SimpleDescResponse(
     //Only request model & manufacturer info to one of same type devices (send when get the last endpoint).
     s_mapEPInfo[wNwk].mapType[byEndpoint] = wType;
     u8_t byEpNo = 0;
-    for(Vector<u8_t>::const_iterator_t it = s_mapEPInfo[wNwk].vEPList.begin(); it != s_mapEPInfo[wNwk].vEPList.end(); it++) {
+    for(Vector<u8_t>::const_iterator it = s_mapEPInfo[wNwk].vEPList.begin(); it != s_mapEPInfo[wNwk].vEPList.end(); it++) {
         if(s_mapEPInfo[wNwk].mapType.find(*it) != s_mapEPInfo[wNwk].mapType.end())
             byEpNo++;
     }
@@ -576,7 +576,7 @@ ZbZdoCmd::HandleDeviceAnnounce(
     m_iDAHandle = -1;
     LOG_DEBUG("Handle DeviceAnnounce %d", *((u16_p) pBuffer));
     if(s_mapEPInfo.size() <= *((u16_p) pBuffer)) {
-        for(DeviceLogic_t::const_iterator_t it = s_mapEPInfo.begin(); it != s_mapEPInfo.end(); it++) {
+        for(DeviceLogic_t::const_iterator it = s_mapEPInfo.begin(); it != s_mapEPInfo.end(); it++) {
             if((it->second.byTotalEP == 0) &&
                     (s_mapEPInfo[it->first].IsAERequested == FALSE))
             {

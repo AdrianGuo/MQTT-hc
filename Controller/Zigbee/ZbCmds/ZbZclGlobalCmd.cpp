@@ -103,7 +103,7 @@ ZbZclGlobalCmd::ReadAttributeRequest(
 
         if(mapDIGroup.size() == 0) { return; }
 
-        for (Map<u16_t, Vector<DeviceInfo>>::const_iterator_t it = mapDIGroup.begin(); it != mapDIGroup.end(); it++) {
+        for (Map<u16_t, Vector<DeviceInfo>>::const_iterator it = mapDIGroup.begin(); it != mapDIGroup.end(); it++) {
             u16_t wNwkAdd = (u16_t) device->Network.GetValue();
             ZbPacket_p pZbPacket = new ZbPacket(7 + 0x02 * it->second.size());
             pZbPacket->SetCmdID(ZCL_GLOBAL_CMD_REQ);
@@ -212,7 +212,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
         bool boCheck = false;
 
-        for(Action_t::const_iterator_t it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
+        for(Action_t::const_iterator it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {
             if(temp == it->second) {
                 temp.DP_DIName = it->first;
                 vResponseDP.push_back(temp);
@@ -295,7 +295,7 @@ ZbZclGlobalCmd::WriteAttributeRequest(
         mapDPGroup[vDP[i].DP_ClusterID].push_back(vDP[i]);
     }
 
-    for (Map<u16_t, DeviceProperties>::const_iterator_t it = mapDPGroup.begin(); it != mapDPGroup.end(); it++) {
+    for (Map<u16_t, DeviceProperties>::const_iterator it = mapDPGroup.begin(); it != mapDPGroup.end(); it++) {
         u16_t wNwkAdd = (u16_t) device->Network.GetValue();
         int_t iDataSize = 0;
         for (u8_t j = 0; j < (it->second).size(); j++) {
@@ -547,7 +547,7 @@ ZbZclGlobalCmd::SaveDevicesInfo(
     BuDev.Modify()->Manufacturer = device->Manufacturer;
     BuDev.Modify()->EndpointNo = ZbZdoCmd::s_mapEPInfo[wNwk].byTotalEP;
     int_t i = 1;
-    for(Map<u8_t, u16_t>::const_iterator_t it = ZbZdoCmd::s_mapEPInfo[wNwk].mapType.begin();
+    for(Map<u8_t, u16_t>::const_iterator it = ZbZdoCmd::s_mapEPInfo[wNwk].mapType.begin();
             it != ZbZdoCmd::s_mapEPInfo[wNwk].mapType.end(); it++) {
         *(BuDev.Modify()->EpOrd[i]) = it->first + it->second * 1000;
         i++;

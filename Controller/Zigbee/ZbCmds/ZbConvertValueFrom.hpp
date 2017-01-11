@@ -90,12 +90,16 @@ ForwardCurtainStateToOutside(
     Json::Value val;
 //    int_t state = device->Action[DI_OnOff].DP_AttributeData;
     val["level"] = std::to_string(iLevel);
-    if(iLevel == 100) {
-        val["state"] = std::string("off");
+    if(device->ReserveData(DI_State) == 1) {
+        val["state"] = std::string("stop");
+        device->ReserveData(DI_State) = 0;
     } else {
-        val["state"] = std::string("on");
+        if(iLevel == 100) {
+            val["state"] = std::string("off");
+        } else {
+            val["state"] = std::string("on");
+        }
     }
-
     ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
@@ -177,7 +181,7 @@ ForwardDaikinStateToOutside(
     const ZbDeviceDb_p device
 ) {
     Json::Value val;
-    for(Action_t::const_iterator_t it = device->Action.begin(); it != device->Action.end(); it++) {
+    for(Action_t::const_iterator it = device->Action.begin(); it != device->Action.end(); it++) {
         if(it->second.DP_IsResponsed == TRUE) {
            if(it->first == DI_State) {
                if(it->second.DP_AttributeData == 1) val[it->second.DP_DIStringName] = std::string("on");

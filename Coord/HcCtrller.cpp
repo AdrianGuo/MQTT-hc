@@ -305,7 +305,7 @@ void_t HcCtrller::RegisterHandler() {
  */
 void_t HcCtrller::ProcessHandler(JsonCommand_p pJsonCommand) {
 	String strJsonCommandName = pJsonCommand->GetFullCommand();
-	MapHandlerFunctor::const_iterator_t it = m_mapHandlerFunctor.find(
+	MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
 			strJsonCommandName);
 	if (it != m_mapHandlerFunctor.end()) {
 		m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
