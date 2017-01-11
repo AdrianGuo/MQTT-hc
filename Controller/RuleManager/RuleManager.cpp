@@ -11,6 +11,7 @@
 #include "LogPlus.hpp"
 #include "RuleManager.hpp"
 #include "String.hpp"
+#include "JsonRuleActvRes.hpp"
 #include <unistd.h>
 #include <iostream>
 #include <iterator>
@@ -263,13 +264,13 @@ void_t RuleManager::ProcessCheckRule() {
 		if (m_vecRules[nIndex]->IsChecking()) {
 			if (m_vecRules[nIndex]->IsActive()) {
 				RegisterOutput(m_vecRules[nIndex]);
-				if (m_vecRules[nIndex]->GetType() == Rule::Auto) {
-					JsonRuleAct_t jsonRuleAct;
-					JsonCommand_p pJsonCommand = jsonRuleAct.CreateJsonCommand(
-							m_vecRules[nIndex]->GetId());
-					pJsonCommand->SetDesFlag(JsonCommand::NetWork);
-					PushJsonCommand(pJsonCommand);
-				}
+//				if (m_vecRules[nIndex]->GetType() == Rule::Auto) {
+				JsonRuleActvRes_t jsonRuleActRes;
+				JsonCommand_p pJsonCommand = jsonRuleActRes.CreateJsonCommand(
+						m_vecRules[nIndex]->GetId(), 0);
+				pJsonCommand->SetDesFlag(JsonCommand::NetWork);
+				PushJsonCommand(pJsonCommand);
+//				}
 			}
 		}
 	}
