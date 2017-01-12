@@ -51,7 +51,6 @@ public:
 
 		case 1: // cong tac
 		case 9: // binary input
-		case 4: // rem
 		{
 			if (m_value.isMember("state") && m_valueCurrent.isMember("state")) {
 				String stateSetup = String(m_value["state"].asCString());
@@ -71,17 +70,12 @@ public:
 				String stateCurrent = String(
 						m_valueCurrent["state"].asCString());
 				if (CheckingVlaueState(stateSetup, stateCurrent)) {
-					if (m_cond == TypeCond::Equal)
+					if (stateSetup == "off" || m_cond == Equal)
 						return TRUE;
-					if (IsCheckingLevel(stateSetup)) {
-						int_t levelSetup = std::atoi(
-								m_value["level"].asCString());
-						int_t levelCurrent = std::atoi(
-								m_valueCurrent["level"].asCString());
-						return CheckingValueLevel(levelSetup, levelCurrent);
-					} else {
-						return TRUE;
-					}
+					int_t levelSetup = std::atoi(m_value["level"].asCString());
+					int_t levelCurrent = std::atoi(
+							m_valueCurrent["level"].asCString());
+					return CheckingValueLevel(levelSetup, levelCurrent);
 				} else {
 					return FALSE;
 				}
@@ -89,6 +83,27 @@ public:
 			break;
 		}
 
+		case 4: // rem
+		{
+			if (m_value.isMember("level") && m_valueCurrent.isMember("level")
+					&& m_value.isMember("state")
+					&& m_valueCurrent.isMember("state")) {
+				String stateSetup = String(m_value["state"].asCString());
+				String stateCurrent = String(
+						m_valueCurrent["state"].asCString());
+				if (CheckingVlaueState(stateSetup, stateCurrent)) {
+					int_t levelSetup = std::atoi(m_value["level"].asCString());
+					int_t levelCurrent = std::atoi(
+							m_valueCurrent["level"].asCString());
+					if (levelSetup == -1)
+						return TRUE;
+					return CheckingValueLevel(levelSetup, levelCurrent);
+				} else {
+					return FALSE;
+				}
+			}
+			break;
+		}
 		case 5:  // IR
 		{
 			if (m_value.isMember("act") && m_valueCurrent.isMember("act")
@@ -193,36 +208,34 @@ private:
 	Json::Value m_valueCurrent;
 
 	bool_t CheckingValueLevel(int_t levelSetup, int_t levelCurrent) {
-		if (levelSetup == -1)
-			return TRUE;
 		switch (m_cond) {
 		case Equal: {
-			if (levelSetup == levelCurrent)
+			if (levelCurrent == levelSetup)
 				return TRUE;
 			break;
 		}
 		case NotEqual: {
-			if (levelSetup != levelCurrent)
+			if (levelCurrent != levelSetup)
 				return TRUE;
 			break;
 		}
 		case LessThan: {
-			if (levelSetup < levelCurrent)
+			if (levelCurrent < levelSetup)
 				return TRUE;
 			break;
 		}
 		case GreaterThan: {
-			if (levelSetup > levelCurrent)
+			if (levelCurrent > levelSetup)
 				return TRUE;
 			break;
 		}
 		case LessThanOrEqual: {
-			if (levelSetup <= levelCurrent)
+			if (levelCurrent <= levelSetup)
 				return TRUE;
 			break;
 		}
 		case GreaterThanOrEqual: {
-			if (levelSetup >= levelCurrent)
+			if (levelCurrent >= levelSetup)
 				return TRUE;
 			break;
 		}
@@ -240,18 +253,6 @@ private:
 		}
 	}
 
-	bool_t IsCheckingLevel(String state) {
-		if (state == String("off")) {
-			return FALSE;
-		} else {
-			return TRUE;
-//			if(state == String("off")){
-//
-//			}else{
-//
-//			}
-		}
-	}
 };
 
 typedef RuleInputDev RuleInputDev_t;
