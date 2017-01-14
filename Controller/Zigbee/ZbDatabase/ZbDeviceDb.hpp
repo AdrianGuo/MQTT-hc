@@ -13,6 +13,7 @@
 #include "Map.hpp"
 #include "Queue.hpp"
 
+#define IsRequested(x)                      Action[x].DP_IsRequested
 #define IsResponsed(x)                      Action[x].DP_IsResponsed
 #define PendingReqs(x)                      Action[x].DP_PendingReqs
 #define ClusterID(x)                        Action[x].DP_ClusterID

@@ -228,7 +228,7 @@ void_t RuleCtrller::Start() {
  * @retval None
  */
 void_t RuleCtrller::ProcessHandler(JsonCommand_p pJsonCommand) {
-    LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
+//    LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
 	m_pRuleCtrllerLocker->Lock();
 	m_queRuleCtrllerJsonCommand.push(pJsonCommand);
 	m_pRuleCtrllerLocker->UnLock();
@@ -296,9 +296,9 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
 		m_pRuleCtrllerLocker->UnLock();
 
 		if (pJsonCommand != NULL) {
-			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
-					pJsonCommand->GetFullCommand().c_str(),
-					pJsonCommand->GetJsonValue().c_str());
+//			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
+//					pJsonCommand->GetFullCommand().c_str(),
+//					pJsonCommand->GetJsonValue().c_str());
 			String strJsonCommandName = pJsonCommand->GetFullCommand();
 			MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
 					strJsonCommandName);

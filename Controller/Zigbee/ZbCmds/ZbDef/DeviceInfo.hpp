@@ -77,6 +77,7 @@ typedef struct DeviceProperty {
     int_t           DP_ReserveData;
 
     PendingReqs_t   DP_PendingReqs;
+    bool_t          DP_IsRequested = FALSE;
     bool_t          DP_IsResponsed = FALSE;
 
     DeviceInfo      DP_DIName;

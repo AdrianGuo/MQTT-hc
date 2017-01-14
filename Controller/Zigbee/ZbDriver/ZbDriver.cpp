@@ -5,6 +5,7 @@
  *      Author: taho
  */
 
+#include <unistd.h>
 #include "debug.hpp"
 #include "LogPlus.hpp"
 #include "ZbSerialAPI.hpp"
@@ -494,6 +495,7 @@ ZbDriver::Init(
         m_pZbBasicCmd->NwkInfoReq();
         while(m_pZbBasicCmd->IsNetworkAvail() != TRUE) {
             LOG_DEBUG("Waiting zb's response...");
+            sleep(1);
         }
     }
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
@@ -511,24 +513,24 @@ ZbDriver::Init(
         if(temp.Modify()->IsInterested()) {
             temp.Modify()->GenerateDeviceInfo();
 
-            if (stateReq && temp->RealType != LUMI_DEVICE_IR) {
-                Json::Value jsonVal, jsonDev;
-                jsonDev["devid"] = std::to_string(temp->DeviceID.GetValue());
-                jsonDev["ord"] = std::to_string(temp->Endpoint.GetValue());
-                jsonDev["net"] = std::to_string(1);
-                jsonDev["type"] = std::to_string(temp->RealType);
-                jsonVal["dev"].append(jsonDev);
-                JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
-                pJsonCommand->SetJsonObject(jsonVal);
-                JsonDevGet_p pJsonDevGet = new JsonDevGet();
-                pJsonDevGet->ParseJsonCommand(pJsonCommand);
-                ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
-                pZbMessage->SetCmdID(ZCL_CMD_REQ);
-                ProcSendMessage(pZbMessage);
-                pZbMessage = NULL;
-                delete pJsonCommand;
-                delete pJsonDevGet;
-            }
+//            if (stateReq && temp->RealType != LUMI_DEVICE_IR) {
+//                Json::Value jsonVal, jsonDev;
+//                jsonDev["devid"] = std::to_string(temp->DeviceID.GetValue());
+//                jsonDev["ord"] = std::to_string(temp->Endpoint.GetValue());
+//                jsonDev["net"] = std::to_string(1);
+//                jsonDev["type"] = std::to_string(temp->RealType);
+//                jsonVal["dev"].append(jsonDev);
+//                JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
+//                pJsonCommand->SetJsonObject(jsonVal);
+//                JsonDevGet_p pJsonDevGet = new JsonDevGet();
+//                pJsonDevGet->ParseJsonCommand(pJsonCommand);
+//                ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
+//                pZbMessage->SetCmdID(ZCL_CMD_REQ);
+//                ProcSendMessage(pZbMessage);
+//                pZbMessage = NULL;
+//                delete pJsonCommand;
+//                delete pJsonDevGet;
+//            }
 
         }
     }

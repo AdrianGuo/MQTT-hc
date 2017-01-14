@@ -138,8 +138,8 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for(u8_t i = 0; i < byLimit; i++) {
                 Backup(vDP[i].DP_DIName);
                 if(vDP[i].DP_DIName == DI_State) {
-                    if(((PendingReqs(DI_State).front().ReqValue - *vpData[i]) > 3) ||
-                            ((PendingReqs(DI_State).front().ReqValue - *vpData[i]) < -3)) {
+                    if(((PendingReqs(DI_State).front().ReqValue - *vpData[i]) > 5) ||
+                            ((PendingReqs(DI_State).front().ReqValue - *vpData[i]) < -5)) {
                                 AttributeData(vDP[i].DP_DIName) = *vpData[i];
                             } else {
                                 AttributeData(vDP[i].DP_DIName) = PendingReqs(DI_State).front().ReqValue;
@@ -237,12 +237,26 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     AttributeData(vDP[i].DP_DIName) = *vpData[i];
                 } else {
                     AttributeData(vDP[i].DP_DIName) = *((i16_p) vpData[i]);
-
                 }
-                IsResponsed(vDP[i].DP_DIName) = TRUE;
+                if(AttributeData(vDP[i].DP_DIName) != PreValue(vDP[i].DP_DIName)) {
+                    IsResponsed(vDP[i].DP_DIName) = TRUE;
+                }
+
+                IsRequested(vDP[i].DP_DIName) = FALSE;
                 PopReq(vDP[i].DP_DIName);
             }
-            ForwardDaikinStateToOutside(this);
+
+            bool_t boCheck = TRUE;
+            for(Action_t::const_iterator it = Action.begin(); it != Action.end(); it++) {
+                if(it->second.DP_IsRequested == TRUE) {
+                    boCheck = FALSE;
+                    break;
+                }
+            }
+            if(boCheck || (AttributeData(DI_State) == 0)){
+                ForwardDaikinStateToOutside(this);
+            }
+
         }
             break;
 /*
@@ -368,7 +382,6 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_Daikin_Max_Heat_Limit,           ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_MAX_HEAT_SETPOINT_LIMIT);
         SyncDeviceAction(DI_Daikin_Min_Cool_Limit,           ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_MIN_COOL_SETPOINT_LIMIT);
         SyncDeviceAction(DI_Daikin_Max_Cool_Limit,           ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_MAX_COOL_SETPOINT_LIMIT);
-//        SyncDeviceAction(DI_Daikin_Control_Seq_Operation,    ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_CTRL_SEQ_OF_OPER);
         SyncDeviceAction(DI_Daikin_System_Mode,              ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_SYSTEM_MODE);
         SyncDeviceAction(DI_Daikin_Fan_Mode,                 ZCL_CLUSTER_ID_HAVC_FAN_CONTROL,        ATTRID_HVAC_FAN_CTRL_FAN_MODE);
         SyncDeviceAction(DI_Daikin_Fan_Direction,            ZCL_CLUSTER_ID_HAVC_FAN_CONTROL,        ATTRID_HVAC_FAN_CTRL_FAN_DIRECTION);
@@ -383,7 +396,6 @@ ZbDeviceDb::GenerateDeviceInfo(
         Action[DI_Daikin_Max_Heat_Limit].DP_DIStringName          = std::string("maxheat");
         Action[DI_Daikin_Min_Cool_Limit].DP_DIStringName          = std::string("mincool");
         Action[DI_Daikin_Max_Cool_Limit].DP_DIStringName          = std::string("maxcool");
-//        Action[DI_Daikin_Control_Seq_Operation].DP_DIStringName   = std::string("ctrloper");
         Action[DI_Daikin_System_Mode].DP_DIStringName             = std::string("sysmod");
         Action[DI_Daikin_Fan_Mode].DP_DIStringName                = std::string("fanmod");
         Action[DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandiect");

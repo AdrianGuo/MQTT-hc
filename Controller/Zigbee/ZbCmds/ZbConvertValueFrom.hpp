@@ -192,7 +192,8 @@ ForwardDaikinStateToOutside(
             device->Action[it->first].DP_IsResponsed = FALSE;
         }
     }
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+    if (val.size() != 0)
+        ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
 /**

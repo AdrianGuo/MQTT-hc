@@ -37,7 +37,7 @@ private:
     int_t m_iAEHandle;
 
     ZbZdoCmd();
-    void_t RestoreBuDevice(u16_t, BackupDev_t);
+    bool_t RestoreBuDevice(u16_t, BackupDev_t);
 
 public:
     static ZbZdoCmd* s_pInstance;

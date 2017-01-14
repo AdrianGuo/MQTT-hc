@@ -159,7 +159,7 @@ SClient::BufferToJsCmdClass(
         String strJsonValue = m_vecStringJsonCommand[i*3 + 2];
         String strFullCommand = strCmdClass + "=" + strCommand;
 
-        LOG_DEBUG("parse $%s%s$end", strFullCommand.c_str(), strJsonValue.c_str());
+//        LOG_DEBUG("parse $%s%s$end", strFullCommand.c_str(), strJsonValue.c_str());
 
         JsonCommand_p pJsonCommand = new JsonCommand(strFullCommand, strJsonValue);
 

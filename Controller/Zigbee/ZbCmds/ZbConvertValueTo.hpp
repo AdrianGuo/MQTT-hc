@@ -301,13 +301,6 @@ ForwardSetValueToRGB (
         if (temp.size() == 0) { return; }
         int_t blue = atoi(temp.c_str());
 
-        int_t state;
-        if(jsonVal["state"].asString() == std::string("on")) {
-            state = 1;
-        } else if (jsonVal["state"].asString() == std::string("off")){
-            state = 0;
-        }
-
         dpRed   = device.Modify()->Action[DI_RGB_Red];
         dpRed.DP_AttributeData      = red;
         dpGreen = device.Modify()->Action[DI_RGB_Green];
@@ -315,7 +308,11 @@ ForwardSetValueToRGB (
         dpBlue  = device.Modify()->Action[DI_RGB_Blue];
         dpBlue.DP_AttributeData     = blue;
         dpState = device.Modify()->Action[DI_State];
-        dpState.DP_AttributeData    = state;
+        if(jsonVal["state"].asString() == std::string("on")) {
+            dpState.DP_AttributeData = 1;
+        } else if (jsonVal["state"].asString() == std::string("off")){
+            dpState.DP_AttributeData = 0;
+        }
     }
 
     vDP.push_back(dpRed);
@@ -338,6 +335,16 @@ ForwardSetValueToDaikin (
     Json::Value jsonVal
 ) {
     DeviceProperties vDP;
+    if(jsonVal.isMember("state")) {
+        if(jsonVal["state"] == std::string("off")) {
+            device.Modify()->IsRequested(DI_State) = TRUE;
+            DeviceProperty temp;
+            temp = device.Modify()->Action[DI_State];
+            temp.DP_AttributeData = 0;
+            ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, temp);
+            return;
+        }
+    }
     Json::Value::Members keys = jsonVal.getMemberNames();
     for(Json::Value::Members::const_iterator it = keys.begin(); it != keys.end(); it++) {
         for(Action_t::const_iterator it2 = device.Modify()->Action.begin(); it2 != device.Modify()->Action.end(); it2++) {
@@ -348,19 +355,12 @@ ForwardSetValueToDaikin (
                 if(it2->second.DP_DIStringName == std::string("state")) {
                     if(jsonVal[(std::string) (*it)] == std::string("on")) {
                         temp.DP_AttributeData = 1;
-                    } else {
-                        temp.DP_AttributeData = 0;
-                        vDP.clear();
-                        temp.DP_DIName = it2->second.DP_DIName;
-                        temp.DP_DIStringName = it2->second.DP_DIStringName;
-                        vDP.push_back(temp);
-                        temp = {};
-                        goto END;
                     }
                 } else {
                     temp.DP_AttributeData = atoi((jsonVal[(std::string) (*it)]).asCString());
                 }
                 if(temp.DP_AttributeData >= 0) {
+                    device.Modify()->IsRequested(it2->first) = TRUE;
                     temp.DP_DIName = it2->second.DP_DIName;
                     temp.DP_DIStringName = it2->second.DP_DIStringName;
                     vDP.push_back(temp);
@@ -370,7 +370,6 @@ ForwardSetValueToDaikin (
             }
         }
     }
-END:
     ZbZclGlobalCmd::GetInstance()->WriteAttributeRequest(device, vDP);
 }
 

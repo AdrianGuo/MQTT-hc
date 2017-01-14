@@ -549,8 +549,10 @@ ZbZclGlobalCmd::SaveDevicesInfo(
     int_t i = 1;
     for(Map<u8_t, u16_t>::const_iterator it = ZbZdoCmd::s_mapEPInfo[wNwk].mapType.begin();
             it != ZbZdoCmd::s_mapEPInfo[wNwk].mapType.end(); it++) {
-        *(BuDev.Modify()->EpOrd[i]) = it->first + it->second * 1000;
-        i++;
+        if(i <= 20) {
+            *(BuDev.Modify()->EpOrd[i]) = it->first + it->second * 1000;
+            i++;
+        }
     }
     ZbDriver::s_pZbModel->UpdateChanges();
 }

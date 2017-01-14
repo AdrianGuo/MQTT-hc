@@ -110,7 +110,6 @@ Serial::SerialThreadProc(
                 pSendPacket = m_queSerialPacket.front();
                 m_queSerialPacket.pop();
             }
-            m_pSerialLocker->UnLock();
 
             if (pSendPacket != NULL) {
                 int_t iResult = 0;
@@ -121,6 +120,7 @@ Serial::SerialThreadProc(
                 delete pSendPacket;
                 pSendPacket = NULL;
             }
+            m_pSerialLocker->UnLock();
         }
         usleep(50000);
     }

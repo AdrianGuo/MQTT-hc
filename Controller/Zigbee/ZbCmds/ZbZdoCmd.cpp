@@ -71,9 +71,10 @@ ZbZdoCmd::ProcRecvMessage(
 ) {
     ZbPacket_p pZbPacket = (ZbPacket_p) pInBuffer;
     u8_p pbyBuffer = pZbPacket->GetBuffer();
-    u32_t idwLen = pZbPacket->Count() - 4;
     u16_t wNwk = LittleWord(&pbyBuffer);
     u16_t wZDOCmdID = LittleWord(&pbyBuffer);
+    u32_t idwLen = (*pbyBuffer++) - 1;
+    ++pbyBuffer; //Ignore this byte
     switch (wZDOCmdID) {
         case ZDO_IEEE_ADDR_RSP:
             IEEEAddrResponse(pbyBuffer, idwLen);
@@ -143,7 +144,7 @@ ZbZdoCmd::IEEEAddrResponse(
     u8_p pbyBuffer,
     u32_t idwLen
 ) {
-    pbyBuffer       += 3; //Ignore Cmd Payload Length
+    pbyBuffer++;
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;
     u16_t wNwk      = BigWord(&pbyBuffer, false);
@@ -162,13 +163,11 @@ ZbZdoCmd::DeviceAnnounce(
         u8_p pbyBuffer,
         u32_t idwLen
 ) {
-    pbyBuffer       += 2; //Ignore Cmd Payload Length
     u16_t wNwk      = BigWord(&pbyBuffer);
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;
 
     LOG_INFO("Device %d announce.", wNwk);
-    LOG_DEBUG("Device %d announce.", wNwk);
 
     ManualDeviceAnnounce(wNwk, MAC);
 
@@ -234,8 +233,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
          s_mapEPInfo[wNwk].MAC = MAC;
          BackupDev_t BuDev = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(MAC);
          if(BuDev.Modify() != NULL) {
-             RestoreBuDevice(wNwk, BuDev);
-             return;
+             if(RestoreBuDevice(wNwk, BuDev)) return;
          }
 
          if(m_iDAHandle != -1) {
@@ -289,10 +287,13 @@ ZbZdoCmd::ActiveEndpointResponse(
     u32_t idwLen
 ){
 //    LOG_DEBUG("ActiveEndpointResponse");
-    pbyBuffer           += 2; //Ignore Cmd Payload Length
     u8_t byStatus       = *pbyBuffer++;
     u16_t wNwk          = BigWord(&pbyBuffer);
     u8_t byEndpointNo   = *pbyBuffer++;
+    if(byEndpointNo != (idwLen - 4)) {
+        LOG_WARN("EndpointNo is mismatched! %d eps in declared but %d eps in list", byEndpointNo, (idwLen - 4));
+        byEndpointNo = idwLen - 4;
+    }
     if (byEndpointNo > 0) {
         s_mapEPInfo[wNwk].byTotalEP   = byEndpointNo;
         s_mapEPInfo[wNwk].vEPList.clear();
@@ -316,14 +317,13 @@ ZbZdoCmd::ActiveEndpointResponse(
                 pZbDevice->Controller   = pController; //!!! temporary !!!
 
                 Device_t device = ZbDriver::s_pZbModel->Add(pZbDevice);
-//                ZbDriver::s_pZbModel->UpdateChanges();
                 pZbDevice = NULL;
                 delete pZbDevice;
 
                 SimpleDescRequest(device);
             }
         } else {
-            for (int j = 0; j < byEndpointNo; j++) {
+            for (u32_t j = 0; j < s_mapEPInfo[wNwk].vEPList.size(); j++) {
                 Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=? AND Endpoint=?").Bind(s_mapEPInfo[wNwk].MAC).Bind(s_mapEPInfo[wNwk].vEPList[j]);
                 if(device.Modify() != NULL) {
                     device.Modify()->DeviceID       = wNwk; //*1000 + byEndpointList[j];
@@ -332,7 +332,6 @@ ZbZdoCmd::ActiveEndpointResponse(
                     device.Modify()->Controller     = pController; //!!! temporary !!!
 
                     ZbDriver::s_pZbModel->Add(device);
-//                    ZbDriver::s_pZbModel->UpdateChanges();
                     SimpleDescRequest(device);
                 }
             }
@@ -426,7 +425,6 @@ ZbZdoCmd::SimpleDescResponse(
     u32_t idwLen
 ){
 //    LOG_DEBUG("SimpleDescResponse");
-    pbyBuffer       += 2; //Ignore Cmd Payload Length
     u8_t byStatus   = *pbyBuffer++;
     u16_t wNwk      = BigWord(&pbyBuffer);
     u8_t byLeng     = *pbyBuffer++;
@@ -508,8 +506,6 @@ ZbZdoCmd::LeaveRequest(
     u8_t byMAC[8] = { 0, 0, 0, 0, 0, 0, 0, 0 }; //MC will add MAC.
     pZbPacket->Push(byMAC, 8);
     pZbPacket->Push(0b00000011);
-    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
-    delete pZbPacket;
 
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     if(devices.size() > 0) {
@@ -519,6 +515,9 @@ ZbZdoCmd::LeaveRequest(
         }
         ZbDriver::s_pZbModel->UpdateChanges();
     }
+
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+    delete pZbPacket;
 }
 
 /**
@@ -533,7 +532,6 @@ ZbZdoCmd::LeaveResponse(
     u8_p pbyBuffer,
     u32_t idwLen
 ) {
-    pbyBuffer   += 2; //Ignore Cmd Payload Length
     u8_t byStatus = *pbyBuffer;
 
     if (byStatus == ZDO_STATUS_SUCCESS) {
@@ -627,17 +625,27 @@ ZbZdoCmd::HandleActiveEndpoint(
  * @param  None
  * @retval None
  */
-void_t
+bool_t
 ZbZdoCmd::RestoreBuDevice(
      u16_t wNwk,
      BackupDev_t BuDev
 ) {
     Controller_t controller = ZbDriver::s_pZbModel->Find<ZbControllerDb>();
+    if(BuDev->EndpointNo.GetValue() > 20) {
+        BuDev.Remove();
+        ZbDriver::s_pZbModel->UpdateChanges();
+        return FALSE;
+    }
     for(int_t i = 1; i <= BuDev->EndpointNo.GetValue(); i++) {
         Device_t tmp = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
         tmp.Modify()->DeviceID = wNwk;
         tmp.Modify()->Network = wNwk;
         tmp.Modify()->MAC = s_mapEPInfo[wNwk].MAC;
+        if(BuDev.Modify()->EpOrd[i]->GetValue() == 0) {
+            BuDev.Remove();
+            ZbDriver::s_pZbModel->UpdateChanges();
+            return FALSE;
+        }
         tmp.Modify()->Endpoint = BuDev.Modify()->EpOrd[i]->GetValue() % 1000;
         tmp.Modify()->Type = (int_t) (BuDev.Modify()->EpOrd[i]->GetValue() / 1000);
         tmp.Modify()->Controller = controller;
@@ -658,6 +666,7 @@ ZbZdoCmd::RestoreBuDevice(
     LOG_INFO("Device %s at %04X has joined.", BuDev.Modify()->Model.GetValue().c_str(), wNwk);
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+    return TRUE;
 }
 
 
