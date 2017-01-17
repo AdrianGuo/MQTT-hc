@@ -238,9 +238,10 @@ ZbDeviceDb::ReceiveInforFromDevice(
                 } else {
                     AttributeData(vDP[i].DP_DIName) = *((i16_p) vpData[i]);
                 }
-                if(AttributeData(vDP[i].DP_DIName) != PreValue(vDP[i].DP_DIName)) {
-                    IsResponsed(vDP[i].DP_DIName) = TRUE;
-                }
+                IsResponsed(vDP[i].DP_DIName) = TRUE;
+//                if(AttributeData(vDP[i].DP_DIName) != PreValue(vDP[i].DP_DIName)) {
+//                    IsResponsed(vDP[i].DP_DIName) = TRUE;
+//                }
 
                 IsRequested(vDP[i].DP_DIName) = FALSE;
                 PopReq(vDP[i].DP_DIName);
@@ -398,7 +399,7 @@ ZbDeviceDb::GenerateDeviceInfo(
         Action[DI_Daikin_Max_Cool_Limit].DP_DIStringName          = std::string("maxcool");
         Action[DI_Daikin_System_Mode].DP_DIStringName             = std::string("sysmod");
         Action[DI_Daikin_Fan_Mode].DP_DIStringName                = std::string("fanmod");
-        Action[DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandiect");
+        Action[DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandirect");
 
         RealType = LUMI_DEVICE_DAIKIN;
     } else {

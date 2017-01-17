@@ -437,76 +437,6 @@ ZbZclGlobalCmd::Broadcast() {
  * @retval None
  */
 void_t
-ZbZclGlobalCmd::ProcessException(
-    u16_t wNwk,
-    u8_p pbyBuffer
-) {
-    u16_t wAttributeID  =  BigWord(&pbyBuffer);
-    u8_t byStatus       = *pbyBuffer++;
-    if(wAttributeID != ATTRID_BASIC_MODEL_ID || byStatus != ZCL_STATUS_SUCCESS) return;
-    u8_t byAttributeDataType  = *pbyBuffer++;
-    u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
-    u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
-    bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
-    memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
-    String ModelName = String((const char*) pbyAttributeData);
-    delete pbyAttributeData;
-
-    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-    if(device.Modify() != NULL) return;
-    if(ModelName == "LM-DOOR" ||
-            ModelName == "LM-PIR") {
-        Device_t first = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
-        first.Modify()->DeviceID = wNwk;
-        first.Modify()->Network = wNwk;
-        first.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
-        first.Modify()->Model = ModelName;
-        first.Modify()->Manufacturer = String("Lumi R&D");
-        first.Modify()->Endpoint = 1;
-        if(ModelName == "LM-DOOR") {
-            first.Modify()->Type = ZCL_HA_DEVICEID_DOOR_LOCK;
-        } else {
-            first.Modify()->Type = ZCL_HA_DEVICEID_IAS_ZONE;
-        }
-        first.Modify()->ControllerID = 1;
-
-        Vector<int_t> vecType;
-        vecType.push_back(ZCL_HA_DEVICEID_LIGHT_SENSOR);
-        vecType.push_back(ZCL_HA_DEVICEID_TEMPERATURE_SENSOR);
-        vecType.push_back(ZCL_HA_DEVICEID_THERMOSTAT);
-        vecType.push_back(ZCL_LUMI_DEVICEID_POWER);
-        vecType.push_back(22);
-
-        for(int_t i = 0; i < 5; i++) {
-            Device_t other = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
-            other.Modify()->DeviceID = wNwk;
-            other.Modify()->Network = wNwk;
-            other.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
-            other.Modify()->Model = ModelName;
-            other.Modify()->Manufacturer = String("Lumi R&D");
-            if(i == 4) {
-                other.Modify()->Endpoint = 49;
-            } else {
-                other.Modify()->Endpoint = 2 + i;
-            }
-            other.Modify()->Type = vecType[i];
-            other.Modify()->ControllerID = 1;
-        }
-
-    }
-    ZbDriver::s_pZbModel->UpdateChanges();
-    ZbDriver::GetInstance()->Init(false);
-    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
 ZbZclGlobalCmd::RequestDevicesState(
     Device_t device
 ) {
@@ -555,4 +485,73 @@ ZbZclGlobalCmd::SaveDevicesInfo(
         }
     }
     ZbDriver::s_pZbModel->UpdateChanges();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::ProcessException(
+    u16_t wNwk,
+    u8_p pbyBuffer
+) {
+    u16_t wAttributeID  =  BigWord(&pbyBuffer);
+    u8_t byStatus       = *pbyBuffer++;
+    if(wAttributeID != ATTRID_BASIC_MODEL_ID || byStatus != ZCL_STATUS_SUCCESS) return;
+    u8_t byAttributeDataType  = *pbyBuffer++;
+    u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
+    u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
+    bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
+    memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
+    String ModelName = String((const char*) pbyAttributeData);
+    delete pbyAttributeData;
+
+    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    if(device.Modify() != NULL) return;
+    if(ModelName == "LM-DOOR" || ModelName == "LM-PIR") {
+        Device_t first = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+        first.Modify()->DeviceID = wNwk;
+        first.Modify()->Network = wNwk;
+        first.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+        first.Modify()->Model = ModelName;
+        first.Modify()->Manufacturer = String("Lumi R&D");
+        first.Modify()->Endpoint = 1;
+        if(ModelName == "LM-DOOR") {
+            first.Modify()->Type = ZCL_HA_DEVICEID_DOOR_LOCK;
+        } else {
+            first.Modify()->Type = ZCL_HA_DEVICEID_IAS_ZONE;
+        }
+        first.Modify()->ControllerID = 1;
+
+        Vector<int_t> vecType;
+        vecType.push_back(ZCL_HA_DEVICEID_LIGHT_SENSOR);
+        vecType.push_back(ZCL_HA_DEVICEID_TEMPERATURE_SENSOR);
+        vecType.push_back(ZCL_HA_DEVICEID_THERMOSTAT);
+        vecType.push_back(ZCL_LUMI_DEVICEID_POWER);
+        vecType.push_back(22);
+
+        for(int_t i = 0; i < 5; i++) {
+            Device_t other = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+            other.Modify()->DeviceID = wNwk;
+            other.Modify()->Network = wNwk;
+            other.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+            other.Modify()->Model = ModelName;
+            other.Modify()->Manufacturer = String("Lumi R&D");
+            if(i == 4) {
+                other.Modify()->Endpoint = 49;
+            } else {
+                other.Modify()->Endpoint = 2 + i;
+            }
+            other.Modify()->Type = vecType[i];
+            other.Modify()->ControllerID = 1;
+        }
+
+    }
+    ZbDriver::s_pZbModel->UpdateChanges();
+    ZbDriver::GetInstance()->Init(false);
+    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
 }
