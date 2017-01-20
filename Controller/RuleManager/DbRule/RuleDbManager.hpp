@@ -10,10 +10,7 @@
 
 #include "String.hpp"
 #include "typedefs.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "DbRule/RuleModelDb.hpp"
 
 namespace Json {
 class Value;
@@ -29,19 +26,10 @@ public:
 	bool_t AddRule(int_t id, String data);
 	bool_t UpdateRule(int_t id, String data);
 	bool_t DeleteRule(int_t id);
-
-private:
-	char_t dbPath[60];
-	char_t dbName[40];
-	void_t CreateDb();
-	bool_t ExecDbCmd(String cmd);
+	RuleModelDb_p m_pRuleModel;
 };
 
 typedef RuleDbManager RuleDbManager_t;
 typedef RuleDbManager* RuleDbManager_p;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* RULEDBMANAGER_HPP_ */

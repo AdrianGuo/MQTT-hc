@@ -20,9 +20,7 @@
  * @retval None
  */
 RuleDbManager::RuleDbManager(const char_t* dbName) {
-	strcpy(this->dbName, dbName);
-	sprintf(this->dbPath, "%s", this->dbName);
-	CreateDb();
+	m_pRuleModel = RuleModelDb::CreateModel(dbName);
 }
 
 /**
@@ -32,6 +30,7 @@ RuleDbManager::RuleDbManager(const char_t* dbName) {
  * @retval None
  */
 RuleDbManager::~RuleDbManager() {
+	delete m_pRuleModel;
 }
 
 /**
@@ -41,32 +40,17 @@ RuleDbManager::~RuleDbManager() {
  * @retval None
  */
 Json::Value RuleDbManager::GetAllRule() {
-	sqlite3 *db;
-	sqlite3_stmt *statement;
-	int rc = 0;
 	Json::Value vec(Json::arrayValue);
 
-	if (sqlite3_open(this->dbPath, &db) == SQLITE_OK) {
-		std::string cmd = "SELECT * FROM RULE";
-		if (sqlite3_prepare_v2(db, cmd.c_str(), -1, &statement, 0) == SQLITE_OK) {
-			while (1) {
-				rc = sqlite3_step(statement);
-				if (rc == SQLITE_DONE)
-					break;
-				if (rc != SQLITE_ROW) {
-					rc = -1;
-					break;
-				}
-				std::string data(
-						(const char*) sqlite3_column_text(statement, 1));
-				Json::Reader reader;
-				Json::Value jsonValue = 0;
-				reader.parse(data, jsonValue, false);
-				vec.append(jsonValue);
-			}
-			sqlite3_finalize(statement);
-		}
-		sqlite3_close(db);
+	RulesItemDb_t rules = m_pRuleModel->Find<RuleDb>();
+	for (RulesItemDb_t::const_iterator it = rules.begin(); it != rules.end();
+			it++) {
+		RuleItemDb_t temp = (*it);
+		std::string data(temp.Modify()->RuleData.GetValue().c_str());
+		Json::Reader reader;
+		Json::Value jsonValue = 0;
+		reader.parse(data, jsonValue, false);
+		vec.append(jsonValue);
 	}
 	return vec;
 }
@@ -78,31 +62,13 @@ Json::Value RuleDbManager::GetAllRule() {
  * @retval None
  */
 Json::Value RuleDbManager::GetRule(int_t id) {
-	sqlite3 *db;
-	sqlite3_stmt *statement;
-	int rc = 0;
 	Json::Value jsonRule = 0;
-	std::string idString = std::to_string(id);
-
-	if (sqlite3_open(this->dbPath, &db) == SQLITE_OK) {
-		std::string cmd = "SELECT * FROM RULE WHERE ID=" + idString;
-		if (sqlite3_prepare_v2(db, cmd.c_str(), -1, &statement, 0) == SQLITE_OK) {
-			rc = sqlite3_step(statement);
-			if (rc == SQLITE_DONE) {
-				sqlite3_close(db);
-				return jsonRule;
-			}
-			if (rc != SQLITE_ROW) {
-				rc = -1;
-				sqlite3_close(db);
-				return jsonRule;
-			}
-			std::string data((const char*) sqlite3_column_text(statement, 1));
-			Json::Reader reader;
-			reader.parse(data, jsonRule, false);
-			sqlite3_finalize(statement);
-		}
-		sqlite3_close(db);
+	RuleItemDb_t ruleItem = m_pRuleModel->Find<RuleDb>().Where("RuleID=?").Bind(
+			id);
+	if (ruleItem.get() != NULL) {
+		std::string data(ruleItem.Modify()->RuleData.GetValue().c_str());
+		Json::Reader reader;
+		reader.parse(data, jsonRule, false);
 	}
 	return jsonRule;
 }
@@ -114,10 +80,17 @@ Json::Value RuleDbManager::GetRule(int_t id) {
  * @retval None
  */
 bool_t RuleDbManager::AddRule(int_t id, String data) {
-	std::string idString = std::to_string(id);
-	std::string cmd = "INSERT INTO 'RULE' VALUES(" + idString + ",'"
-			+ data + "');";
-	return ExecDbCmd(String(cmd.c_str()));
+	RuleItemDb_t ruleItem = m_pRuleModel->Find<RuleDb>().Where("RuleID=?").Bind(
+			id);
+	if (ruleItem.get() == NULL) {
+		ruleItem = m_pRuleModel->Add(new RuleDb());
+		ruleItem.Modify()->RuleID = id;
+		ruleItem.Modify()->RuleData = data;
+		m_pRuleModel->Add(ruleItem);
+		m_pRuleModel->UpdateChanges();
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /**
@@ -127,10 +100,15 @@ bool_t RuleDbManager::AddRule(int_t id, String data) {
  * @retval None
  */
 bool_t RuleDbManager::UpdateRule(int_t id, String data) {
-	std::string idString = std::to_string(id);
-	std::string cmd = "UPDATE RULE SET DATA='" + data + "' WHERE ID="
-			+ idString;
-	return ExecDbCmd(String(cmd.c_str()));
+	RuleItemDb_t ruleItem = m_pRuleModel->Find<RuleDb>().Where("RuleID=?").Bind(
+			id);
+	if (ruleItem.get() != NULL) {
+		ruleItem.Modify()->RuleData = data;
+		m_pRuleModel->Add(ruleItem);
+		m_pRuleModel->UpdateChanges();
+		return TRUE;
+	}
+	return FALSE;
 }
 
 /**
@@ -140,55 +118,11 @@ bool_t RuleDbManager::UpdateRule(int_t id, String data) {
  * @retval None
  */
 bool_t RuleDbManager::DeleteRule(int_t id) {
-	std::string idString = std::to_string(id);
-	std::string cmd = "DELETE FROM RULE WHERE ID=" + idString;
-	return ExecDbCmd(String(cmd.c_str()));
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t RuleDbManager::CreateDb() {
-	sqlite3 *db;
-	char sql[500];
-	if (sqlite3_open(this->dbPath, &db) == SQLITE_OK) {
-		// Set PRAGMA
-		sqlite3_exec(db, "PRAGMA encoding = \"UTF-8\"", 0, 0, 0);
-		sqlite3_exec(db, "PRAGMA foreign_keys = ON", 0, 0, 0);
-
-		sprintf(sql, "CREATE TABLE IF NOT EXISTS `RULE` ("
-				"`ID` INTEGER PRIMARY KEY AUTOINCREMENT,"
-				"`DATA` TEXT NOT NULL"
-				");");
-		sqlite3_exec(db, sql, 0, 0, 0);
-
-		// Close slqlite connection;
-		sqlite3_close(db);
-
+	RuleItemDb_t ruleItem = m_pRuleModel->Find<RuleDb>().Where("RuleID=?").Bind(
+			id);
+	if (ruleItem.get() != NULL) {
+		ruleItem.Remove();
+		m_pRuleModel->UpdateChanges();
 	}
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-bool_t RuleDbManager::ExecDbCmd(String cmd) {
-	sqlite3 *db;
-	if (sqlite3_open(this->dbPath, &db) == SQLITE_OK) {
-		// Set PRAGMA
-		sqlite3_exec(db, "PRAGMA encoding = \"UTF-8\"", 0, 0, 0);
-		sqlite3_exec(db, "PRAGMA foreign_keys = ON", 0, 0, 0);
-//		LOG_DEBUG("ExecCmd = %s", cmd);
-		int_t reslutExecCmd = sqlite3_exec(db, cmd.c_str(), 0, 0, 0);
-		// Close slqlite connection;
-		sqlite3_close(db);
-		if (reslutExecCmd == 0)
-			return TRUE;
-	}
-	return FALSE;
+	return TRUE;
 }

@@ -2,6 +2,7 @@
 #include "HelperHc.hpp"
 #include "DbPtr.hpp"
 #include "DbContext.hpp"
+#include "LogPlus.hpp"
 
 /**
  * @func   DbContext
@@ -321,68 +322,79 @@ DbContext::InitStatements(
         for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
             if (pMapTable->Columns[i].IsNaturalId()) {
                 if (!boFirstColumn) { strCondition = " AND "; }
-                strCondition += " \"" + pMapTable->NaturalIdName + "\" = ?";
-                boFirstColumn = FALSE;
-            }
-        }
-    } else {
-        strCondition += " \"" + pMapTable->InsteadIdName + "\" = ?";
-    }
+				strCondition += " \"" + pMapTable->NaturalIdName + "\" = ?";
+				boFirstColumn = FALSE;
+			}
+		}
+	} else {
+		strCondition += " \"" + pMapTable->InsteadIdName + "\" = ?";
+	}
 
-    strSql += strCondition;
-    pMapTable->Statements.push_back(strSql);
+	strSql += strCondition;
+	pMapTable->Statements.push_back(strSql);
 
-    /* Delete */
-    strSql.clear();
-    strSql = "DELETE FROM \"" + pMapTable->TableName + "\" WHERE" + strCondition;
-    pMapTable->Statements.push_back(strSql);
+	/* Delete */
+	strSql.clear();
+	strSql = "DELETE FROM \"" + pMapTable->TableName + "\" WHERE"
+			+ strCondition;
+	pMapTable->Statements.push_back(strSql);
 
-    /* Select by Id */
-    strSql.clear();
-    boFirstColumn = TRUE;
-    strSql = "SELECT ";
+	/* Select by Id */
+	strSql.clear();
+	boFirstColumn = TRUE;
+	strSql = "SELECT ";
 
-    if (pMapTable->InsteadIdName != String()) {
-        strSql += " \"" + pMapTable->InsteadIdName + "\"";
-        boFirstColumn = FALSE;
-    }
+	if (pMapTable->InsteadIdName != String()) {
+		strSql += " \"" + pMapTable->InsteadIdName + "\"";
+		boFirstColumn = FALSE;
+	}
 
-    for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
-        if (!boFirstColumn) { strSql += ", "; }
-        strSql += "\"" + pMapTable->Columns[i].GetColumnName() + "\"";
-        boFirstColumn = FALSE;
-    }
-    strSql += " FROM \"" + pMapTable->TableName + "\" WHERE" + strCondition;
-    pMapTable->Statements.push_back(strSql);
+	for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
+		if (!boFirstColumn) {
+			strSql += ", ";
+		}
+		strSql += "\"" + pMapTable->Columns[i].GetColumnName() + "\"";
+		boFirstColumn = FALSE;
+	}
+	strSql += " FROM \"" + pMapTable->TableName + "\" WHERE" + strCondition;
+	pMapTable->Statements.push_back(strSql);
 
-    /* Collection */
-    String strFkConditions;
+	/* Collection */
+	String strFkConditions;
 
-    for (u32_t i = 0; i < pMapTable->SetInfo.size(); i++) {
-        strSql.clear();
-        IMapTable_p pOtherMapTable = GetMapping(pMapTable->SetInfo[i].TableName);
-        strSql = "SELECT ";
-        boFirstColumn = TRUE;
-        if (pOtherMapTable->InsteadIdName != String()) {
-            strSql += "\"" + pOtherMapTable->InsteadIdName + "\"";
-            boFirstColumn = FALSE;
-        }
+	for (u32_t i = 0; i < pMapTable->SetInfo.size(); i++) {
+		strSql.clear();
+		IMapTable_p pOtherMapTable = GetMapping(
+				pMapTable->SetInfo[i].TableName);
+		strSql = "SELECT ";
+		boFirstColumn = TRUE;
+		if (pOtherMapTable->InsteadIdName != String()) {
+			strSql += "\"" + pOtherMapTable->InsteadIdName + "\"";
+			boFirstColumn = FALSE;
+		}
 
-        for (u32_t j = 0; j < pOtherMapTable->Columns.size(); j++) {
-            if (!boFirstColumn) { strSql += ", "; }
-            boFirstColumn = FALSE;
-            strSql += "\"" + pOtherMapTable->Columns[j].GetColumnName() + "\"";
-            if (pOtherMapTable->Columns[j].IsForeignkey() &&
-                pOtherMapTable->Columns[j].GetForeignKeyTable() == pMapTable->GetTableName()) {
-                if (!strFkConditions.empty()) { strFkConditions += " AND "; }
-                strFkConditions += "\"" + pOtherMapTable->Columns[j].GetColumnName() + "\" = ?";
-            }
-        }
+		for (u32_t j = 0; j < pOtherMapTable->Columns.size(); j++) {
+			if (!boFirstColumn) {
+				strSql += ", ";
+			}
+			boFirstColumn = FALSE;
+			strSql += "\"" + pOtherMapTable->Columns[j].GetColumnName() + "\"";
+			if (pOtherMapTable->Columns[j].IsForeignkey()
+					&& pOtherMapTable->Columns[j].GetForeignKeyTable()
+							== pMapTable->GetTableName()) {
+				if (!strFkConditions.empty()) {
+					strFkConditions += " AND ";
+				}
+				strFkConditions += "\""
+						+ pOtherMapTable->Columns[j].GetColumnName() + "\" = ?";
+			}
+		}
 
-        strSql += " FROM \"" + pOtherMapTable->TableName + "\" WHERE " + strFkConditions;
-        pMapTable->Statements.push_back(strSql);
-    }
-    strSql.clear();
+		strSql += " FROM \"" + pOtherMapTable->TableName + "\" WHERE "
+				+ strFkConditions;
+		pMapTable->Statements.push_back(strSql);
+	}
+	strSql.clear();
 }
 
 /**
@@ -391,54 +403,60 @@ DbContext::InitStatements(
  * @param  None
  * @retval None
  */
-void_t
-DbContext::CreateTable(
-    IMapTable_p  pMapTable,
-    Set<String>& tablesCreated
-) {
-    tablesCreated.insert(pMapTable->TableName);
-    bool_t boFirstColumn = TRUE;
-    String strSql;
+void_t DbContext::CreateTable(IMapTable_p pMapTable,
+		Set<String>& tablesCreated) {
+	tablesCreated.insert(pMapTable->TableName);
+	bool_t boFirstColumn = TRUE;
+	String strSql;
 
-    strSql.clear();
-    strSql = "CREATE TABLE IF NOT EXISTS \"" + pMapTable->TableName + "\"(\n";
+	strSql.clear();
+	strSql = "CREATE TABLE IF NOT EXISTS \"" + pMapTable->TableName + "\"(\n";
 
-    if (pMapTable->InsteadIdName != String()) {
-        strSql += " \"" + pMapTable->InsteadIdName + "\" INTEGER PRIMARY KEY AUTOINCREMENT";
-        boFirstColumn = FALSE;
-    }
+	if (pMapTable->InsteadIdName != String()) {
+		strSql += " \"" + pMapTable->InsteadIdName
+				+ "\" INTEGER PRIMARY KEY AUTOINCREMENT";
+		boFirstColumn = FALSE;
+	}
 
-    String strPrimaryKey;
+	String strPrimaryKey;
 
-    for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
-        if (!boFirstColumn) { strSql += ",\n"; }
-        strSql += " \"" + pMapTable->Columns[i].GetColumnName() + "\" ";
-        strSql += pMapTable->Columns[i].GetSqlType();
+	for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
+		if (!boFirstColumn) {
+			strSql += ",\n";
+		}
+		strSql += " \"" + pMapTable->Columns[i].GetColumnName() + "\" ";
+		strSql += pMapTable->Columns[i].GetSqlType();
 
-        if (pMapTable->Columns[i].IsNotNull()) { strSql += " NOT NULL"; }
+		if (pMapTable->Columns[i].IsNotNull()) {
+			strSql += " NOT NULL";
+		}
 
-        if (pMapTable->Columns[i].IsNaturalId()) {
-            strPrimaryKey = pMapTable->Columns[i].GetColumnName();
-        }
+		if (pMapTable->Columns[i].IsNaturalId()) {
+			strPrimaryKey = pMapTable->Columns[i].GetColumnName();
+		}
 
-        boFirstColumn = FALSE;
-    }
+		boFirstColumn = FALSE;
+	}
 
-    if (!strPrimaryKey.empty()) {
-        if (!boFirstColumn) { strSql += ",\n"; }
-        strSql += " PRIMARY KEY (\"" + strPrimaryKey + "\")";
-    }
+	if (!strPrimaryKey.empty()) {
+		if (!boFirstColumn) {
+			strSql += ",\n";
+		}
+		strSql += " PRIMARY KEY (\"" + strPrimaryKey + "\")";
+	}
 
-    for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
-        if (pMapTable->Columns[i].IsForeignkey()) {
-            if (!boFirstColumn) { strSql += ",\n"; }
-            strSql += " " + ConsTraintString(pMapTable, pMapTable->Columns[i]);
-        }
-    }
+	for (u32_t i = 0; i < pMapTable->Columns.size(); i++) {
+		if (pMapTable->Columns[i].IsForeignkey()) {
+			if (!boFirstColumn) {
+				strSql += ",\n";
+			}
+			strSql += " " + ConsTraintString(pMapTable, pMapTable->Columns[i]);
+		}
+	}
 
-    strSql += "\n)";
+	strSql += "\n)";
 
-    SqlStatement_p pSqlStatement = GetStatement(strSql);
-    pSqlStatement->execute();
-    delete pSqlStatement;
+	SqlStatement_p pSqlStatement = GetStatement(strSql);
+	pSqlStatement->execute();
+	delete pSqlStatement;
 }
