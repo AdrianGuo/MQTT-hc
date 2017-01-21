@@ -70,11 +70,11 @@ public:
 				String stateCurrent = String(
 						m_valueCurrent["state"].asCString());
 				if (CheckingVlaueState(stateSetup, stateCurrent)) {
-					if (stateSetup == "off" || m_cond == Equal)
-						return TRUE;
 					int_t levelSetup = std::atoi(m_value["level"].asCString());
 					int_t levelCurrent = std::atoi(
 							m_valueCurrent["level"].asCString());
+					if (stateSetup == "off" || levelSetup == -1)
+						return TRUE;
 					return CheckingValueLevel(levelSetup, levelCurrent);
 				} else {
 					return FALSE;
@@ -95,7 +95,7 @@ public:
 					int_t levelSetup = std::atoi(m_value["level"].asCString());
 					int_t levelCurrent = std::atoi(
 							m_valueCurrent["level"].asCString());
-					if (levelSetup == -1)
+					if (stateSetup == "stop" || levelSetup == -1)
 						return TRUE;
 					return CheckingValueLevel(levelSetup, levelCurrent);
 				} else {

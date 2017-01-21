@@ -35,8 +35,8 @@ public:
 			EventManager::TypeRuleEvent typeEvent);
 
 	bool_t AddRule(Json::Value& jsonValue);
-	bool_t EditRule(Json::Value& jsonValue);
 	bool_t GetInforRule(Json::Value& jsonValue);
+	bool_t GetInforAllRule(Json::Value& jsonValue);
 
 	bool_t DeleteRule(JsonRuleDel_t jsonValue);
 	bool_t EnableRule(JsonRuleEna_t jsonValue);

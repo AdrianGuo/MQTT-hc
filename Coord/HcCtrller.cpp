@@ -89,10 +89,10 @@
 #include "JsonRuleActv.hpp"
 #include "JsonRuleAdd.hpp"
 #include "JsonRuleDel.hpp"
-#include "JsonRuleEdit.hpp"
 #include "JsonRuleEna.hpp"
 #include "JsonRuleGet.hpp"
 #include "JsonRuleInfor.hpp"
+#include "JsonRuleSync.hpp"
 
 #include "HcCtrller.hpp"
 /******************************************************************************/
@@ -283,9 +283,6 @@ void_t HcCtrller::RegisterHandler() {
 	RegisterHandler(JsonRuleDel::GetStrCmd(),
 			makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager,
 					&RuManager::HandlerRuCmd));
-	RegisterHandler(JsonRuleEdit::GetStrCmd(),
-			makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager,
-					&RuManager::HandlerRuCmd));
 	RegisterHandler(JsonRuleEna::GetStrCmd(),
 			makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager,
 					&RuManager::HandlerRuCmd));
@@ -293,6 +290,9 @@ void_t HcCtrller::RegisterHandler() {
 			makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager,
 					&RuManager::HandlerRuCmd));
 	RegisterHandler(JsonRuleInfor::GetStrCmd(),
+			makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager,
+					&RuManager::HandlerRuCmd));
+	RegisterHandler(JsonRuleSync::GetStrCmd(),
 			makeFunctor((HandlerRuCmdFunctor_p) NULL, m_RuManager,
 					&RuManager::HandlerRuCmd));
 }

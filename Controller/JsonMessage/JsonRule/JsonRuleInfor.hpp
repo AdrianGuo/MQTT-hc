@@ -20,7 +20,7 @@ public:
 	virtual ~JsonRuleInfor() {
 	}
 	static String GetStrCmd() {
-		return "rule=infor";
+		return "rule=getres";
 	}
 };
 
