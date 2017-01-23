@@ -383,7 +383,7 @@ ForwardSetValueToDaikin (
  */
 void_t
 ForwardGetRequestToDevice(
-    Device_t    device
+    Device_t device
 ) {
     ZbZclGlobalCmd::GetInstance()->ReadAttributeRequest(device, DI_State);
 }
@@ -396,7 +396,7 @@ ForwardGetRequestToDevice(
  */
 void_t
 ForwardGetRequestsToDevice(
-    Device_t    device
+    Device_t device
 ) {
     Vector<DeviceInfo> vDI;
     for(Action_t::const_iterator it = device.Modify()->Action.begin(); it != device.Modify()->Action.end(); it++) {

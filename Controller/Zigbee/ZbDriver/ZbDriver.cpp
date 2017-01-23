@@ -390,6 +390,7 @@ ZbDriver::ProcCmdGet(
             case LUMI_DEVICE_TEMPERATURE:
             case LUMI_DEVICE_HUMIDITY:
             case LUMI_DEVICE_ILLUMINANCE:
+            case LUMI_DEVICE_POWER:
                 ForwardGetRequestToDevice(device);
                 break;
 

@@ -121,7 +121,7 @@ ZbZclGlobalCmd::ReadAttributeRequest(
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID >> 8);
 
                 Request   tmpReq;
-                tmpReq.ReqFrom  = device->OwnersReq.front();
+                tmpReq.ReqFrom  = device.Modify()->OwnersReq.front();
                 tmpReq.ReqType  = READ_REQ;
                 device.Modify()->PendingReqs((it->second)[j]).push(tmpReq);
             }
@@ -524,7 +524,6 @@ ZbZclGlobalCmd::ProcessException(
     ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo = TRUE;
     ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo = TRUE;
     m_pLock->UnLock();
-    LOG_DEBUG("-------------------------------------- %d %d", wNwk, ZbZdoCmd::s_mapEPInfo[wNwk].IsDone);
 
     byLength -= 3;
     u8_t byAttributeDataType  = *pbyBuffer++;
@@ -622,7 +621,8 @@ ZbZclGlobalCmd::ProcessException(
             light_switch.Modify()->Type = ZCL_HA_DEVICEID_ON_OFF_LIGHT_SWITCH;
             light_switch.Modify()->ControllerID = 1;
         }
-        if (strManufactuter == "Lumi R&D") {
+        if (strManufactuter == "Lumi R&D" ||
+        		strManufactuter == "LUMI-RD" ) {
         	AddConfigDevice(wNwk);
         }
 
@@ -646,7 +646,8 @@ ZbZclGlobalCmd::ProcessException(
 			dim_switch.Modify()->Type = ZCL_HA_DEVICEID_DIMMER_SWITCH;
 			dim_switch.Modify()->ControllerID = 1;
 		}
-        if (strManufactuter == "Lumi R&D") {
+        if (strManufactuter == "Lumi R&D" ||
+        		strManufactuter == "LUMI-RD" ) {
         	AddConfigDevice(wNwk);
         }
     } else if (prefixModel == "LM-BZ") {
@@ -669,7 +670,8 @@ ZbZclGlobalCmd::ProcessException(
 			dim_switch.Modify()->Type = ZCL_HA_DEVICEID_SHADE_CONTROLLER;
 			dim_switch.Modify()->ControllerID = 1;
 		}
-        if (strManufactuter == "Lumi R&D") {
+        if (strManufactuter == "Lumi R&D" ||
+        		strManufactuter == "LUMI-RD" ) {
         	AddConfigDevice(wNwk);
         }
     } else if (prefixModel == "LM-IR") {
@@ -694,7 +696,8 @@ ZbZclGlobalCmd::ProcessException(
 			dim_light.Modify()->Type = ZCL_HA_DEVICEID_SIMPLE_INPUT;
 			dim_light.Modify()->ControllerID = 1;
     	}
-        if (strManufactuter == "Lumi R&D") {
+        if (strManufactuter == "Lumi R&D" ||
+        		strManufactuter == "LUMI-RD" ) {
         	AddConfigDevice(wNwk);
         }
     } else if (prefixModel == "LM-RGB") {
@@ -707,6 +710,16 @@ ZbZclGlobalCmd::ProcessException(
 		dim_light.Modify()->Endpoint = 1;
 		dim_light.Modify()->Type = ZCL_HA_DEVICEID_COLORED_DIMMABLE_LIGHT;
 		dim_light.Modify()->ControllerID = 1;
+        if (strManufactuter == "Lumi R&D" ||
+        		strManufactuter == "LUMI-RD" ) {
+            Device_t option = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+            option.Modify()->DeviceID = wNwk;
+            option.Modify()->Network = wNwk;
+            option.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+            option.Modify()->Endpoint = 49;
+            option.Modify()->Type = ZCL_LUMI_DEVICEID_SECURITY;
+            option.Modify()->ControllerID = 1;
+        }
     } else if (prefixModel == "LM-DKZ") {
     	for (u8_t i = 1; i <= 16; i++) {
 			Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
@@ -719,7 +732,8 @@ ZbZclGlobalCmd::ProcessException(
 			dim_light.Modify()->Type = ZCL_HA_DEVICEID_HEATING_COOLING_UNIT;
 			dim_light.Modify()->ControllerID = 1;
     	}
-        if (strManufactuter == "Lumi R&D") {
+        if (strManufactuter == "Lumi R&D" ||
+        		strManufactuter == "LUMI-RD" ) {
         	AddConfigDevice(wNwk);
         }
     }

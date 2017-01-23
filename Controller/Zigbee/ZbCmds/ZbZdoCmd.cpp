@@ -32,8 +32,6 @@ DeviceLogic_t ZbZdoCmd::s_mapEPInfo = {};
  */
 ZbZdoCmd::ZbZdoCmd() {
     m_pTimer = RTimer::getTimerInstance();
-    m_DCFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleDeviceCreating);
-    m_iDCHandle = -1;
     m_DAFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleDeviceAnnounce);
     m_iDAHandle = -1;
     m_AEFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleActiveEndpoint);
@@ -169,16 +167,8 @@ ZbZdoCmd::DeviceAnnounce(
     u16_t wNwk      = BigWord(&pbyBuffer);
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;
-//    s_mapEPInfo[wNwk].MAC = MAC;
     LOG_INFO("Device %d announce.", wNwk);
-
-//    RequestMMInfo(wNwk);
     ManualDeviceAnnounce(wNwk, MAC);
-//    m_iDCHandle = m_pTimer->StartTimer(RTimer::Repeat::OneTime, DEVICE_ANNOUNCE_TIME, &m_DCFunctor, &wNwk);
-//    if(m_iDCHandle == -1) {
-//    	ManualDeviceAnnounce(wNwk, MAC);
-//    }
-
     // ZB Device Type (router, end device - sleepable)!!!
 }
 
@@ -256,6 +246,8 @@ ZbZdoCmd::ManualDeviceAnnounce(
          if(m_iDAHandle == -1) {
              LOG_DEBUG("Full of timer pool!");
              ActiveEndpointRequest(wNwk);
+             if(mapEPInforSize != NULL)
+                 delete mapEPInforSize;
          }
      }
 }
@@ -579,22 +571,6 @@ ZbZdoCmd::GetDeviceLogic() {
  * @retval None
  */
 void_t
-ZbZdoCmd::HandleDeviceCreating(
-    void_p pBuffer
-) {
-	u16_t wNwk = *((u16_p) pBuffer);
-	if(s_mapEPInfo[wNwk].IsDone == FALSE) {
-	    ManualDeviceAnnounce(wNwk, s_mapEPInfo[wNwk].MAC);
-	}
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
 ZbZdoCmd::HandleDeviceAnnounce(
     void_p pBuffer
 ) {
@@ -689,6 +665,7 @@ ZbZdoCmd::RestoreBuDevice(
         s_mapEPInfo[wNwk].mapType[tmp.Modify()->Endpoint.GetValue()] = tmp.Modify()->Type.GetValue();
     }
     s_mapEPInfo[wNwk].byTotalEP = BuDev->EndpointNo.GetValue();
+    s_mapEPInfo[wNwk].IsAERequested = TRUE;
     s_mapEPInfo[wNwk].HasModelInfo = TRUE;
     s_mapEPInfo[wNwk].HasManufInfo = TRUE;
     s_mapEPInfo[wNwk].IsDone = TRUE;

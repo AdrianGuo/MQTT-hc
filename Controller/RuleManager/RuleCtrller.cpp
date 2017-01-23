@@ -14,10 +14,10 @@
 #include "JsonRuleActv.hpp"
 #include "JsonRuleAdd.hpp"
 #include "JsonRuleDel.hpp"
-#include "JsonRuleEdit.hpp"
 #include "JsonRuleEna.hpp"
 #include "JsonRuleGet.hpp"
 #include "JsonRuleInfor.hpp"
+#include "JsonRuleSync.hpp"
 #include "LogPlus.hpp"
 #include "LogCommand.hpp"
 
@@ -106,24 +106,27 @@ void_t RuleCtrller::debug() {
 //---------------------------------------------------------------------------//
 			/*Add & Edit*/
 //			new JsonCommand("rule=add",
-//					"{\"ruleid\":\"5\",\"name\":\"rule test\",\"type\":\"0\",\"in\":{\"dev\":[{\"devid\":\"0\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"},\"cond\":\"0\"},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"},\"cond\":\"0\"}], \"mode\":\"x\"},\"out\":{\"dev\":[{\"devid\":\"3\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"},\"timer\":\"1\"}], \"scenes\":{\"ruleid\":\"xx\"}},\"timeschedule\":{\"time\":{\"starttime\":\"0000\",\"endtime\":\"2400\"},\"rp\":{\"type\":\"0\",\"date\":\"1111111\",\"abouttime\":{\"year\":\"2016\",\"month\":\"08\",\"day\":\"08\",\"after\":\"6\"}}}, \"enable\":\"1\"}",
+//					"{\"ruleid\":\"6\",\"name\":\"rule test 234\",\"type\":\"0\",\"in\":{\"dev\":[{\"devid\":\"0\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"},\"cond\":\"0\"},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"},\"cond\":\"0\"}], \"mode\":\"x\"},\"out\":{\"dev\":[{\"devid\":\"3\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"},\"timer\":\"1\"}], \"scenes\":{\"ruleid\":\"xx\"}},\"timeschedule\":{\"time\":{\"starttime\":\"0000\",\"endtime\":\"2400\"},\"rp\":{\"type\":\"0\",\"date\":\"1111111\",\"abouttime\":{\"year\":\"2016\",\"month\":\"08\",\"day\":\"08\",\"after\":\"6\"}}}, \"enable\":\"1\"}",
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
 			/*Dev stt*/
-			new JsonCommand("dev=stt",
-					"{\"dev\":[{\"devid\":\"22595\",\"ord\":\"1\",\"net\":\"1\",\"type\":\"1\",\"val\":{\"level\":\"0\",\"state\":\"off\"}},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"}}]}",
-					JsonCommand::SrcDefault, JsonCommand::DesDefault);
-	/*Delete*/
+//			new JsonCommand("dev=stt",
+//					"{\"dev\":[{\"devid\":\"22595\",\"ord\":\"1\",\"net\":\"1\",\"type\":\"1\",\"val\":{\"level\":\"0\",\"state\":\"off\"}},{\"devid\":\"2\",\"ord\":\"0\",\"net\":\"0\",\"type\":\"1\",\"val\":{\"level\":\"0\"}}]}",
+//					JsonCommand::SrcDefault, JsonCommand::DesDefault);
+			/*Delete*/
 //			new JsonCommand("rule=del", "{\"ruleid\":\"5373\"}",
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
-	/*Enable*/
+			/*Enable*/
 //			new JsonCommand("rule=ena", "{\"ruleid\":\"4\", \"act\":\"0\"}",
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
-	/*Active*/
+			/*Active*/
 //			new JsonCommand("rule=actv", "{\"ruleid\":\"2\"}",
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
-	/*Get Infor*/
+			/*Get Infor*/
 //			new JsonCommand("rule=get", "{\"ruleid\":\"5\"}",
 //					JsonCommand::SrcDefault, JsonCommand::DesDefault);
+			/*Get All Infor*/
+			new JsonCommand("rule=sync", "", JsonCommand::SrcDefault,
+					JsonCommand::DesDefault);
 //---------------------------------------------------------------------------//
 	String strJsonCommandName = pJsonCommand->GetFullCommand();
 	MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
@@ -200,8 +203,8 @@ void_t RuleCtrller::PushResJsonCommand(JsonCommand_p pJsonCommand,
 void_t RuleCtrller::PushJsonCommand(void_p pInBuffer) {
 	JsonCommand_p pJsonCommandResult = (JsonCommand_p) pInBuffer;
 	if (pJsonCommandResult != NULL) {
-//		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().c_str(),
-//				pJsonCommandResult->GetJsonValue().c_str());
+		LOG_DEBUG("%s%s", pJsonCommandResult->GetFullCommand().c_str(),
+				pJsonCommandResult->GetJsonValue().c_str());
 	}
 	if ((m_pCtrllerFunctor != NULL) && (pInBuffer != NULL)) {
 //		m_pCtrllerFunctor->operator ()((JsonCommand_p) pInBuffer);
@@ -228,7 +231,7 @@ void_t RuleCtrller::Start() {
  * @retval None
  */
 void_t RuleCtrller::ProcessHandler(JsonCommand_p pJsonCommand) {
-//    LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
+	LOG_COMMAND(Log::Level::eDebug, pJsonCommand);
 	m_pRuleCtrllerLocker->Lock();
 	m_queRuleCtrllerJsonCommand.push(pJsonCommand);
 	m_pRuleCtrllerLocker->UnLock();
@@ -254,10 +257,7 @@ void_t RuleCtrller::RegisterHandler(String strJsonCommand,
 void_t RuleCtrller::RegisterHandler() {
 	RegisterHandler(JsonRuleAdd::GetStrCmd(),
 			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
-					&RuleCtrller::HandlerRuleCmdAdd));
-	RegisterHandler(JsonRuleEdit::GetStrCmd(),
-			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
-					&RuleCtrller::HandlerRuleCmdEdit));
+					&RuleCtrller::HandlerRuleCmdAddOrEdit));
 	RegisterHandler(JsonRuleDel::GetStrCmd(),
 			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
 					&RuleCtrller::HandlerRuleCmdDel));
@@ -273,6 +273,9 @@ void_t RuleCtrller::RegisterHandler() {
 	RegisterHandler(JsonRuleInfor::GetStrCmd(),
 			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
 					&RuleCtrller::HandlerRuleCmdInfor));
+	RegisterHandler(JsonRuleSync::GetStrCmd(),
+			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
+					&RuleCtrller::HandlerRuleCmdSync));
 	RegisterHandler(JsonDevStt::GetStrCmd(),
 			makeFunctor((HandlerRuleRuleFunctor_p) NULL, *this,
 					&RuleCtrller::HandlerDevCmdStt));
@@ -296,9 +299,9 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
 		m_pRuleCtrllerLocker->UnLock();
 
 		if (pJsonCommand != NULL) {
-//			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
-//					pJsonCommand->GetFullCommand().c_str(),
-//					pJsonCommand->GetJsonValue().c_str());
+			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
+					pJsonCommand->GetFullCommand().c_str(),
+					pJsonCommand->GetJsonValue().c_str());
 			String strJsonCommandName = pJsonCommand->GetFullCommand();
 			MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
 					strJsonCommandName);
@@ -320,21 +323,9 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
  * @param  None
  * @retval None
  */
-void_t RuleCtrller::HandlerRuleCmdAdd(JsonCommand_p pJsonCommand) {
+void_t RuleCtrller::HandlerRuleCmdAddOrEdit(JsonCommand_p pJsonCommand) {
 	Json::Value & jsonValue = pJsonCommand->GetJsonOjbect();
 	bool_t result = m_ruleManager.AddRule(jsonValue);
-	PushResJsonCommand(pJsonCommand, result);
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t RuleCtrller::HandlerRuleCmdEdit(JsonCommand_p pJsonCommand) {
-	Json::Value & jsonValue = pJsonCommand->GetJsonOjbect();
-	bool_t result = m_ruleManager.EditRule(jsonValue);
 	PushResJsonCommand(pJsonCommand, result);
 }
 
@@ -405,6 +396,18 @@ void_t RuleCtrller::HandlerRuleCmdInfor(JsonCommand_p pJsonCommand) {
 // TODO
 	delete pJsonCommand;
 	pJsonCommand = NULL;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t RuleCtrller::HandlerRuleCmdSync(JsonCommand_p pJsonCommand) {
+	Json::Value & jsonValue = pJsonCommand->GetJsonOjbect();
+	bool_t result = m_ruleManager.GetInforAllRule(jsonValue);
+	PushResJsonCommand(pJsonCommand, result);
 }
 
 /**
