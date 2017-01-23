@@ -15,9 +15,12 @@
 
 class ZbZclGlobalCmd {
 private:
+    Locker_p m_pLock;
+
     ZbZclGlobalCmd();
     void_t ProcessException(u16_t, u8_p);
     void_t SaveDevicesInfo(u16_t);
+    void_t AddConfigDevice(u16_t);
 
 public:
     static ZbZclGlobalCmd* s_pInstance;

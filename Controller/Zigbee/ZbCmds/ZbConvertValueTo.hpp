@@ -35,8 +35,10 @@ ForwardSetValueToDevice (
     Device_t    device,
     Json::Value jsonVal
 ) {
-    if(!jsonVal.isMember("level") || !jsonVal.isMember("state")) { return; }
-    u8_t val = atoi(jsonVal["level"].asCString());
+    if(!jsonVal.isMember("state")) { return; }
+    u8_t val = 0x00;
+    if(jsonVal["state"].asString() ==  std::string("on"))
+    	val = 0x01;
     ZbZclCmd::GetInstance()->SetDevice(pZbMessage, device, val);
 }
 

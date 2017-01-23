@@ -27,6 +27,7 @@ ZbZclGlobalCmd* ZbZclGlobalCmd::s_pInstance = NULL;
  * @retval None
  */
 ZbZclGlobalCmd::ZbZclGlobalCmd() {
+    m_pLock = new Locker();
 }
 
 /**
@@ -49,6 +50,7 @@ ZbZclGlobalCmd::GetInstance(){
  * @retval None
  */
 ZbZclGlobalCmd::~ZbZclGlobalCmd() {
+    delete m_pLock;
 }
 
 /**
@@ -157,29 +159,31 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     u8_p pbyBuffer
 ){
 //    LOG_DEBUG("ReadAttributeResponse.");
-    u16_t wNwk              = LittleWord(&pbyBuffer);
+    u16_t wNwk = LittleWord(&pbyBuffer);
     if(wNwk == 0) return;
-
-    if(ZbZdoCmd::s_mapEPInfo.find(wNwk) == ZbZdoCmd::s_mapEPInfo.end()) {
-        ZbZdoCmd::GetInstance()->IEEEAddrRequest(wNwk);
-    }
 
     u8_t byEndpoint         = *pbyBuffer++;
     u16_t wClusterID        = LittleWord(&pbyBuffer);
     ++pbyBuffer; //CMD ID
-    u8_t byLength = *pbyBuffer++; //Payload's length
 
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
 
     if(device.Modify() == NULL &&
-            wClusterID == ZCL_CLUSTER_ID_GEN_BASIC)
+            wClusterID == ZCL_CLUSTER_ID_GEN_BASIC &&
+			ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE)
     {
         ProcessException(wNwk, pbyBuffer);
         return;
     }
 
+    if(ZbZdoCmd::s_mapEPInfo.find(wNwk) == ZbZdoCmd::s_mapEPInfo.end()) {
+        ZbZdoCmd::GetInstance()->IEEEAddrRequest(wNwk);
+        return;
+    }
+
     if(device.Modify() == NULL) { return; }
 
+    u8_t byLength = *pbyBuffer++; //Payload's length
     DeviceProperties vResponseDP;
     Vector<u8_p> vpData;
 
@@ -237,37 +241,46 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     if(wClusterID == ZCL_CLUSTER_ID_GEN_BASIC) {
         Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
         if(devices.size() == 0) { return; }
-        for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
-            if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
-                for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-                    Device_t tempDevice = (*it);
-                    if(tempDevice.Modify()->IsInterested()) {
-                        tempDevice.Modify()->Manufacturer = String((const char*) vpData[i]);
-                        ZbDriver::s_pZbModel->Add(tempDevice);
-                        ZbDriver::s_pZbModel->UpdateChanges();
+    	if(ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo == FALSE ||
+    			ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo == FALSE) {
+            for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
+                if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
+                	ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo = TRUE;
+                    for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                        Device_t tempDevice = (*it);
+                        if(tempDevice.Modify()->IsInterested()) {
+                            tempDevice.Modify()->Manufacturer = String((const char*) vpData[i]);
+                            ZbDriver::s_pZbModel->Add(tempDevice);
+                            ZbDriver::s_pZbModel->UpdateChanges();
+                        }
                     }
-                }
-            } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
-                String ModelName = String((const char*) vpData[i]);
-                LOG_INFO("Device %s at %04X has joined.", ModelName.c_str(), wNwk);
-                for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-                    Device_t tempDevice = (*it);
-                    if(tempDevice.Modify()->IsInterested()) {
-                        tempDevice.Modify()->Model = ModelName;
-                        tempDevice.Modify()->GenerateDeviceInfo();
-                        ZbDriver::s_pZbModel->Add(tempDevice);
-                        ZbDriver::s_pZbModel->UpdateChanges();
+                } else if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MODEL_ID) {
+            		ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo = TRUE;
+                    String ModelName = String((const char*) vpData[i]);
+                    LOG_INFO("Device %s at %04X has joined.", ModelName.c_str(), wNwk);
+                    for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                        Device_t tempDevice = (*it);
+                        if(tempDevice.Modify()->IsInterested()) {
+                            tempDevice.Modify()->Model = ModelName;
+                            tempDevice.Modify()->GenerateDeviceInfo();
+                            ZbDriver::s_pZbModel->Add(tempDevice);
+                            ZbDriver::s_pZbModel->UpdateChanges();
 
-                        //Request State
-                        if(tempDevice->RealType != LUMI_DEVICE_IR)
-                            RequestDevicesState(tempDevice);
+                            //Request State
+    //                        if(tempDevice->RealType != LUMI_DEVICE_IR)
+    //                            RequestDevicesState(tempDevice);
+                        }
                     }
+                    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
                 }
-                ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+                delete[] vpData[i];
             }
-            delete[] vpData[i];
-        }
-        SaveDevicesInfo(wNwk);
+            SaveDevicesInfo(wNwk);
+    	} else {
+    		for(u8_t i = 0; i < (u8_t) vpData.size(); i++) {
+    			delete[] vpData[i];
+    		}
+    	}
         vpData.clear();
     } else {
         device.Modify()->ReceiveInforFromDevice(vResponseDP, vpData);
@@ -498,28 +511,69 @@ ZbZclGlobalCmd::ProcessException(
     u16_t wNwk,
     u8_p pbyBuffer
 ) {
+	LOG_DEBUG("ProcessException");
+    u8_t byLength = *pbyBuffer++;
     u16_t wAttributeID  =  BigWord(&pbyBuffer);
     u8_t byStatus       = *pbyBuffer++;
-    if(wAttributeID != ATTRID_BASIC_MODEL_ID || byStatus != ZCL_STATUS_SUCCESS) return;
+    if(byStatus != ZCL_STATUS_SUCCESS ||
+            wAttributeID != ATTRID_BASIC_MODEL_ID) return;
+
+    m_pLock->Lock();
+    ZbZdoCmd::s_mapEPInfo[wNwk].IsAERequested = TRUE;
+    ZbZdoCmd::s_mapEPInfo[wNwk].IsDone = TRUE;
+    ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo = TRUE;
+    ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo = TRUE;
+    m_pLock->UnLock();
+    LOG_DEBUG("-------------------------------------- %d %d", wNwk, ZbZdoCmd::s_mapEPInfo[wNwk].IsDone);
+
+    byLength -= 3;
     u8_t byAttributeDataType  = *pbyBuffer++;
+    if((byAttributeDataType == 0x41) || (byAttributeDataType == 0x42)) byLength -= 1;
+    else if((byAttributeDataType == 0x43) || (byAttributeDataType == 0x44)) byLength -= 2;
     u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
+    byLength -= byAttributeDataTypeSize;
     u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
     bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
     memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
-    String ModelName = String((const char*) pbyAttributeData);
+    String strModel = String((const char*) pbyAttributeData);
     delete pbyAttributeData;
 
+    size_t lastIndex = strModel.find_last_not_of("0123456789");
+    String prefixModel = strModel.substr(0, lastIndex + 1);
+    u8_t byIndexNo = 0;
+    if(prefixModel != strModel) {
+        byIndexNo = atoi(strModel.substr(lastIndex + 1, strModel.size()).c_str());
+    }
+
+    String strManufactuter = "";
+    if(byLength > 0) {
+        pbyBuffer += byAttributeDataTypeSize;
+        wAttributeID  =  BigWord(&pbyBuffer);
+        byStatus       = *pbyBuffer++;
+        if(wAttributeID == ATTRID_BASIC_MANUFACTURER_NAME &&
+        		byStatus == ZCL_STATUS_SUCCESS) {
+            u8_t byAttributeDataType  = *pbyBuffer++;
+            u8_t byAttributeDataTypeSize = ZbDeviceDb::GetAttributeDataSize(byAttributeDataType, &pbyBuffer);
+            u8_p pbyAttributeData = new u8_t[byAttributeDataTypeSize + 1];
+            bzero(pbyAttributeData, byAttributeDataTypeSize + 1);
+            memcpy(pbyAttributeData, pbyBuffer, byAttributeDataTypeSize);
+            strManufactuter = String((const char*) pbyAttributeData);
+            delete pbyAttributeData;
+        }
+
+    }
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     if(device.Modify() != NULL) return;
-    if(ModelName == "LM-DOOR" || ModelName == "LM-PIR") {
+
+    if(prefixModel == "LM-DOOR" || prefixModel == "LM-PIR") {
         Device_t first = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
         first.Modify()->DeviceID = wNwk;
         first.Modify()->Network = wNwk;
         first.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
-        first.Modify()->Model = ModelName;
+        first.Modify()->Model = strModel;
         first.Modify()->Manufacturer = String("Lumi R&D");
         first.Modify()->Endpoint = 1;
-        if(ModelName == "LM-DOOR") {
+        if(strModel == "LM-DOOR") {
             first.Modify()->Type = ZCL_HA_DEVICEID_DOOR_LOCK;
         } else {
             first.Modify()->Type = ZCL_HA_DEVICEID_IAS_ZONE;
@@ -538,7 +592,7 @@ ZbZclGlobalCmd::ProcessException(
             other.Modify()->DeviceID = wNwk;
             other.Modify()->Network = wNwk;
             other.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
-            other.Modify()->Model = ModelName;
+            other.Modify()->Model = strModel;
             other.Modify()->Manufacturer = String("Lumi R&D");
             if(i == 4) {
                 other.Modify()->Endpoint = 49;
@@ -548,10 +602,149 @@ ZbZclGlobalCmd::ProcessException(
             other.Modify()->Type = vecType[i];
             other.Modify()->ControllerID = 1;
         }
+    } else if (prefixModel == "LM-SZ") {
+        for(u8_t i = 0; i < byIndexNo; i++) {
+            Device_t on_off = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+            on_off.Modify()->DeviceID = wNwk;
+            on_off.Modify()->Network = wNwk;
+            on_off.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+            on_off.Modify()->Model = strModel;
+            on_off.Modify()->Manufacturer = strManufactuter;
+            on_off.Modify()->Endpoint = i*2 + 1;
+            on_off.Modify()->Type = ZCL_HA_DEVICEID_ON_OFF_LIGHT;
+            on_off.Modify()->ControllerID = 1;
 
+            Device_t light_switch = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+            light_switch.Modify()->DeviceID = wNwk;
+            light_switch.Modify()->Network = wNwk;
+            light_switch.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+            light_switch.Modify()->Endpoint = i*2 + 2;
+            light_switch.Modify()->Type = ZCL_HA_DEVICEID_ON_OFF_LIGHT_SWITCH;
+            light_switch.Modify()->ControllerID = 1;
+        }
+        if (strManufactuter == "Lumi R&D") {
+        	AddConfigDevice(wNwk);
+        }
+
+    } else if (prefixModel == "LM-DZ" || prefixModel == "LM-FZ") {
+		for (u8_t i = 0; i < byIndexNo; i++) {
+			Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+			dim_light.Modify()->DeviceID = wNwk;
+			dim_light.Modify()->Network = wNwk;
+			dim_light.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+			dim_light.Modify()->Model = strModel;
+			dim_light.Modify()->Manufacturer = strManufactuter;
+			dim_light.Modify()->Endpoint = i * 2 + 1;
+			dim_light.Modify()->Type = ZCL_HA_DEVICEID_DIMMABLE_LIGHT;
+			dim_light.Modify()->ControllerID = 1;
+
+			Device_t dim_switch = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+			dim_switch.Modify()->DeviceID = wNwk;
+			dim_switch.Modify()->Network = wNwk;
+			dim_switch.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+			dim_switch.Modify()->Endpoint = i * 2 + 2;
+			dim_switch.Modify()->Type = ZCL_HA_DEVICEID_DIMMER_SWITCH;
+			dim_switch.Modify()->ControllerID = 1;
+		}
+        if (strManufactuter == "Lumi R&D") {
+        	AddConfigDevice(wNwk);
+        }
+    } else if (prefixModel == "LM-BZ") {
+		for (u8_t i = 0; i < byIndexNo; i++) {
+			Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+			dim_light.Modify()->DeviceID = wNwk;
+			dim_light.Modify()->Network = wNwk;
+			dim_light.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+			dim_light.Modify()->Model = strModel;
+			dim_light.Modify()->Manufacturer = strManufactuter;
+			dim_light.Modify()->Endpoint = i * 2 + 1;
+			dim_light.Modify()->Type = ZCL_HA_DEVICEID_SHADE;
+			dim_light.Modify()->ControllerID = 1;
+
+			Device_t dim_switch = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+			dim_switch.Modify()->DeviceID = wNwk;
+			dim_switch.Modify()->Network = wNwk;
+			dim_switch.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+			dim_switch.Modify()->Endpoint = i * 2 + 2;
+			dim_switch.Modify()->Type = ZCL_HA_DEVICEID_SHADE_CONTROLLER;
+			dim_switch.Modify()->ControllerID = 1;
+		}
+        if (strManufactuter == "Lumi R&D") {
+        	AddConfigDevice(wNwk);
+        }
+    } else if (prefixModel == "LM-IR") {
+		Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+		dim_light.Modify()->DeviceID = wNwk;
+		dim_light.Modify()->Network = wNwk;
+		dim_light.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+		dim_light.Modify()->Model = strModel;
+		dim_light.Modify()->Manufacturer = strManufactuter;
+		dim_light.Modify()->Endpoint = 1;
+		dim_light.Modify()->Type = ZCL_LUMI_DEVICEID_IR;
+		dim_light.Modify()->ControllerID = 1;
+    } else if (prefixModel == "LM-IPZ") {
+    	for (u8_t i = 1; i <= byIndexNo; i++) {
+			Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+			dim_light.Modify()->DeviceID = wNwk;
+			dim_light.Modify()->Network = wNwk;
+			dim_light.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+			dim_light.Modify()->Model = strModel;
+			dim_light.Modify()->Manufacturer = strManufactuter;
+			dim_light.Modify()->Endpoint = i;
+			dim_light.Modify()->Type = ZCL_HA_DEVICEID_SIMPLE_INPUT;
+			dim_light.Modify()->ControllerID = 1;
+    	}
+        if (strManufactuter == "Lumi R&D") {
+        	AddConfigDevice(wNwk);
+        }
+    } else if (prefixModel == "LM-RGB") {
+		Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+		dim_light.Modify()->DeviceID = wNwk;
+		dim_light.Modify()->Network = wNwk;
+		dim_light.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+		dim_light.Modify()->Model = strModel;
+		dim_light.Modify()->Manufacturer = strManufactuter;
+		dim_light.Modify()->Endpoint = 1;
+		dim_light.Modify()->Type = ZCL_HA_DEVICEID_COLORED_DIMMABLE_LIGHT;
+		dim_light.Modify()->ControllerID = 1;
+    } else if (prefixModel == "LM-DKZ") {
+    	for (u8_t i = 1; i <= 16; i++) {
+			Device_t dim_light = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+			dim_light.Modify()->DeviceID = wNwk;
+			dim_light.Modify()->Network = wNwk;
+			dim_light.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+			dim_light.Modify()->Model = strModel;
+			dim_light.Modify()->Manufacturer = strManufactuter;
+			dim_light.Modify()->Endpoint = i;
+			dim_light.Modify()->Type = ZCL_HA_DEVICEID_HEATING_COOLING_UNIT;
+			dim_light.Modify()->ControllerID = 1;
+    	}
+        if (strManufactuter == "Lumi R&D") {
+        	AddConfigDevice(wNwk);
+        }
     }
     ZbDriver::s_pZbModel->UpdateChanges();
     ZbDriver::GetInstance()->Init(false);
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+    SaveDevicesInfo(wNwk);
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZclGlobalCmd::AddConfigDevice(
+	u16_t wNwk
+) {
+    Device_t option = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
+    option.Modify()->DeviceID = wNwk;
+    option.Modify()->Network = wNwk;
+    option.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
+    option.Modify()->Endpoint = 50;
+    option.Modify()->Type = ZCL_LUMI_DEVICEID_SECURITY;
+    option.Modify()->ControllerID = 1;
 }

@@ -12,6 +12,7 @@
 #include <zdo.hpp>
 #include <zcl_lumi.hpp>
 #include <zcl_ha.hpp>
+#include <zcl_general.hpp>
 #include <ZbHelper.hpp>
 #include <ZbSocketCmd.hpp>
 #include <ZbZdoCmd.hpp>
@@ -31,6 +32,8 @@ DeviceLogic_t ZbZdoCmd::s_mapEPInfo = {};
  */
 ZbZdoCmd::ZbZdoCmd() {
     m_pTimer = RTimer::getTimerInstance();
+    m_DCFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleDeviceCreating);
+    m_iDCHandle = -1;
     m_DAFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleDeviceAnnounce);
     m_iDAHandle = -1;
     m_AEFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleActiveEndpoint);
@@ -166,10 +169,15 @@ ZbZdoCmd::DeviceAnnounce(
     u16_t wNwk      = BigWord(&pbyBuffer);
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;
-
+//    s_mapEPInfo[wNwk].MAC = MAC;
     LOG_INFO("Device %d announce.", wNwk);
 
+//    RequestMMInfo(wNwk);
     ManualDeviceAnnounce(wNwk, MAC);
+//    m_iDCHandle = m_pTimer->StartTimer(RTimer::Repeat::OneTime, DEVICE_ANNOUNCE_TIME, &m_DCFunctor, &wNwk);
+//    if(m_iDCHandle == -1) {
+//    	ManualDeviceAnnounce(wNwk, MAC);
+//    }
 
     // ZB Device Type (router, end device - sleepable)!!!
 }
@@ -230,17 +238,20 @@ ZbZdoCmd::ManualDeviceAnnounce(
          }
 
      } else {
-         s_mapEPInfo[wNwk].MAC = MAC;
+    	 s_mapEPInfo[wNwk].MAC = MAC;
          BackupDev_t BuDev = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(MAC);
          if(BuDev.Modify() != NULL) {
              if(RestoreBuDevice(wNwk, BuDev)) return;
          }
 
+         RequestMMInfo(wNwk);
+
          if(m_iDAHandle != -1) {
              m_pTimer->CancelTimer(m_iDAHandle);
          }
-         u16_t mapEPInforSize = s_mapEPInfo.size();
-         m_iDAHandle = m_pTimer->StartTimer(RTimer::Repeat::OneTime, DEVICE_ANNOUNCE_TIME, &m_DAFunctor, &mapEPInforSize);
+         u16_p mapEPInforSize = new u16_t();
+         *mapEPInforSize = s_mapEPInfo.size();
+         m_iDAHandle = m_pTimer->StartTimer(RTimer::Repeat::OneTime, DEVICE_ANNOUNCE_TIME, &m_DAFunctor, mapEPInforSize);
 
          if(m_iDAHandle == -1) {
              LOG_DEBUG("Full of timer pool!");
@@ -568,12 +579,30 @@ ZbZdoCmd::GetDeviceLogic() {
  * @retval None
  */
 void_t
+ZbZdoCmd::HandleDeviceCreating(
+    void_p pBuffer
+) {
+	u16_t wNwk = *((u16_p) pBuffer);
+	if(s_mapEPInfo[wNwk].IsDone == FALSE) {
+	    ManualDeviceAnnounce(wNwk, s_mapEPInfo[wNwk].MAC);
+	}
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
 ZbZdoCmd::HandleDeviceAnnounce(
     void_p pBuffer
 ) {
     m_iDAHandle = -1;
-    LOG_DEBUG("Handle DeviceAnnounce %d", *((u16_p) pBuffer));
-    if(s_mapEPInfo.size() <= *((u16_p) pBuffer)) {
+    u16_t mapEPsize = *((u16_p) pBuffer);
+    delete ((u16_p) pBuffer);
+    LOG_DEBUG("Handle DeviceAnnounce %d", mapEPsize);
+    if(s_mapEPInfo.size() <= mapEPsize) {
         for(DeviceLogic_t::const_iterator it = s_mapEPInfo.begin(); it != s_mapEPInfo.end(); it++) {
             if((it->second.byTotalEP == 0) &&
                     (s_mapEPInfo[it->first].IsAERequested == FALSE))
@@ -603,8 +632,8 @@ ZbZdoCmd::HandleActiveEndpoint(
     u16_p tmp = (u16_p) pBuffer;
     u16_t wNwk = *tmp;
     LOG_DEBUG("Handle ActiveEndpoint %d", wNwk);
-
     if(s_mapEPInfo[wNwk].IsDone == TRUE) {
+    	m_pTimer->CancelTimer(m_iAEHandle);
         delete tmp;
         return;
     } else {
@@ -659,9 +688,12 @@ ZbZdoCmd::RestoreBuDevice(
         s_mapEPInfo[wNwk].vEPList.push_back(tmp.Modify()->Endpoint.GetValue());
         s_mapEPInfo[wNwk].mapType[tmp.Modify()->Endpoint.GetValue()] = tmp.Modify()->Type.GetValue();
     }
-    ZbDriver::s_pZbModel->UpdateChanges();
     s_mapEPInfo[wNwk].byTotalEP = BuDev->EndpointNo.GetValue();
+    s_mapEPInfo[wNwk].HasModelInfo = TRUE;
+    s_mapEPInfo[wNwk].HasManufInfo = TRUE;
     s_mapEPInfo[wNwk].IsDone = TRUE;
+
+    ZbDriver::s_pZbModel->UpdateChanges();
 
     LOG_INFO("Device %s at %04X has joined.", BuDev.Modify()->Model.GetValue().c_str(), wNwk);
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
@@ -669,5 +701,29 @@ ZbZdoCmd::RestoreBuDevice(
     return TRUE;
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbZdoCmd::RequestMMInfo(u16_t wNwkAdd) {
+        ZbPacket_p pZbPacket = new ZbPacket(11);
+        pZbPacket->SetCmdID(ZCL_GLOBAL_CMD_REQ);
+        pZbPacket->Push(wNwkAdd >> 8);
+        pZbPacket->Push(wNwkAdd & 0xFF);
+        pZbPacket->Push(0x01);
+        pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC >> 8);
+        pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC & 0xFF);
+        pZbPacket->Push(ZCL_CMD_READ);
+        pZbPacket->Push(0x04); //Payload's length
+        pZbPacket->Push(ATTRID_BASIC_MODEL_ID & 0xFF);
+        pZbPacket->Push(ATTRID_BASIC_MODEL_ID >> 8);
+        pZbPacket->Push(ATTRID_BASIC_MANUFACTURER_NAME & 0xFF);
+        pZbPacket->Push(ATTRID_BASIC_MANUFACTURER_NAME >> 8);
+        ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+        delete pZbPacket;
+}
 
 

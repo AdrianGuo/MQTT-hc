@@ -20,6 +20,8 @@ typedef struct {
     u8_t    byTotalEP       = 0;
     u8_t    byAEReqCount    = 0;
     bool_t  IsAERequested   = FALSE;
+    bool_t  HasModelInfo    = FALSE;
+    bool_t  HasManufInfo    = FALSE;
     bool_t  IsDone          = FALSE;
     Vector<u8_t>        vEPList;
     Map<u8_t, u16_t>    mapType;
@@ -31,13 +33,16 @@ typedef Map<u16_t, EPInfo_t>*  DeviceLogic_p;
 class ZbZdoCmd {
 private:
     RTimer_p m_pTimer;
+    TimerFunctor_t m_DCFunctor;
     TimerFunctor_t m_DAFunctor;
     TimerFunctor_t m_AEFunctor;
+    int_t m_iDCHandle;
     int_t m_iDAHandle;
     int_t m_iAEHandle;
 
     ZbZdoCmd();
     bool_t RestoreBuDevice(u16_t, BackupDev_t);
+    void_t RequestMMInfo(u16_t);
 
 public:
     static ZbZdoCmd* s_pInstance;
@@ -50,6 +55,7 @@ public:
     void_t IEEEAddrRequest(u16_t);
     void_t IEEEAddrResponse(u8_p, u32_t);
     void_t DeviceAnnounce(u8_p, u32_t);
+    void_t HandleDeviceCreating(void_p);
     void_t ManualDeviceAnnounce(u16_t, String);
     void_t HandleDeviceAnnounce(void_p);
     void_t ActiveEndpointRequest(u16_t);

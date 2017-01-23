@@ -290,7 +290,7 @@
 									<listOptionValue builtIn="false" value="DEBUG_ZWCMDCTRLLER"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.include.paths.973426719" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/home/taho/Linux/Sdk/OpenWrt/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include"/>
+									<listOptionValue builtIn="false" value="/home/taho/SDK/MT7688/staging_dir/target-mipsel_24kec+dsp_uClibc-0.9.33.2/usr/include"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Drivers/IO}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/ValueDevice}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/Controller/Zwave}&quot;"/>
