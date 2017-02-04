@@ -40,8 +40,7 @@ private:
 			HandlerRuleCmdFunctor_t funcTor);
 	void_t RegisterHandler();
 
-	void_t HandlerRuleCmdAdd(JsonCommand_p pJsonCommand);
-	void_t HandlerRuleCmdEdit(JsonCommand_p pJsonCommand);
+	void_t HandlerRuleCmdAddOrEdit(JsonCommand_p pJsonCommand);
 	void_t HandlerDevCmdStt(JsonCommand_p pJsonCommand);
 	void_t HandlerRuleCmdGet(JsonCommand_p pJsonCommand);
 
@@ -50,6 +49,7 @@ private:
 	void_t HandlerRuleCmdActv(JsonCommand_p pJsonCommand);
 
 	void_t HandlerRuleCmdInfor(JsonCommand_p pJsonCommand);
+	void_t HandlerRuleCmdSync(JsonCommand_p pJsonCommand);
 	// TODO next
 
 	void_t PushResJsonCommand(JsonCommand_p pJsonCommand, bool_t result);

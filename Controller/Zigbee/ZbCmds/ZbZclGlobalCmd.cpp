@@ -170,6 +170,8 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
     if(device.Modify() == NULL &&
             wClusterID == ZCL_CLUSTER_ID_GEN_BASIC &&
+			ZbZdoCmd::s_mapEPInfo.find(wNwk) != ZbZdoCmd::s_mapEPInfo.end() &&
+			ZbZdoCmd::s_mapEPInfo[wNwk].MAC != "" &&
 			ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE)
     {
         ProcessException(wNwk, pbyBuffer);
@@ -267,8 +269,8 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                             ZbDriver::s_pZbModel->UpdateChanges();
 
                             //Request State
-    //                        if(tempDevice->RealType != LUMI_DEVICE_IR)
-    //                            RequestDevicesState(tempDevice);
+                            if(tempDevice->RealType != LUMI_DEVICE_IR)
+                                RequestDevicesState(tempDevice);
                         }
                     }
                     ZbSocketCmd::GetInstance()->SendLstAdd(devices);
@@ -428,7 +430,7 @@ void_t ZbZclGlobalCmd::WriteAttributeResponse(
  */
 void_t
 ZbZclGlobalCmd::Broadcast() {
-    ZbPacket_p pZbPacket = new ZbPacket(9);
+    ZbPacket_p pZbPacket = new ZbPacket(11);
     pZbPacket->SetCmdID(ZCL_GLOBAL_CMD_REQ);
     pZbPacket->Push(0XFFFF >> 8);
     pZbPacket->Push(0XFFFF & 0xFF);
@@ -436,9 +438,11 @@ ZbZclGlobalCmd::Broadcast() {
     pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC >> 8);
     pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC & 0xFF);
     pZbPacket->Push(ZCL_CMD_READ);
-    pZbPacket->Push(0x02); //Payload's length
-    pZbPacket->Push(ATTRID_BASIC_ZCL_VERSION & 0xFF);
-    pZbPacket->Push(ATTRID_BASIC_ZCL_VERSION >> 8);
+    pZbPacket->Push(0x04); //Payload's length
+    pZbPacket->Push(ATTRID_BASIC_MODEL_ID & 0xFF);
+    pZbPacket->Push(ATTRID_BASIC_MODEL_ID >> 8);
+    pZbPacket->Push(ATTRID_BASIC_MANUFACTURER_NAME & 0xFF);
+    pZbPacket->Push(ATTRID_BASIC_MANUFACTURER_NAME >> 8);
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }

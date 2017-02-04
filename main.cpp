@@ -123,9 +123,9 @@ int main(int argc, char* argv[]) {
         pZbController->Init();
     }
 
-    if (pRuleController != NULL) {
-        pRuleController->Start();
-    }
+	if (pRuleController != NULL) {
+		pRuleController->Start();
+	}
 
     while (TRUE) {
         if (pHcController != NULL) {
@@ -165,6 +165,9 @@ InitController(
         pHcController->AddZbCtrller(pZbController);
     }
 
-    pRuleController = new RuleCtrller();
-    pHcController->AddRuleCtrller(pRuleController);
+	{
+		LOG_INFO("init rule module");
+		pRuleController = new RuleCtrller();
+		pHcController->AddRuleCtrller(pRuleController);
+	}
 }

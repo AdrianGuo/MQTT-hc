@@ -7,7 +7,6 @@
 
 #include "DbRule/RuleDbManager.hpp"
 #include "json.h"
-#include <sqlite3.h>
 #include <cstdio>
 #include <cstring>
 #include <string>

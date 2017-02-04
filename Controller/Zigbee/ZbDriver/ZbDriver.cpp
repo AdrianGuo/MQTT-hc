@@ -506,6 +506,7 @@ ZbDriver::Init(
         //Load endpoints map
         ZbZdoCmd::s_mapEPInfo[wNwk].MAC = temp->MAC.GetValue();
         ZbZdoCmd::s_mapEPInfo[wNwk].byTotalEP++;
+        ZbZdoCmd::s_mapEPInfo[wNwk].IsAERequested = TRUE;
         ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo = TRUE;
         ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo = TRUE;
         ZbZdoCmd::s_mapEPInfo[wNwk].IsDone = TRUE;

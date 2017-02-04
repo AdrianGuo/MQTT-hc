@@ -102,29 +102,16 @@ void_t RuleManager::ProcessEvent(Json::Value& jsonValue,
  */
 bool_t RuleManager::AddRule(Json::Value& jsonValue) {
 	Rule_p pRule = new Rule(jsonValue);
-	if (GetIndexRule(pRule->GetId()) == -1) {
+	int_t indexRule = GetIndexRule(pRule->GetId());
+	if (indexRule == -1) {
+		// Add Rule
 		m_dbManager.AddRule(pRule->GetId(),
 				String(jsonValue.toStyledString().c_str()));
 		m_vecRules.push_back(pRule);
 		m_eventManager.Register(pRule);
 		return TRUE;
 	} else {
-		delete pRule;
-		pRule = NULL;
-		return FALSE;
-	}
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-bool_t RuleManager::EditRule(Json::Value& jsonValue) {
-	Rule_p pRule = new Rule(jsonValue);
-	int_t indexRule = GetIndexRule(pRule->GetId());
-	if (indexRule != -1) {
+		// Edit Rule
 		RmRegisterOutput(pRule->GetId());
 		m_eventManager.RmRegister(pRule->GetId());
 		RemoveRuleIndex(indexRule);
@@ -134,10 +121,6 @@ bool_t RuleManager::EditRule(Json::Value& jsonValue) {
 		m_vecRules.push_back(pRule);
 		m_eventManager.Register(pRule);
 		return TRUE;
-	} else {
-		delete pRule;
-		pRule = NULL;
-		return FALSE;
 	}
 }
 
@@ -239,6 +222,19 @@ bool_t RuleManager::GetInforRule(Json::Value& jsonValue) {
  * @param  None
  * @retval None
  */
+bool_t RuleManager::GetInforAllRule(Json::Value& jsonValue) {
+	Json::Value array = m_dbManager.GetAllRule();
+	jsonValue["lst"] = array;
+	return TRUE;
+
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 void_t RuleManager::PushJsonCommand(void_p pBuffer) {
 	JsonCommand_p pJsonCommandResult = (JsonCommand_p) pBuffer;
 	if (pJsonCommandResult != NULL) {
@@ -291,8 +287,7 @@ void_t RuleManager::ProcessOutRule() {
 				isDevAct = TRUE;
 				Json::Reader reader;
 				Json::Value jsonValue = 0;
-				reader.parse(m_vecItemsAct[nIndex].GetData(), jsonValue,
-						false);
+				reader.parse(m_vecItemsAct[nIndex].GetData(), jsonValue, false);
 				vecDevAct.append(jsonValue);
 				m_vecItemsAct.erase(m_vecItemsAct.begin() + nIndex);
 				nIndex--;
