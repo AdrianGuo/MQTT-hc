@@ -11,29 +11,35 @@
 
 #include <typedefs.h>
 #include <mraa.hpp>
-#include <RTimer.hpp>
-#include <Functor.hpp>
 #include <Locker.hpp>
 
 class LED {
 private:
-    mraa::Gpio      m_LED;
-    mraa::Result    m_Result;
-    RTimer_p        m_pRTimer;
+    mraa::Gpio      m_LED1;
+    mraa::Gpio      m_LED2;
+
     Locker_p        m_pLocker;
-    TimerFunctor_t  m_BlinkFunctor;
-    int_t			m_iBlink;
 
 public:
-    LED(int_t);
+    typedef enum {
+    	Off = 1, // GPIO18|19: 0|0
+        Red,    // GPIO18|19: 0|1
+        Blue,	 // GPIO18|19: 1|0
+        Pink,	 // GPIO18|19: 1|1
+    } Color;
+    typedef Color Color_t;
+
+    typedef enum {
+    	Latch = 1,
+		Hold,
+        Blink
+    } Action;
+    typedef Action Action_t;
+
+    LED(int_t, int_t);
     ~LED();
 
-    void_t On();
-    void_t Off();
-    void_t Toggle();
-    void_t Blink(u32_t dwDuty);
-
-    void_t HandleBlink(void_p);
+    void_t Set(Color_t);
 };
 
 //#endif

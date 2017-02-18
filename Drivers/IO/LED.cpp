@@ -4,8 +4,6 @@
  *  Created on: Dec 12, 2016
  *      Author: taho
  */
-#ifdef MT7688
-
 #include <IO/LED.hpp>
 
 #define ON      (1)
@@ -18,17 +16,21 @@
  * @retval None
  */
 LED::LED(
-	int_t GPIONo
-) : m_LED(GPIONo) {
-    m_Result    = m_LED.dir(mraa::DIR_OUT);
-    m_pRTimer   = RTimer::getTimerInstance();
-    m_pLocker   = new Locker();
-    m_BlinkFunctor   = makeFunctor((TimerFunctor_p) NULL, *this, &LED::HandleBlink);
-    m_iBlink = -1;
-
-    if (m_Result != mraa::SUCCESS) {
-        mraa::printError(m_Result);
+	int_t GPIONo1,
+	int_t GPIONo2
+) : m_LED1(GPIONo1),
+	m_LED2(GPIONo2)
+{
+	mraa::Result ret1    = m_LED1.dir(mraa::DIR_OUT);
+	mraa::Result ret2    = m_LED2.dir(mraa::DIR_OUT);
+    if (ret1 != mraa::SUCCESS) {
+        mraa::printError(ret1);
     }
+    if (ret2 != mraa::SUCCESS) {
+        mraa::printError(ret1);
+    }
+
+    m_pLocker   = new Locker();
 }
 
 /**
@@ -48,73 +50,33 @@ LED::~LED(){
  * @retval None
  */
 void_t
-LED::On() {
-	if(m_iBlink != -1) {
-		if(m_pRTimer->CancelTimer(m_iBlink))
-			m_iBlink = -1;
-	}
-	m_LED.write(ON);
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-LED::Off() {
-	if(m_iBlink != -1) {
-		if(m_pRTimer->CancelTimer(m_iBlink))
-			m_iBlink = -1;
-	}
-    m_LED.write(OFF);
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-LED::Toggle() {
-	if(m_iBlink != -1) {
-		if(m_pRTimer->CancelTimer(m_iBlink))
-			m_iBlink = -1;
-	}
-    m_LED.write(!m_LED.read());
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-LED::Blink(
-	u32_t dwDuty
+LED::Set(
+Color_t color
 ) {
-	if(m_iBlink != -1) {
-		if(m_pRTimer->CancelTimer(m_iBlink))
-			m_iBlink = -1;
+	m_pLocker->Lock();
+	switch (color) {
+		case Color::Off:
+			m_LED1.write(OFF);
+			m_LED2.write(OFF);
+			break;
+
+		case Color::Red:
+			m_LED1.write(OFF);
+			m_LED2.write(ON);
+			break;
+
+		case Color::Blue:
+			m_LED1.write(ON);
+			m_LED2.write(OFF);
+			break;
+
+		case Color::Pink:
+			m_LED1.write(ON);
+			m_LED2.write(ON);
+			break;
+
+		default:
+			break;
 	}
-	Toggle();
-	m_iBlink = m_pRTimer->StartTimer(RTimer::Repeat::Forever, dwDuty, &m_BlinkFunctor, NULL);
+    m_pLocker->UnLock();
 }
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-LED::HandleBlink(
-	void_p pbyBuffer
-) {
-	m_LED.write(!m_LED.read());
-}
-
-#endif

@@ -7,15 +7,62 @@
 
 #ifndef DRIVERS_IO_HPP_
 #define DRIVERS_IO_HPP_
-#ifdef MT7688
 
+#include <RTimer.hpp>
+#include <Locker.hpp>
 #include <LED.hpp>
 #include <Button.hpp>
 
+typedef struct IOState {
+	LED::Color_t 	ioColor = LED::Color::Off;
+	LED::Action_t 	ioAction = LED::Action::Latch;
+	u32_t 			ioTime = 0;
+	u32_t 			ioDuty = 0;
+	u32_t 			ioNo = 0;
+
+    /*
+     * Overloaded operators
+     */
+    inline IOState&
+    operator=(
+        const IOState& rhs
+    ){
+    	ioColor		= rhs.ioColor;
+    	ioAction	= rhs.ioAction;
+    	ioTime		= rhs.ioTime;
+    	ioDuty		= rhs.ioDuty;
+    	ioNo		= rhs.ioNo;
+        return *this;
+    }
+
+    inline bool
+    operator!=(
+        const IOState& rhs
+    ){
+        if(ioColor != rhs.ioColor) return true;
+        if(ioAction != rhs.ioAction) return true;
+        if(ioTime != rhs.ioTime) return true;
+        if(ioDuty != rhs.ioDuty) return true;
+        if(ioNo != rhs.ioNo) return true;
+        return false;
+    }
+} IOState_t;
+
+
+
 class IO {
 private:
-    LED      m_LED1;
-    LED      m_LED2;
+    LED       	m_LED;
+    IOState_t 	m_ioBakState;
+    IOState_t 	m_ioCurState;
+
+    u32_t 		m_idwNo;
+    bool_t		m_boIsBakSelected;
+
+    Locker_p        m_pLocker;
+    RTimer_p        m_pRTimer;
+    TimerFunctor_t  m_TimerFunctor;
+    int_t			m_iTimerID;
 
     IO();
 
@@ -24,10 +71,13 @@ public:
     static IO* s_pInstance;
     static  IO* GetInstance();
 
-    void_t Inform(u8_t);
-};
+    void_t Indicate(IOState_t, bool_t boIsBackup = FALSE);
+	void_t Indicate(LED::Color_t ioColor, LED::Action_t ioAction =
+			LED::Action::Hold, u32_t idwTime = 0, u32_t idwDuty = 1,
+			u32_t idwNo = 0, bool_t boIsBackup = FALSE);
 
-#endif
+	void_t HandleTimerWork(void_p);
+};
 
 typedef IO 	IO_t;
 typedef IO* IO_p;

@@ -29,7 +29,7 @@
 #include "HcCtrller.hpp"
 #include "LogPlus.hpp"
 #ifdef MT7688
-#include "LED.hpp"
+#include "IO.hpp"
 #endif
 
 /******************************************************************************/
@@ -64,21 +64,13 @@ InitController(
 /*                            EXPORTED FUNCTIONS                              */
 /******************************************************************************/
 int main(int argc, char* argv[]) {
+    Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
+    LOG_DEBUG("start log");
+
     if (argc < 5) {
         LOG_ERROR("Usage %s <<number>>", argv[0]);
         return (-1);
     }
-
-#ifdef MT7688
-    LED ledNETN(18);
-    ledNETN.On();
-
-    LED ledNETE(19);
-    ledNETE.Off();
-#endif
-
-    Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
-    LOG_DEBUG("start log");
 
     String zwcom, zbcom;
     String ipname (argv[1]);
@@ -144,6 +136,7 @@ int main(int argc, char* argv[]) {
  */
 void_t
 InitController(
+
     const_char_p ipname,
     const_char_p macId,
     const_char_p ipport,
