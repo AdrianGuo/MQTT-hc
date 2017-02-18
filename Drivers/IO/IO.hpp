@@ -57,7 +57,7 @@ private:
     IOState_t 	m_ioCurState;
 
     u32_t 		m_idwNo;
-    bool_t		m_boIsBakSelected;
+    bool_t		m_boIsBAKed;
 
     Locker_p        m_pLocker;
     RTimer_p        m_pRTimer;
@@ -71,12 +71,27 @@ public:
     static IO* s_pInstance;
     static  IO* GetInstance();
 
-    void_t Indicate(IOState_t, bool_t boIsBackup = FALSE);
+    void_t Indicate(IOState_t, bool_t boIsBAKed = FALSE);
 	void_t Indicate(LED::Color_t ioColor, LED::Action_t ioAction =
 			LED::Action::Hold, u32_t idwTime = 0, u32_t idwDuty = 1,
-			u32_t idwNo = 0, bool_t boIsBackup = FALSE);
-
+			u32_t idwNo = 0, bool_t boIsBAKed = FALSE);
 	void_t HandleTimerWork(void_p);
+
+    typedef enum Event {
+    	NotStart = 0, // latch-pink
+        Start, // blink-pink-3
+		Reset, // blink-pink-3
+		Upgraded, // blink-pink-3
+        NotInternet, // blink-red-0
+        NotReach, // latch-red
+		Reach, // latch-blue
+		AppSig, // blink-blue-1
+		DevSig, // blink-red-1
+		Broadcast, // blink-blue-0
+		Upgrading // blink-blue/red-0
+    } Event_t;
+
+	void_t Inform(Event_t);
 };
 
 typedef IO 	IO_t;

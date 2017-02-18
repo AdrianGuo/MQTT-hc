@@ -26,15 +26,17 @@ public:
         Red,    // GPIO18|19: 0|1
         Blue,	 // GPIO18|19: 1|0
         Pink,	 // GPIO18|19: 1|1
+		RedBlue = (10*Red + Blue),
+		RedPink = (10*Red + Pink),
+		BluePink = (10*Red + Blue)
     } Color;
     typedef Color Color_t;
 
-    typedef enum {
+    typedef enum Action {
     	Latch = 1,
 		Hold,
         Blink
-    } Action;
-    typedef Action Action_t;
+    } Action_t;
 
     LED(int_t, int_t);
     ~LED();

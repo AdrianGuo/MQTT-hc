@@ -20,7 +20,7 @@ IO::IO(
 ) : m_LED(18, 19)
 {
     m_idwNo = 0;
-    m_boIsBakSelected = FALSE;
+    m_boIsBAKed = FALSE;
 
 	m_pLocker   = new Locker();
     m_pRTimer   = RTimer::getTimerInstance();
@@ -85,8 +85,7 @@ IO::Indicate(
 	bool_t boIsBackup
 ) {
 	m_pLocker->Lock();
-	m_boIsBakSelected = boIsBackup;
-
+	m_boIsBAKed = boIsBackup;
 	m_ioCurState.ioColor = ioColor;
 	m_ioCurState.ioAction = ioAction;
 	m_ioCurState.ioTime = ioTime;
@@ -121,7 +120,11 @@ IO::Indicate(
 		}
 	} else if(ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Start: Blink ==========");
-		m_LED.Set(m_ioCurState.ioColor);
+		if(m_ioCurState.ioColor < 10) {
+			m_LED.Set(ioColor);
+		} else {
+			m_LED.Set((LED::Color) (ioColor/10));
+		}
 		if(m_idwNo == 0) {
 			if(ioNo != 0) {
 				m_pLocker->Lock();
@@ -132,7 +135,11 @@ IO::Indicate(
 			m_iTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, (ioDuty + 1), &m_TimerFunctor, NULL);
 		}
 		sleep(ioDuty);
-		m_LED.Set(LED::Color::Off);
+		if(m_ioCurState.ioColor < 10) {
+			m_LED.Set(LED::Color::Off);
+		} else {
+			m_LED.Set((LED::Color) (ioColor%10));
+		}
 	}
 
 }
@@ -167,9 +174,15 @@ IO::HandleTimerWork(
 				m_pLocker->UnLock();
 				LOG_DEBUG("========== %d ==========", m_idwNo);
 			}
-			m_LED.Set(m_ioCurState.ioColor);
-			sleep(m_ioCurState.ioDuty);
-			m_LED.Set(LED::Color::Off);
+			if(m_ioCurState.ioColor < 10) {
+				m_LED.Set(m_ioCurState.ioColor);
+				sleep(m_ioCurState.ioDuty);
+				m_LED.Set(LED::Color::Off);
+			} else {
+				m_LED.Set((LED::Color) (m_ioCurState.ioColor/10));
+				sleep(m_ioCurState.ioDuty);
+				m_LED.Set((LED::Color) (m_ioCurState.ioColor%10));
+			}
 		} else if(m_idwNo >= m_ioCurState.ioNo) {
 			if(m_iTimerID != -1) {
 				m_pRTimer->CancelTimer(m_iTimerID);
@@ -185,3 +198,56 @@ IO::HandleTimerWork(
 	}
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::Inform(
+	Event_t ioEvent
+) {
+	switch (ioEvent) {
+		case NotStart:
+			Indicate(LED::Color::Pink, LED::Action::Latch);
+			break;
+
+		case Start:
+		case Reset:
+		case Upgraded:
+			Indicate(LED::Color::Pink, LED::Action::Blink, 0, 1, 3, FALSE);
+			break;
+
+		case NotInternet:
+			Indicate(LED::Color::Red, LED::Action::Blink);
+			break;
+
+		case NotReach:
+			Indicate(LED::Color::Red, LED::Action::Latch);
+			break;
+
+		case Reach:
+			Indicate(LED::Color::Blue, LED::Action::Latch, 0, 0, 0, TRUE);
+			break;
+
+		case AppSig:
+			Indicate(LED::Color::Blue, LED::Action::Hold, 1, 0, 0, FALSE);
+			break;
+
+		case DevSig:
+			Indicate(LED::Color::Red, LED::Action::Hold, 1, 0, 0, FALSE);
+			break;
+
+		case Broadcast:
+			Indicate(LED::Color::Blue, LED::Action::Blink);
+			break;
+
+		case Upgrading:
+			Indicate(LED::Color::RedBlue, LED::Action::Blink);
+			break;
+
+		default:
+			break;
+	}
+}

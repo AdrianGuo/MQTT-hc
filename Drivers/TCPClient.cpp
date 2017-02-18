@@ -98,10 +98,6 @@ TCPClient::TCPClient(
     makeFunctor((threadFunctor_p) NULL, *this, &TCPClient::ClientSockThreadProc);
     m_pClientSockThread->RegThreadFunctor(&m_ClientSockThreadFunctor);
     m_pClientSockLocker = new Locker();
-
-    IO::GetInstance()->Indicate(LED::Color::Pink, LED::Action::Latch, TRUE);
-    IO::GetInstance()->Indicate(LED::Color::Blue, LED::Action::Blink, 0, 1, 0, TRUE);
-    IO::GetInstance()->Indicate(LED::Color::Red, LED::Action::Blink, 10, 1, 10, FALSE);
 }
 
 
