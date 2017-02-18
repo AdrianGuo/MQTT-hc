@@ -8,7 +8,7 @@
 
 #include <Button.hpp>
 
-mraa::Gpio  Button::s_Button(0);
+mraa::Gpio Button::s_Button(18);
 
 /**
  * @func
@@ -17,11 +17,13 @@ mraa::Gpio  Button::s_Button(0);
  * @retval None
  */
 Button::Button() {
-    m_Result    = s_Button.dir(mraa::DIR_IN);
+    m_Result = s_Button.dir(mraa::DIR_IN);
 
     if (m_Result != mraa::SUCCESS) {
         mraa::printError(m_Result);
     }
+
+    s_Button.isr(mraa::EDGE_FALLING, &EdgeFallingFunc, NULL);
 }
 
 /**
@@ -74,9 +76,11 @@ void_t
 Button::PressEvent (
     bool_t boEvent
 ) {
-/*
- *
- */
+	if(boEvent == TRUE) {
+
+	} else {
+
+	}
 }
 
 #endif

@@ -91,7 +91,7 @@ TCPClient::TCPClient(
     m_boIsBlocked = TRUE;
 
     m_pSockAddr = pAddress;
-    m_pSClientRecvFunctor = NULL;
+    m_pSMQTTRecvFunctor = NULL;
     m_pClientSockThread = new LThread();
     m_ClientSockThreadFunctor =
     makeFunctor((threadFunctor_p) NULL, *this, &TCPClient::ClientSockThreadProc);
@@ -143,7 +143,7 @@ TCPClient::RecvFunctor(
     SClientFunctor_p pSClientRecvFunctor
 ) {
     if (pSClientRecvFunctor != NULL) {
-        m_pSClientRecvFunctor = pSClientRecvFunctor;
+        m_pSMQTTRecvFunctor = pSClientRecvFunctor;
         return TRUE;
     }
     return FALSE;
@@ -209,7 +209,7 @@ TCPClient::Connect() {
             tval.tv_sec = CONNECTION_TIMEOUT_SEC;
             tval.tv_usec = 0;
             /* Waiting for the socket to be ready for either reading and writing */
-            if ((idwResult == select(m_idwSockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
+            if ((idwResult = select(m_idwSockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
                 LOG_WARN("timeout");
                 m_boIsConnected = FALSE;
                 close(m_idwSockfd);
@@ -454,8 +454,8 @@ TCPClient::ClientSockThreadProc(
             m_pClientSockLocker->Lock();
             int_t iLength = recv(m_idwSockfd, m_pbBuffer, BUFFER_SOCKET_SIZE, 0);
             m_pClientSockLocker->UnLock();
-            if ((m_pSClientRecvFunctor != NULL) && (iLength > 0)) {
-                (*m_pSClientRecvFunctor)((u8_p)m_pbBuffer, iLength);
+            if ((m_pSMQTTRecvFunctor != NULL) && (iLength > 0)) {
+                (*m_pSMQTTRecvFunctor)((u8_p)m_pbBuffer, iLength);
             }
             memset(m_pbBuffer, '\0', BUFFER_SOCKET_SIZE);
         }

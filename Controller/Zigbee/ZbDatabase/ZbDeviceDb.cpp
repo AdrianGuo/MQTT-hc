@@ -46,7 +46,9 @@ ZbDeviceDb::ZbDeviceDb() :
  * @param  None
  * @retval None
  */
-ZbDeviceDb::~ZbDeviceDb() { }
+ZbDeviceDb::~ZbDeviceDb() {
+	delete m_pLocker;
+}
 
 /**
  * @func

@@ -5,8 +5,8 @@
  *      Author: taho
  */
 
-#ifndef CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEINFO_HPP_
-#define CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEINFO_HPP_
+#ifndef CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEINFOREQ_HPP_
+#define CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEINFOREQ_HPP_
 
 #include "typedefs.h"
 #include "Vector.hpp"
@@ -14,14 +14,14 @@
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"
 
-class JsonFileInfo : public JsonMessageBase {
+class JsonFileInfoReq : public JsonMessageBase {
 private:
     Vector<Device_t> m_vecLstDev;
     bool_t ParseJsonValue(Json::Value& jsonValue);
 
 public:
-    JsonFileInfo() {}
-    virtual ~JsonFileInfo() {}
+    JsonFileInfoReq() {}
+    virtual ~JsonFileInfoReq() {}
 
     static String GetStrCmd() { return "file=inforeq"; }
     virtual void_t Refresh() {}
@@ -29,8 +29,8 @@ public:
     JsonCommand_p CreateJsonCommand();
 };
 
-typedef JsonFileInfo  JsonFileInfo_t;
-typedef JsonFileInfo* JsonFileInfo_p;
+typedef JsonFileInfoReq  JsonFileInfo_t;
+typedef JsonFileInfoReq* JsonFileInfo_p;
 
 /**
  * @func   CreateJsonCommand
@@ -39,8 +39,8 @@ typedef JsonFileInfo* JsonFileInfo_p;
  * @retval None
  */
 inline JsonCommand_p
-JsonFileInfo::CreateJsonCommand() {
+JsonFileInfoReq::CreateJsonCommand() {
     return new JsonCommand("file=inforeq", "{}");
 }
 
-#endif /* CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEINFO_HPP_ */
+#endif /* CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEINFOREQ_HPP_ */

@@ -494,10 +494,10 @@ ZbDriver::Init(
 ) {
     if(stateReq) {
         m_pZbBasicCmd->NwkInfoReq();
-        while(m_pZbBasicCmd->IsNetworkAvail() != TRUE) {
-            LOG_DEBUG("Waiting zb's response...");
-            sleep(1);
-        }
+//        while(m_pZbBasicCmd->IsNetworkAvail() != TRUE) {
+//            LOG_DEBUG("Waiting zb's response...");
+//            sleep(1);
+//        }
     }
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
     for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {

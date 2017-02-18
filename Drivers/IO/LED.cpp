@@ -17,11 +17,14 @@
  * @param  None
  * @retval None
  */
-LED::LED(int_t GPIONo) : m_LED(GPIONo) {
+LED::LED(
+	int_t GPIONo
+) : m_LED(GPIONo) {
     m_Result    = m_LED.dir(mraa::DIR_OUT);
     m_pRTimer   = RTimer::getTimerInstance();
     m_pLocker   = new Locker();
-    m_Functor   = makeFunctor((TimerFunctor_p) NULL, *this, &LED::FuncWrapper);
+    m_BlinkFunctor   = makeFunctor((TimerFunctor_p) NULL, *this, &LED::HandleBlink);
+    m_iBlink = -1;
 
     if (m_Result != mraa::SUCCESS) {
         mraa::printError(m_Result);
@@ -45,13 +48,12 @@ LED::~LED(){
  * @retval None
  */
 void_t
-LED::On(u32_t dwTime) {
-    if (dwTime == 0) {
-        m_LED.write(ON);
-    } else {
-        u8_t funcIndex = 1;
-        m_pRTimer->StartTimer(RTimer::Repeat::OneTime,  dwTime, &m_Functor, &funcIndex);
-    }
+LED::On() {
+	if(m_iBlink != -1) {
+		if(m_pRTimer->CancelTimer(m_iBlink))
+			m_iBlink = -1;
+	}
+	m_LED.write(ON);
 }
 
 /**
@@ -62,6 +64,10 @@ LED::On(u32_t dwTime) {
  */
 void_t
 LED::Off() {
+	if(m_iBlink != -1) {
+		if(m_pRTimer->CancelTimer(m_iBlink))
+			m_iBlink = -1;
+	}
     m_LED.write(OFF);
 }
 
@@ -73,6 +79,10 @@ LED::Off() {
  */
 void_t
 LED::Toggle() {
+	if(m_iBlink != -1) {
+		if(m_pRTimer->CancelTimer(m_iBlink))
+			m_iBlink = -1;
+	}
     m_LED.write(!m_LED.read());
 }
 
@@ -83,9 +93,15 @@ LED::Toggle() {
  * @retval None
  */
 void_t
-LED::Blink(u32_t dwDuty) {
-//    m_Functor = makeFunctor((TimerFunctor_p) NULL, *this, &LED::Toggle);
-//    m_pRTimer->StartTimer(RTimer::Repeat::OneTime,  dwTime, &m_Functor, NULL);
+LED::Blink(
+	u32_t dwDuty
+) {
+	if(m_iBlink != -1) {
+		if(m_pRTimer->CancelTimer(m_iBlink))
+			m_iBlink = -1;
+	}
+	Toggle();
+	m_iBlink = m_pRTimer->StartTimer(RTimer::Repeat::Forever, dwDuty, &m_BlinkFunctor, NULL);
 }
 
 /**
@@ -95,15 +111,10 @@ LED::Blink(u32_t dwDuty) {
  * @retval None
  */
 void_t
-LED::FuncWrapper(void_p funcIndex) {
-    if (*((u8_p) funcIndex) == 0) {
-        LED::On();
-    } else if (*((u8_p) funcIndex) == 1) {
-        LED::Off();
-    } else if (*((u8_p) funcIndex) == 2) {
-        LED::Toggle();
-    } else
-        return;
+LED::HandleBlink(
+	void_p pbyBuffer
+) {
+	m_LED.write(!m_LED.read());
 }
 
 #endif

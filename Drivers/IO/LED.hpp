@@ -21,17 +21,19 @@ private:
     mraa::Result    m_Result;
     RTimer_p        m_pRTimer;
     Locker_p        m_pLocker;
-    TimerFunctor_t  m_Functor;
+    TimerFunctor_t  m_BlinkFunctor;
+    int_t			m_iBlink;
+
 public:
     LED(int_t);
     ~LED();
 
-    void_t On(u32_t dwTime = 0);
+    void_t On();
     void_t Off();
     void_t Toggle();
     void_t Blink(u32_t dwDuty);
 
-    void_t FuncWrapper(void_p);
+    void_t HandleBlink(void_p);
 };
 
 //#endif

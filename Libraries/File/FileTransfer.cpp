@@ -21,7 +21,7 @@
 #define HC_LOCATION         "/Lumi/hc"
 #define HC_BAK_LOCATION     "/Lumi/hc.bak"
 #define FW_LOCATION         "/tmp/hc.img"
-#define UPGRADE_COMMAND     "sysupgrade hc.img"
+#define UPGRADE_COMMAND     "sysupgrade -c hc.img"
 
 /**
  * @func   ListenThread

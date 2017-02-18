@@ -33,7 +33,7 @@ private:
     bool_t m_boIsBlocked;
 
     sockaddr_p m_pSockAddr;
-    SClientFunctor_p m_pSClientRecvFunctor;
+    SClientFunctor_p m_pSMQTTRecvFunctor;
 
     Locker_p m_pClientSockLocker;
 
