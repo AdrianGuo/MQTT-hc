@@ -6,7 +6,11 @@
  */
 
 #include <LogPlus.hpp>
+#include <ZbBasicCmd.hpp>
 #include <IO.hpp>
+
+#define JOINABLE_HOLDTIME 			(1)
+#define FACTORYRESET_HOLDTIME 		(5)
 
 IO* IO::s_pInstance = NULL;
 
@@ -17,15 +21,21 @@ IO* IO::s_pInstance = NULL;
  * @retval None
  */
 IO::IO(
-) : m_LED(18, 19)
+) : m_LED(18, 19),
+	m_Button()
 {
-    m_idwNo = 0;
+    m_idwBlinkedNo = 0;
+    m_idwReleasedNo = 0;
     m_boIsBAKed = FALSE;
+    m_boIsJoinableReady = FALSE;
+    m_boIsFResetReady = FALSE;
+    m_ButtonFunctor = makeFunctor((ButtonFunctor_p) NULL, *this, &IO::ButtonEvents);
+    m_Button.RecvFunctor(&m_ButtonFunctor);
 
 	m_pLocker   = new Locker();
     m_pRTimer   = RTimer::getTimerInstance();
-    m_TimerFunctor   = makeFunctor((TimerFunctor_p) NULL, *this, &IO::HandleTimerWork);
-    m_iTimerID = -1;
+    m_LEDTimerFunctor   = makeFunctor((TimerFunctor_p) NULL, *this, &IO::HandleLEDTimerWork);
+    m_iLEDTimerID = -1;
 }
 
 /**
@@ -100,12 +110,12 @@ IO::Indicate(
 		m_pLocker->UnLock();
 	}
 
-	if(m_iTimerID != -1) {
+	if(m_iLEDTimerID != -1) {
 		LOG_DEBUG("========== CancelTimer ==========");
-		m_pRTimer->CancelTimer(m_iTimerID);
+		m_pRTimer->CancelTimer(m_iLEDTimerID);
 		m_pLocker->Lock();
-		m_iTimerID = -1;
-		m_idwNo = 0;
+		m_iLEDTimerID = -1;
+		m_idwBlinkedNo = 0;
 		m_pLocker->UnLock();
 	}
 
@@ -116,7 +126,7 @@ IO::Indicate(
 		LOG_DEBUG("========== Start: Hold ==========");
 		m_LED.Set(ioColor);
 		if(ioTime > 0) {
-			m_iTimerID = m_pRTimer->StartTimer(RTimer::Repeat::OneTime, ioTime, &m_TimerFunctor, NULL);
+			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::OneTime, ioTime, &m_LEDTimerFunctor, NULL);
 		}
 	} else if(ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Start: Blink ==========");
@@ -125,14 +135,14 @@ IO::Indicate(
 		} else {
 			m_LED.Set((LED::Color) (ioColor/10));
 		}
-		if(m_idwNo == 0) {
+		if(m_idwBlinkedNo == 0) {
 			if(ioNo != 0) {
 				m_pLocker->Lock();
-				m_idwNo++;
+				m_idwBlinkedNo++;
 				m_pLocker->UnLock();
-				LOG_DEBUG("========== %d ==========", m_idwNo);
+				LOG_DEBUG("========== %d ==========", m_idwBlinkedNo);
 			}
-			m_iTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, (ioDuty + 1), &m_TimerFunctor, NULL);
+			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, (ioDuty + 1), &m_LEDTimerFunctor, NULL);
 		}
 		sleep(ioDuty);
 		if(m_ioCurState.ioColor < 10) {
@@ -151,28 +161,28 @@ IO::Indicate(
  * @retval None
  */
 void_t
-IO::HandleTimerWork(
+IO::HandleLEDTimerWork(
 	void_p pbyBuffer
 ) {
-	LOG_DEBUG("========== HandleTimerWork ==========");
+	LOG_DEBUG("========== HandleLEDTimerWork ==========");
 
 	if(m_ioCurState.ioAction == LED::Action::Hold) {
 		LOG_DEBUG("========== Handle: Hold ==========");
-		if(m_iTimerID != -1) {
-			m_pRTimer->CancelTimer(m_iTimerID);
+		if(m_iLEDTimerID != -1) {
+			m_pRTimer->CancelTimer(m_iLEDTimerID);
 			m_pLocker->Lock();
-			m_iTimerID = -1;
+			m_iLEDTimerID = -1;
 			m_pLocker->UnLock();
 		}
 		Indicate(m_ioBakState, TRUE);
 	} else if (m_ioCurState.ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Handle: Blink ==========");
-		if(m_idwNo < m_ioCurState.ioNo || m_ioCurState.ioNo == 0) {
+		if(m_idwBlinkedNo < m_ioCurState.ioNo || m_ioCurState.ioNo == 0) {
 			if(m_ioCurState.ioNo != 0) {
 				m_pLocker->Lock();
-				m_idwNo++;
+				m_idwBlinkedNo++;
 				m_pLocker->UnLock();
-				LOG_DEBUG("========== %d ==========", m_idwNo);
+				LOG_DEBUG("========== %d ==========", m_idwBlinkedNo);
 			}
 			if(m_ioCurState.ioColor < 10) {
 				m_LED.Set(m_ioCurState.ioColor);
@@ -183,15 +193,15 @@ IO::HandleTimerWork(
 				sleep(m_ioCurState.ioDuty);
 				m_LED.Set((LED::Color) (m_ioCurState.ioColor%10));
 			}
-		} else if(m_idwNo >= m_ioCurState.ioNo) {
-			if(m_iTimerID != -1) {
-				m_pRTimer->CancelTimer(m_iTimerID);
+		} else if(m_idwBlinkedNo >= m_ioCurState.ioNo) {
+			if(m_iLEDTimerID != -1) {
+				m_pRTimer->CancelTimer(m_iLEDTimerID);
 				m_pLocker->Lock();
-				m_iTimerID = -1;
+				m_iLEDTimerID = -1;
 				m_pLocker->UnLock();
 			}
 			m_pLocker->Lock();
-			m_idwNo = 0;
+			m_idwBlinkedNo = 0;
 			m_pLocker->UnLock();
 			Indicate(m_ioBakState, TRUE);
 		}
@@ -210,44 +220,161 @@ IO::Inform(
 ) {
 	switch (ioEvent) {
 		case NotStart:
+			if(m_ioCurState.ioColor == LED::Color::Pink) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Pink, LED::Action::Latch);
 			break;
 
 		case Start:
 		case Reset:
 		case Upgraded:
+			if(m_ioCurState.ioColor == LED::Color::Pink) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Pink, LED::Action::Blink, 0, 1, 3, FALSE);
 			break;
 
 		case NotInternet:
+			if(m_ioCurState.ioColor == LED::Color::Red) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Red, LED::Action::Blink);
 			break;
 
 		case NotReach:
+			if(m_ioCurState.ioColor == LED::Color::Red) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Red, LED::Action::Latch);
 			break;
 
 		case Reach:
+			if(m_ioCurState.ioColor == LED::Color::Blue) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Blue, LED::Action::Latch, 0, 0, 0, TRUE);
 			break;
 
 		case AppSig:
+			if(m_ioCurState.ioColor == LED::Color::Blue) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Blue, LED::Action::Hold, 1, 0, 0, FALSE);
 			break;
 
 		case DevSig:
+			if(m_ioCurState.ioColor == LED::Color::Red) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::Red, LED::Action::Hold, 1, 0, 0, FALSE);
 			break;
 
 		case Broadcast:
-			Indicate(LED::Color::Blue, LED::Action::Blink);
+			if(m_ioCurState.ioColor == LED::Color::Blue) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
+			Indicate(LED::Color::Blue, LED::Action::Blink, 0, 0, 10, FALSE);
 			break;
 
 		case Upgrading:
+			if(m_ioCurState.ioColor == LED::Color::RedBlue) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
 			Indicate(LED::Color::RedBlue, LED::Action::Blink);
+			break;
+
+		case Joinable:
+			if(m_ioCurState.ioColor == LED::Color::Blue) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(200000);
+			}
+			Indicate(LED::Color::Blue, LED::Action::Blink);
 			break;
 
 		default:
 			break;
+	}
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::ButtonEvents(
+    bool_t IsPressed
+) {
+	if(IsPressed == TRUE) {
+		LOG_DEBUG("========== The button was pressed! ==========");
+		usleep(700000);
+		if(m_idwReleasedNo == 0) {
+			if(m_ioCurState.ioColor == LED::Color::Pink) {
+				Indicate(LED::Color::Off, LED::Action::Latch);
+				usleep(300000);
+			}
+			Indicate(LED::Color::Pink, LED::Action::Latch);
+			m_pLocker->Lock();
+			m_boIsJoinableReady = TRUE;
+			m_pLocker->UnLock();
+			//Wait to check factory reset event.
+			u8_t byCount = 4*1000000/100000;
+			while(byCount > 0) {
+				if(m_idwReleasedNo > 0 || m_ioCurState.ioColor != LED::Color::Pink) {
+					return;
+				}
+				usleep(100000);
+				byCount--;
+			}
+			Indicate(LED::Color::Red, LED::Action::Latch);
+			m_pLocker->Lock();
+			m_boIsFResetReady = TRUE;
+			m_pLocker->UnLock();
+		}
+	} else {
+		LOG_DEBUG("========== The button was released! ==========");
+		m_pLocker->Lock();
+		m_idwReleasedNo++;
+		m_pLocker->UnLock();
+		if(m_boIsJoinableReady == TRUE &&
+				m_boIsFResetReady == FALSE) {
+			/*
+			 * Allow to join network.
+			 */
+			Inform(IO::Event::Joinable);
+			ZbBasicCmd::GetInstance()->JoinNwkAllow(0xFF);
+
+			m_pLocker->Lock();
+			m_idwReleasedNo = 0;
+			m_boIsJoinableReady = FALSE;
+			m_pLocker->UnLock();
+		}
+
+		if(m_boIsFResetReady == TRUE) {
+			/*
+			 * Factor reset.
+			 */
+			Indicate(LED::Color::Off, LED::Action::Latch);
+			usleep(200000);
+			Inform(IO::Event::Reset);
+			LOG_WARN("Factory reset !!!");
+
+			m_pLocker->Lock();
+			m_idwReleasedNo = 0;
+			m_boIsJoinableReady = FALSE;
+			m_boIsFResetReady = FALSE;
+			m_pLocker->UnLock();
+		}
 	}
 }

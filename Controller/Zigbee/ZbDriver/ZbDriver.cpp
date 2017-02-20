@@ -314,6 +314,7 @@ ZbDriver::ProcCmdSet(
     ZbMessage_p pZbMessage
 ) {
     JsonDevSet_p pJsonDevSet = (JsonDevSet_p) pZbMessage->GetJsonMessageObject();
+	LOG_DEBUG("vvvvvvvvvvvvvvvvvvvvvvvvvvv %s", pJsonDevSet->GetStrCmd().c_str());
     Vector<JsonDevSet::Device_t> vecLstDev = pJsonDevSet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
         Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);

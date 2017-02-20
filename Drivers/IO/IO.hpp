@@ -13,6 +13,8 @@
 #include <LED.hpp>
 #include <Button.hpp>
 
+#define Notify(x)		{IO::GetInstance()->Inform(IO::Event::x);}
+
 typedef struct IOState {
 	LED::Color_t 	ioColor = LED::Color::Off;
 	LED::Action_t 	ioAction = LED::Action::Latch;
@@ -49,20 +51,30 @@ typedef struct IOState {
 } IOState_t;
 
 
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
 
 class IO {
 private:
     LED       	m_LED;
+    Button		m_Button;
     IOState_t 	m_ioBakState;
     IOState_t 	m_ioCurState;
 
-    u32_t 		m_idwNo;
+    u32_t 		m_idwBlinkedNo;
     bool_t		m_boIsBAKed;
+    u32_t		m_idwReleasedNo;
+    ButtonFunctor_t m_ButtonFunctor;
+
+    //Variables for coincident events preventing
+    bool_t		m_boIsJoinableReady;
+    bool_t		m_boIsFResetReady;
 
     Locker_p        m_pLocker;
     RTimer_p        m_pRTimer;
-    TimerFunctor_t  m_TimerFunctor;
-    int_t			m_iTimerID;
+    TimerFunctor_t  m_LEDTimerFunctor;
+    int_t			m_iLEDTimerID;
 
     IO();
 
@@ -70,12 +82,6 @@ public:
     ~IO();
     static IO* s_pInstance;
     static  IO* GetInstance();
-
-    void_t Indicate(IOState_t, bool_t boIsBAKed = FALSE);
-	void_t Indicate(LED::Color_t ioColor, LED::Action_t ioAction =
-			LED::Action::Hold, u32_t idwTime = 0, u32_t idwDuty = 1,
-			u32_t idwNo = 0, bool_t boIsBAKed = FALSE);
-	void_t HandleTimerWork(void_p);
 
     typedef enum Event {
     	NotStart = 0, // latch-pink
@@ -87,11 +93,19 @@ public:
 		Reach, // latch-blue
 		AppSig, // blink-blue-1
 		DevSig, // blink-red-1
-		Broadcast, // blink-blue-0
-		Upgrading // blink-blue/red-0
+		Broadcast, // blink-blue-10
+		Upgrading, // blink-blue/red-0
+		Joinable // blink-blue-0
     } Event_t;
 
+    void_t Indicate(IOState_t, bool_t boIsBAKed = FALSE);
+	void_t Indicate(LED::Color_t ioColor, LED::Action_t ioAction =
+			LED::Action::Hold, u32_t idwTime = 0, u32_t idwDuty = 1,
+			u32_t idwNo = 0, bool_t boIsBAKed = FALSE);
+	void_t HandleLEDTimerWork(void_p);
 	void_t Inform(Event_t);
+
+	void_t ButtonEvents(bool_t);
 };
 
 typedef IO 	IO_t;

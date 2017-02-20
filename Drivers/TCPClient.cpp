@@ -92,7 +92,7 @@ TCPClient::TCPClient(
     m_boIsBlocked = TRUE;
 
     m_pSockAddr = pAddress;
-    m_pSMQTTRecvFunctor = NULL;
+    m_pSClientRecvFunctor = NULL;
     m_pClientSockThread = new LThread();
     m_ClientSockThreadFunctor =
     makeFunctor((threadFunctor_p) NULL, *this, &TCPClient::ClientSockThreadProc);
@@ -144,7 +144,7 @@ TCPClient::RecvFunctor(
     SClientFunctor_p pSClientRecvFunctor
 ) {
     if (pSClientRecvFunctor != NULL) {
-        m_pSMQTTRecvFunctor = pSClientRecvFunctor;
+        m_pSClientRecvFunctor = pSClientRecvFunctor;
         return TRUE;
     }
     return FALSE;
@@ -455,8 +455,8 @@ TCPClient::ClientSockThreadProc(
             m_pClientSockLocker->Lock();
             int_t iLength = recv(m_idwSockfd, m_pbBuffer, BUFFER_SOCKET_SIZE, 0);
             m_pClientSockLocker->UnLock();
-            if ((m_pSMQTTRecvFunctor != NULL) && (iLength > 0)) {
-                (*m_pSMQTTRecvFunctor)((u8_p)m_pbBuffer, iLength);
+            if ((m_pSClientRecvFunctor != NULL) && (iLength > 0)) {
+                (*m_pSClientRecvFunctor)((u8_p)m_pbBuffer, iLength);
             }
             memset(m_pbBuffer, '\0', BUFFER_SOCKET_SIZE);
         }
@@ -478,7 +478,7 @@ TCPClient::ClientSockThreadProc(
         }
         usleep(50000);
     }
-    m_pClientSockLocker->UnLock();
+//    m_pClientSockLocker->UnLock();
 
     m_pClientSockLocker->Lock();
     m_boIsStarted = FALSE;

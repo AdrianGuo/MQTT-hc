@@ -41,6 +41,7 @@ public:
     void_t NwkInfoRsp(ZbPacket_p);
 
     void_t JoinNwkAllow(ZbPacket_p);
+    void_t JoinNwkAllow(u8_t);
     void_t JoinNwkInfoReq();
     bool_t JoinNwkInfoRsp(ZbPacket_p);
 

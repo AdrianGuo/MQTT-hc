@@ -4,26 +4,24 @@
  *  Created on: Dec 12, 2016
  *      Author: taho
  */
-#ifdef MT7688
 
 #include <Button.hpp>
 
-mraa::Gpio Button::s_Button(18);
-
+mraa::Gpio Button::m_sButton = mraa::Gpio(38);
+ButtonFunctor_p Button::m_spButtonFunctor = NULL;
 /**
  * @func
  * @brief  None
  * @param  None
  * @retval None
  */
-Button::Button() {
-    m_Result = s_Button.dir(mraa::DIR_IN);
-
-    if (m_Result != mraa::SUCCESS) {
-        mraa::printError(m_Result);
+Button::Button()
+{
+	mraa::Result result = m_sButton.dir(mraa::DIR_IN);
+    if (result != mraa::SUCCESS) {
+        mraa::printError(result);
     }
-
-    s_Button.isr(mraa::EDGE_FALLING, &EdgeFallingFunc, NULL);
+    m_sButton.isr(mraa::EDGE_FALLING, &EdgeFallingFunc, NULL);
 }
 
 /**
@@ -33,21 +31,6 @@ Button::Button() {
  * @retval None
  */
 Button::~Button(){
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-Button::EdgeRisingFunc (
-    void_p pBuffer
-) {
-    s_Button.isrExit();
-    Button::PressEvent(FALSE);
-    s_Button.isr(mraa::EDGE_FALLING, &Button::EdgeFallingFunc, NULL);
 }
 
 
@@ -61,9 +44,9 @@ void_t
 Button::EdgeFallingFunc (
     void_p pBuffer
 ) {
-    s_Button.isrExit();
-    Button::PressEvent(TRUE);
-    s_Button.isr(mraa::EDGE_RISING, &Button::EdgeRisingFunc, NULL);
+    m_sButton.isrExit();
+    m_sButton.isr(mraa::EDGE_RISING, &Button::EdgeRisingFunc, NULL);
+    (*m_spButtonFunctor)(TRUE);
 }
 
 /**
@@ -73,14 +56,28 @@ Button::EdgeFallingFunc (
  * @retval None
  */
 void_t
-Button::PressEvent (
-    bool_t boEvent
+Button::EdgeRisingFunc (
+    void_p pBuffer
 ) {
-	if(boEvent == TRUE) {
-
-	} else {
-
-	}
+    m_sButton.isrExit();
+    m_sButton.isr(mraa::EDGE_FALLING, &Button::EdgeFallingFunc, NULL);
+    (*m_spButtonFunctor)(FALSE);
 }
 
-#endif
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+Button::RecvFunctor(
+	ButtonFunctor_p pRecvFunctor
+) {
+    if (pRecvFunctor != NULL) {
+        m_spButtonFunctor = pRecvFunctor;
+        return TRUE;
+    }
+    return FALSE;
+}
+

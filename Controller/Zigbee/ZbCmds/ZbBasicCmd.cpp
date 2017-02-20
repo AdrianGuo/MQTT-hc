@@ -174,6 +174,23 @@ ZbBasicCmd::JoinNwkAllow(
  * @retval None
  */
 void_t
+ZbBasicCmd::JoinNwkAllow(
+    u8_t byTime
+){
+    ZbPacket_p pZbPacket = new ZbPacket();
+    pZbPacket->SetCmdID(NWK_JOIN);
+    pZbPacket->Push(byTime);
+    ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+    delete pZbPacket;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
 ZbBasicCmd::JoinNwkInfoReq(){
     ZbPacket_p pZbPacket = new ZbPacket();
     pZbPacket->SetCmdID(NWK_JOIN_INFO_REQ);

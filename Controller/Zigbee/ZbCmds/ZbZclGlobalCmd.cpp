@@ -563,7 +563,9 @@ ZbZclGlobalCmd::ProcessException(
             strManufactuter = String((const char*) pbyAttributeData);
             delete pbyAttributeData;
         }
-
+    }
+    if(strManufactuter == "") {
+    	strManufactuter = "Lumi R&D";
     }
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     if(device.Modify() != NULL) return;

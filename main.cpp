@@ -28,9 +28,7 @@
 #include "ZbCtrller.hpp"
 #include "HcCtrller.hpp"
 #include "LogPlus.hpp"
-#ifdef MT7688
 #include "IO.hpp"
-#endif
 
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -118,7 +116,9 @@ int main(int argc, char* argv[]) {
 	if (pRuleController != NULL) {
 		pRuleController->Start();
 	}
-
+//    IO::GetInstance()->Inform(IO::Event::Reach);
+//    IO::GetInstance()->Inform(IO::Event::Start);
+    IO::GetInstance()->Inform(IO::Event::Upgrading);
     while (TRUE) {
         if (pHcController != NULL) {
             pHcController->Process();
