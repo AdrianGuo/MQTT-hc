@@ -15,6 +15,7 @@
 #include <zcl_general.hpp>
 #include <ZbHelper.hpp>
 #include <ZbSocketCmd.hpp>
+#include <IO.hpp>
 #include <ZbZdoCmd.hpp>
 
 #define DEVICE_ANNOUNCE_TIME    (2)
@@ -164,6 +165,8 @@ ZbZdoCmd::DeviceAnnounce(
         u8_p pbyBuffer,
         u32_t idwLen
 ) {
+	Notify(DevSig);
+
     u16_t wNwk      = BigWord(&pbyBuffer);
     String MAC      = HexToString(pbyBuffer, 8);
     pbyBuffer       += 8;

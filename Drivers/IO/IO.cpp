@@ -223,7 +223,7 @@ IO::Inform(
 	switch (ioEvent) {
 		case NotStart:
 			if(m_ioCurState.ioColor == LED::Color::Pink) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Pink, LED::Action::Latch);
@@ -233,7 +233,7 @@ IO::Inform(
 		case Reset:
 		case Upgraded:
 			if(m_ioCurState.ioColor == LED::Color::Pink) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Pink, LED::Action::Blink, 0, 1, 3, FALSE);
@@ -241,7 +241,7 @@ IO::Inform(
 
 		case NotInternet:
 			if(m_ioCurState.ioColor == LED::Color::Red) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Red, LED::Action::Blink);
@@ -249,7 +249,7 @@ IO::Inform(
 
 		case NotReach:
 			if(m_ioCurState.ioColor == LED::Color::Red) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Red, LED::Action::Latch);
@@ -257,7 +257,7 @@ IO::Inform(
 
 		case Reach:
 			if(m_ioCurState.ioColor == LED::Color::Blue) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Blue, LED::Action::Latch, 0, 0, 0, TRUE);
@@ -265,7 +265,7 @@ IO::Inform(
 
 		case AppSig:
 			if(m_ioCurState.ioColor == LED::Color::Blue) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Blue, LED::Action::Hold, 1, 0, 0, FALSE);
@@ -273,7 +273,7 @@ IO::Inform(
 
 		case DevSig:
 			if(m_ioCurState.ioColor == LED::Color::Red) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Red, LED::Action::Hold, 1, 0, 0, FALSE);
@@ -281,7 +281,7 @@ IO::Inform(
 
 		case Broadcast:
 			if(m_ioCurState.ioColor == LED::Color::Blue) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Blue, LED::Action::Blink, 0, 0, 10, FALSE);
@@ -289,7 +289,7 @@ IO::Inform(
 
 		case Upgrading:
 			if(m_ioCurState.ioColor == LED::Color::RedBlue) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::RedBlue, LED::Action::Blink);
@@ -297,7 +297,7 @@ IO::Inform(
 
 		case Allowed:
 			if(m_ioCurState.ioColor == LED::Color::Blue) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(200000);
 			}
 			Indicate(LED::Color::Blue, LED::Action::Blink);
@@ -323,7 +323,7 @@ IO::ButtonEvents(
 		usleep(700000);
 		if(m_idwReleasedNo == 0) {
 			if(m_ioCurState.ioColor == LED::Color::Pink) {
-				Indicate(LED::Color::Off, LED::Action::Latch);
+				m_LED.Set(LED::Color::Off);
 				usleep(300000);
 			}
 			Indicate(LED::Color::Pink, LED::Action::Latch);
@@ -368,7 +368,7 @@ IO::ButtonEvents(
 				usleep(100000);
 				byCount--;
 			}
-			Indicate(LED::Color::Off, LED::Action::Latch);
+			m_LED.Set(LED::Color::Off);
 			m_pLocker->Lock();
 			m_boIsCanceled = TRUE;
 			m_pLocker->UnLock();
@@ -383,7 +383,7 @@ IO::ButtonEvents(
 			/*
 			 * Allow to join network.
 			 */
-			Indicate(LED::Color::Off, LED::Action::Latch);
+			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Allowed);
 			ZbBasicCmd::GetInstance()->JoinNwkAllow(0xFF);
 
@@ -395,11 +395,12 @@ IO::ButtonEvents(
 
 		if(m_boIsDisallowedReady == TRUE &&
 				m_boIsFResetReady == FALSE) {
+			LOG_DEBUG("=========================================");
 			/*
 			 * Disallow to join network.
 			 */
-			Indicate(LED::Color::Off, LED::Action::Latch);
-			Inform(IO::Event::Allowed);
+//			m_LED.Set(LED::Color::Off);
+			Indicate(m_ioBakState, TRUE);
 			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
 
 			m_pLocker->Lock();
@@ -414,7 +415,7 @@ IO::ButtonEvents(
 			/*
 			 * Factor reset.
 			 */
-			Indicate(LED::Color::Off, LED::Action::Latch);
+			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Reset);
 			LOG_WARN("Factory reset !!!");
 
@@ -430,10 +431,10 @@ IO::ButtonEvents(
 			/*
 			 * Cancel press button event.
 			 */
-			Indicate(LED::Color::Off, LED::Action::Latch);
+			m_LED.Set(LED::Color::Off);
 			Indicate(m_ioBakState, TRUE);
 			LOG_WARN("Pressed cancel!");
-//			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
+			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
 
 			m_pLocker->Lock();
 			m_idwReleasedNo = 0;
