@@ -68,8 +68,10 @@ private:
     ButtonFunctor_t m_ButtonFunctor;
 
     //Variables for coincident events preventing
-    bool_t		m_boIsJoinableReady;
+    bool_t		m_boIsAllowedReady;
+    bool_t		m_boIsDisallowedReady;
     bool_t		m_boIsFResetReady;
+    bool_t		m_boIsCanceled;
 
     Locker_p        m_pLocker;
     RTimer_p        m_pRTimer;
@@ -95,7 +97,7 @@ public:
 		DevSig, // blink-red-1
 		Broadcast, // blink-blue-10
 		Upgrading, // blink-blue/red-0
-		Joinable // blink-blue-0
+		Allowed // blink-blue-0
     } Event_t;
 
     void_t Indicate(IOState_t, bool_t boIsBAKed = FALSE);

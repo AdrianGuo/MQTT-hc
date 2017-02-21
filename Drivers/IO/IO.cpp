@@ -27,8 +27,10 @@ IO::IO(
     m_idwBlinkedNo = 0;
     m_idwReleasedNo = 0;
     m_boIsBAKed = FALSE;
-    m_boIsJoinableReady = FALSE;
+    m_boIsAllowedReady = FALSE;
     m_boIsFResetReady = FALSE;
+    m_boIsDisallowedReady = FALSE;
+    m_boIsCanceled = FALSE;
     m_ButtonFunctor = makeFunctor((ButtonFunctor_p) NULL, *this, &IO::ButtonEvents);
     m_Button.RecvFunctor(&m_ButtonFunctor);
 
@@ -293,7 +295,7 @@ IO::Inform(
 			Indicate(LED::Color::RedBlue, LED::Action::Blink);
 			break;
 
-		case Joinable:
+		case Allowed:
 			if(m_ioCurState.ioColor == LED::Color::Blue) {
 				Indicate(LED::Color::Off, LED::Action::Latch);
 				usleep(200000);
@@ -326,12 +328,27 @@ IO::ButtonEvents(
 			}
 			Indicate(LED::Color::Pink, LED::Action::Latch);
 			m_pLocker->Lock();
-			m_boIsJoinableReady = TRUE;
+			m_boIsAllowedReady = TRUE;
 			m_pLocker->UnLock();
-			//Wait to check factory reset event.
-			u8_t byCount = 4*1000000/100000;
+
+			//Wait for disallowing to join event.
+			u8_t byCount = 2*1000000/100000;
 			while(byCount > 0) {
-				if(m_idwReleasedNo > 0 || m_ioCurState.ioColor != LED::Color::Pink) {
+				if(m_idwReleasedNo > 0) {
+					return;
+				}
+				usleep(100000);
+				byCount--;
+			}
+			Indicate(LED::Color::Blue, LED::Action::Latch);
+			m_pLocker->Lock();
+			m_boIsDisallowedReady = TRUE;
+			m_pLocker->UnLock();
+
+			//Wait for factory reset event.
+			byCount = 3*1000000/100000;
+			while(byCount > 0) {
+				if(m_idwReleasedNo > 0) {
 					return;
 				}
 				usleep(100000);
@@ -341,39 +358,89 @@ IO::ButtonEvents(
 			m_pLocker->Lock();
 			m_boIsFResetReady = TRUE;
 			m_pLocker->UnLock();
+
+			//Wait for cacle event.
+			byCount = 3*1000000/100000;
+			while(byCount > 0) {
+				if(m_idwReleasedNo > 0) {
+					return;
+				}
+				usleep(100000);
+				byCount--;
+			}
+			Indicate(LED::Color::Off, LED::Action::Latch);
+			m_pLocker->Lock();
+			m_boIsCanceled = TRUE;
+			m_pLocker->UnLock();
 		}
 	} else {
 		LOG_DEBUG("========== The button was released! ==========");
 		m_pLocker->Lock();
 		m_idwReleasedNo++;
 		m_pLocker->UnLock();
-		if(m_boIsJoinableReady == TRUE &&
-				m_boIsFResetReady == FALSE) {
+		if(m_boIsAllowedReady == TRUE &&
+				m_boIsDisallowedReady == FALSE) {
 			/*
 			 * Allow to join network.
 			 */
-			Inform(IO::Event::Joinable);
+			Indicate(LED::Color::Off, LED::Action::Latch);
+			Inform(IO::Event::Allowed);
 			ZbBasicCmd::GetInstance()->JoinNwkAllow(0xFF);
 
 			m_pLocker->Lock();
 			m_idwReleasedNo = 0;
-			m_boIsJoinableReady = FALSE;
+			m_boIsAllowedReady = FALSE;
 			m_pLocker->UnLock();
 		}
 
-		if(m_boIsFResetReady == TRUE) {
+		if(m_boIsDisallowedReady == TRUE &&
+				m_boIsFResetReady == FALSE) {
+			/*
+			 * Disallow to join network.
+			 */
+			Indicate(LED::Color::Off, LED::Action::Latch);
+			Inform(IO::Event::Allowed);
+			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
+
+			m_pLocker->Lock();
+			m_idwReleasedNo = 0;
+			m_boIsAllowedReady = FALSE;
+			m_boIsDisallowedReady = FALSE;
+			m_pLocker->UnLock();
+		}
+
+		if(m_boIsFResetReady == TRUE &&
+				m_boIsCanceled == FALSE) {
 			/*
 			 * Factor reset.
 			 */
 			Indicate(LED::Color::Off, LED::Action::Latch);
-			usleep(200000);
 			Inform(IO::Event::Reset);
 			LOG_WARN("Factory reset !!!");
 
 			m_pLocker->Lock();
 			m_idwReleasedNo = 0;
-			m_boIsJoinableReady = FALSE;
+			m_boIsAllowedReady = FALSE;
+			m_boIsDisallowedReady = FALSE;
 			m_boIsFResetReady = FALSE;
+			m_pLocker->UnLock();
+		}
+
+		if(m_boIsCanceled == TRUE) {
+			/*
+			 * Cancel press button event.
+			 */
+			Indicate(LED::Color::Off, LED::Action::Latch);
+			Indicate(m_ioBakState, TRUE);
+			LOG_WARN("Pressed cancel!");
+//			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
+
+			m_pLocker->Lock();
+			m_idwReleasedNo = 0;
+			m_boIsAllowedReady = FALSE;
+			m_boIsDisallowedReady = FALSE;
+			m_boIsFResetReady = FALSE;
+			m_boIsCanceled = FALSE;
 			m_pLocker->UnLock();
 		}
 	}
