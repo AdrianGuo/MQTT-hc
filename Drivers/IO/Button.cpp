@@ -8,8 +8,7 @@
 #include <Button.hpp>
 
 mraa::Gpio Button::m_sButton = mraa::Gpio(38);
-ButtonFunctor_p Button::m_spPressedFunctor = NULL;
-ButtonFunctor_p Button::m_spReleasedFunctor = NULL;
+ButtonFunctor_p Button::m_spButtonFunctor = NULL;
 /**
  * @func
  * @brief  None
@@ -47,7 +46,7 @@ Button::EdgeFallingFunc (
 ) {
     m_sButton.isrExit();
     m_sButton.isr(mraa::EDGE_RISING, &Button::EdgeRisingFunc, NULL);
-    (*m_spPressedFunctor)();
+    (*m_spButtonFunctor)(TRUE);
 }
 
 /**
@@ -62,7 +61,7 @@ Button::EdgeRisingFunc (
 ) {
     m_sButton.isrExit();
     m_sButton.isr(mraa::EDGE_FALLING, &Button::EdgeFallingFunc, NULL);
-    (*m_spReleasedFunctor)();
+    (*m_spButtonFunctor)(FALSE);
 }
 
 /**
@@ -73,12 +72,10 @@ Button::EdgeRisingFunc (
  */
 bool_t
 Button::RecvFunctor(
-	ButtonFunctor_p pPressedFunctor,
-	ButtonFunctor_p pReleasedFunctor
+	ButtonFunctor_p pRecvFunctor
 ) {
-    if (pPressedFunctor != NULL && pReleasedFunctor != NULL) {
-        m_spPressedFunctor = pPressedFunctor;
-        m_spReleasedFunctor = pReleasedFunctor;
+    if (pRecvFunctor != NULL) {
+        m_spButtonFunctor = pRecvFunctor;
         return TRUE;
     }
     return FALSE;

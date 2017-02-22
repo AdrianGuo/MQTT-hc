@@ -96,8 +96,7 @@ public:
 	void_t HandleLEDTimerWork(void_p);
 
 	void_t Inform(Event_t);
-	void_t PressedEvent();
-	void_t ReleasedEvent();
+	void_t ButtonEvents(bool_t);
 
 private:
     LED       	m_LED;
@@ -110,8 +109,7 @@ private:
 
     u32_t 		m_idwBlinkedNo;
     u32_t		m_idwReleasedNo;
-    ButtonFunctor_t m_PressedFunctor;
-    ButtonFunctor_t m_ReleasedFunctor;
+    ButtonFunctor_t m_ButtonFunctor;
 
     u8_t		m_byButtonEvent;
 

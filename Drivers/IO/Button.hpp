@@ -12,13 +12,12 @@
 #include <mraa.hpp>
 #include <Functor.hpp>
 
-typedef Funtor0_t		             	   ButtonFunctor_t;
+typedef Functor1_t(bool_t)             	   ButtonFunctor_t;
 typedef ButtonFunctor_t*                   ButtonFunctor_p;
 
 class Button {
 private:
-	static ButtonFunctor_p m_spPressedFunctor;
-	static ButtonFunctor_p m_spReleasedFunctor;
+	static ButtonFunctor_p m_spButtonFunctor;
 
     static void_t EdgeRisingFunc (void_p);
     static void_t EdgeFallingFunc (void_p);
@@ -28,8 +27,7 @@ public:
     ~Button();
 
     static mraa::Gpio m_sButton;
-	bool_t RecvFunctor(ButtonFunctor_p pPressedFunctor,
-			ButtonFunctor_p pReleasedFunctor);
+    bool_t RecvFunctor(ButtonFunctor_p pRecvFunctor);
 };
 
 #endif /* DRIVERS_IO_BUTTON_HPP_ */
