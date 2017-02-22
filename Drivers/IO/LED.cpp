@@ -29,7 +29,7 @@ LED::LED(
     if (ret2 != mraa::SUCCESS) {
         mraa::printError(ret1);
     }
-
+    m_boIsLocked = FALSE;
     m_pLocker   = new Locker();
 }
 
@@ -49,10 +49,12 @@ LED::~LED(){
  * @param  None
  * @retval None
  */
-void_t
+bool_t
 LED::Set(
 Color_t color
 ) {
+	if(m_boIsLocked == TRUE)
+		return FALSE;
 	m_pLocker->Lock();
 	switch (color) {
 		case Color::Off:
@@ -79,4 +81,34 @@ Color_t color
 			break;
 	}
     m_pLocker->UnLock();
+    return TRUE;
+}
+
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+LED::Lock(
+) {
+	m_pLocker->Lock();
+	m_boIsLocked = TRUE;
+	m_pLocker->UnLock();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+LED::UnLock(
+) {
+	m_pLocker->Lock();
+	m_boIsLocked = FALSE;
+	m_pLocker->UnLock();
 }

@@ -116,9 +116,10 @@ int main(int argc, char* argv[]) {
 	if (pRuleController != NULL) {
 		pRuleController->Start();
 	}
+	IO::GetInstance();
 //    IO::GetInstance()->Inform(IO::Event::Reach);
 //    IO::GetInstance()->Inform(IO::Event::Start);
-    IO::GetInstance()->Inform(IO::Event::Upgrading);
+//    IO::GetInstance()->Inform(IO::Event::Upgrading);
     while (TRUE) {
         if (pHcController != NULL) {
             pHcController->Process();

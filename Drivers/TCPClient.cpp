@@ -99,7 +99,7 @@ TCPClient::TCPClient(
     m_pClientSockThread->RegThreadFunctor(&m_ClientSockThreadFunctor);
     m_pClientSockLocker = new Locker();
 
-    Notify(Start);
+    //Notify(Start);
 }
 
 
@@ -182,11 +182,11 @@ TCPClient::Connect() {
             if (idwResult == SOCKET_ERROR) {
                 LOG_ERROR("connect fail [%d]", errno); /* Debug */
                 m_boIsConnected = FALSE;
-                Notify(NotReach);
+                //Notify(NotReach);
                 return FALSE;
             } else {
                 m_boIsConnected = TRUE;
-                Notify(Reach);
+                //Notify(Reach);
             }
         } else { /* If is non-blocking */
             fd_set rset, wset;
@@ -199,7 +199,7 @@ TCPClient::Connect() {
                     LOG_ERROR("connect fail");
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
-                    Notify(NotReach);
+                    //Notify(NotReach);
                     return FALSE;
                 }
             }
@@ -219,7 +219,7 @@ TCPClient::Connect() {
             if ((idwResult = select(m_idwSockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
                 LOG_WARN("timeout");
                 m_boIsConnected = FALSE;
-                Notify(NotReach);
+                //Notify(NotReach);
                 close(m_idwSockfd);
                 idwError = ETIMEDOUT;
                 return FALSE;
@@ -231,22 +231,22 @@ TCPClient::Connect() {
                     /* Solaris pending error */
                     close(m_idwSockfd);
                     m_boIsConnected = FALSE;
-                    Notify(NotReach);
+                    //Notify(NotReach);
                     return FALSE;
                 } else {
                     LOG_INFO("connected");
                     m_boIsConnected = TRUE;
-                    Notify(Reach);
+                    //Notify(Reach);
                 }
             } else {
                 close(m_idwSockfd);
                 m_boIsConnected = FALSE;
-                Notify(NotReach);
+                //Notify(NotReach);
                 return FALSE;
             }
             done:
             m_boIsConnected = TRUE;
-            Notify(Reach);
+            //Notify(Reach);
             if (idwError > 0) {
                 errno = idwError;
                 close(m_idwSockfd);

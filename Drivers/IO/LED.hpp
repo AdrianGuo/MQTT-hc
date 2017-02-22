@@ -17,6 +17,7 @@ class LED {
 private:
     mraa::Gpio      m_LED1;
     mraa::Gpio      m_LED2;
+    bool_t			m_boIsLocked;
 
     Locker_p        m_pLocker;
 
@@ -41,7 +42,9 @@ public:
     LED(int_t, int_t);
     ~LED();
 
-    void_t Set(Color_t);
+    bool_t Set(Color_t);
+    void_t Lock();
+    void_t UnLock();
 };
 
 //#endif
