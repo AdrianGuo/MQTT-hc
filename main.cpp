@@ -125,16 +125,10 @@ int main(int argc, char* argv[]) {
 
 	IO_Init();
 
-//	u8_t count = 1;
-
     while (TRUE) {
         if (pHcController != NULL) {
             pHcController->Process();
         }
-//        if (count == 1) {
-//        	pFileManager->RequestLatestFwVersion();
-////            count = 2;
-//        }
     }
 
     return 0;

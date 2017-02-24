@@ -54,6 +54,7 @@ public:
     bool_t IsExpired(u32_t dwTimerID);
     u32_t Count() const { return m_dwCount; }
     u32_t Index() const { return m_dwTimerIndex; }
+    bool_t ChangeTimeout(u32_t dwTimerID, u32_t Stimeout);
 };
 
 typedef RTimer  RTimer_t;

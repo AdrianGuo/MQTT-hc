@@ -234,3 +234,15 @@ RTimer::IsExpired(
 
     return boRetVal;
 }
+
+bool_t
+RTimer::ChangeTimeout(
+	u32_t dwTimerID,
+	u32_t timeout
+) {
+    if (dwTimerID > MaxTimer) {
+        return FALSE;
+    }
+    m_Timer[dwTimerID].timeout = timeout;
+    return TRUE;
+}

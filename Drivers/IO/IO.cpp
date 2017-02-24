@@ -16,6 +16,8 @@
 #define HARDRESET 			(7*1000000/PERIOD)
 #define CANCEL 				(10*1000000/PERIOD)
 
+#define HIDDEN 				(3)
+
 IO* IO::s_pInstance = NULL;
 
 /**
@@ -39,6 +41,8 @@ IO::IO(
     m_pRTimer   = RTimer::getTimerInstance();
     m_LEDTimerFunctor   = makeFunctor((TimerFunctor_p) NULL, *this, &IO::HandleLEDTimerWork);
     m_iLEDTimerID = -1;
+    m_HiddenTimerFunctor   = makeFunctor((TimerFunctor_p) NULL, *this, &IO::HandleHiddenTimerWork);
+    m_iHiddenTimerID = -1;
 
     RegisterEvent();
 }
@@ -124,6 +128,11 @@ IO::RegisterEvent(
 	m_mapEvents[IO::Event::HoldButton].ioAction = LED::Action::Latch;
 	m_mapEvents[IO::Event::HoldButton].prioLevel = IO::PrioLevel::High;
 
+	m_mapEvents[IO::Event::Hidden].ioColor = LED::Color::RedPink;
+	m_mapEvents[IO::Event::Hidden].ioAction = LED::Action::Blink;
+	m_mapEvents[IO::Event::Hidden].ioNo = 2;
+	m_mapEvents[IO::Event::Hidden].prioLevel = IO::PrioLevel::Critical;
+
 	for(Map<Event_t,IOState_t>::const_iterator it = m_mapEvents.begin(); it != m_mapEvents.end(); it++) {
 		m_mapEvents[it->first].ioName = it->first;
 	}
@@ -187,9 +196,6 @@ IO::Indicate(
 	if(m_ioCurState.ioAction == LED::Action::Latch) {
 		LOG_DEBUG("========== Start: Latch ==========");;
 		m_LED.Set(m_ioCurState.ioColor);
-//		m_pLocker->Lock();
-//		m_prioCurLevel = PrioLevel::Low;
-//		m_pLocker->UnLock();
 	} else if(m_ioCurState.ioAction == LED::Action::Hold) {
 		LOG_DEBUG("========== Start: Hold ==========");
 		m_LED.Set(m_ioCurState.ioColor);
@@ -198,25 +204,7 @@ IO::Indicate(
 		}
 	} else if(m_ioCurState.ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Start: Blink ==========");
-		if(m_ioCurState.ioColor < 10) {
-			m_LED.Set(m_ioCurState.ioColor);
-		} else {
-			m_LED.Set((LED::Color) (m_ioCurState.ioColor/10));
-		}
-		if(m_idwBlinkedNo == 0) {
-			if(m_ioCurState.ioNo != 0) {
-				m_pLocker->Lock();
-				m_idwBlinkedNo++;
-				m_pLocker->UnLock();
-			}
-			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, (m_ioCurState.ioDuty + 1), &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
-		}
-		sleep(m_ioCurState.ioDuty);
-		if(m_ioCurState.ioColor < 10) {
-			m_LED.Set(LED::Color::Off);
-		} else {
-			m_LED.Set((LED::Color) (m_ioCurState.ioColor%10));
-		}
+		m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, 0, &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
 	}
 
 }
@@ -231,7 +219,6 @@ void_t
 IO::HandleLEDTimerWork(
 	void_p pbyBuffer
 ) {
-	LOG_DEBUG("========== HandleLEDTimerWork ==========");
 	if(m_iLEDTimerID == -1 ||
 			m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 
@@ -244,6 +231,7 @@ IO::HandleLEDTimerWork(
 	} else if (m_ioCurState.ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Handle: Blink ==========");
 		if(m_idwBlinkedNo < m_ioCurState.ioNo || m_ioCurState.ioNo == 0) {
+			m_pRTimer->ChangeTimeout(m_iLEDTimerID, m_ioCurState.ioDuty + 1);
 			if(m_ioCurState.ioNo != 0) {
 				m_pLocker->Lock();
 				m_idwBlinkedNo++;
@@ -291,7 +279,11 @@ IO::ButtonEvents(
     bool_t IsPressed
 ) {
 	if(IsPressed == TRUE) {
-		LOG_DEBUG("========== The button was pressed! ==========");
+		LOG_DEBUG("========== The button was pressed %d! ==========", m_idwReleasedNo);
+
+		if(m_idwReleasedNo == 10) {
+			HiddenFunctions();
+		}
 
 		if(m_idwReleasedNo >= 0xFFFFFFFE)
 			m_idwReleasedNo = 1;
@@ -349,10 +341,6 @@ IO::ButtonEvents(
 		LOG_DEBUG("========== The button was released! ==========");
 		m_idwReleasedNo++;
 
-		if(m_idwReleasedNo >= 10) {
-			HiddenFunctions();
-		}
-
 		if(m_byButtonEvent != 0) {
 			m_pLocker->Lock();
 			m_prioCurLevel = PrioLevel::Low;
@@ -409,7 +397,45 @@ IO::HiddenFunctions(
 /*
  * For hidden functions for future!!!
  */
-	LOG_DEBUG("========== HiddenFunctions! ==========");
-	m_idwReleasedNo = 1;
+	LOG_DEBUG("xxxxxxxxxxxx HiddenFunctions: Actived! xxxxxxxxxxxx");
+	Inform(IO::Event::Hidden);
+	if(m_iHiddenTimerID != -1) {
+		if(m_pRTimer->CancelTimer(m_iHiddenTimerID))
+			m_iHiddenTimerID = -1;
+	}
+	m_iHiddenTimerID = m_pRTimer->StartTimer(RTimer::Repeat::OneTime, HIDDEN, &m_HiddenTimerFunctor, NULL);
 }
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::HandleHiddenTimerWork(
+	void_p pbyBuffer
+) {
+	if(m_iHiddenTimerID == -1 || m_idwReleasedNo < 11) return;
+	u32_t pressed = m_idwReleasedNo - 11;
+	LOG_DEBUG("xxxxxxxxxxxx (%d) xxxxxxxxxxxx", pressed);
+	if(pressed == 1) {
+		LOG_DEBUG("xxxxxxxxxxxx Switch to DHCP xxxxxxxxxxxx");
+		system("uci set  network.lan.proto=dhcp");
+		system("uci delete  network.lan.ipaddr");
+		system("uci delete  network.lan.netmask");
+	} else if(pressed == 3) {
+		LOG_DEBUG("xxxxxxxxxxxx Switch to AP xxxxxxxxxxxx");
+		system("uci set  wireless.radio0.linkit_mode=sta");
+		system("uci set wireless.sta.disabled=0");
+	} else if (pressed == 5) {
+		LOG_DEBUG("xxxxxxxxxxxx Switch to STA xxxxxxxxxxxx");
+		system("uci set  wireless.radio0.linkit_mode=sta");
+		system("uci set wireless.sta.disabled=0");
+	} else if (pressed == 7) {
+		LOG_DEBUG("xxxxxxxxxxxx Reset password xxxxxxxxxxxx");
+		system("cp /etc/shadow.bak /etc/shadow");
+	}
+}
+
 #endif

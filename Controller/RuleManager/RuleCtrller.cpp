@@ -299,9 +299,9 @@ void_p RuleCtrller::DbCtrlllerThreadProc(void_p pBuffer) {
 		m_pRuleCtrllerLocker->UnLock();
 
 		if (pJsonCommand != NULL) {
-			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
-					pJsonCommand->GetFullCommand().c_str(),
-					pJsonCommand->GetJsonValue().c_str());
+//			LOG_DEBUG("DbCtrlllerThreadProc: %s%s",
+//					pJsonCommand->GetFullCommand().c_str(),
+//					pJsonCommand->GetJsonValue().c_str());
 			String strJsonCommandName = pJsonCommand->GetFullCommand();
 			MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(
 					strJsonCommandName);

@@ -316,6 +316,12 @@ ZbCtrller::HandlerCmdSet(
     JsonDevSet_p pJsonDevSet = jsonDevSet->Object();
     pJsonDevSet->ParseJsonCommand(pJsonCommand);
 
+    Vector<JsonDevSet::Device_t> vecLstDev = pJsonDevSet->LstDev();
+	LOG_DEBUG("______________________________________  %d", vecLstDev.size());
+    for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
+    	LOG_DEBUG("_____________________________  %d %d", vecLstDev[i].devid, vecLstDev[i].order);
+    }
+
     ZbMessage_p pZbMessage = new ZbMessage(pJsonDevSet,
             ZbMessage::Command::SetDevice);
     pZbMessage->SetClientId(pJsonCommand->GetClientId());

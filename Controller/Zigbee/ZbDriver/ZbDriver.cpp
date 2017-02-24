@@ -318,8 +318,9 @@ ZbDriver::ProcCmdSet(
     ZbMessage_p pZbMessage
 ) {
     JsonDevSet_p pJsonDevSet = (JsonDevSet_p) pZbMessage->GetJsonMessageObject();
-	LOG_DEBUG("vvvvvvvvvvvvvvvvvvvvvvvvvvv %s", pJsonDevSet->GetStrCmd().c_str());
+	LOG_DEBUG("------------------------------- %s", pJsonDevSet->GetStrCmd().c_str());
     Vector<JsonDevSet::Device_t> vecLstDev = pJsonDevSet->LstDev();
+	LOG_DEBUG("xxxxxxxxxxxxxxxxxxxxxxxx  %d %d %d", vecLstDev.size(), vecLstDev[0].devid, vecLstDev[0].order);
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
         Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
         if(device.Modify() == NULL) { continue; }
@@ -364,7 +365,7 @@ ZbDriver::ProcCmdSet(
                 break;
         }
     }
-    pJsonDevSet->Refresh();
+//    pJsonDevSet->Refresh();
 }
 
 

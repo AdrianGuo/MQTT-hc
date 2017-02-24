@@ -47,7 +47,8 @@ public:
 		Broadcast, 			/* 11: blink-blue-10 */
 		Upgrading, 			/* 12: blink-blue/red-0*/
 		Allowed, 			/* 13: blink-blue-0*/
-		HoldButton				/* 14: */
+		HoldButton,			/* 14: */
+		Hidden				/* 15: */
     } Event_t;
 
     typedef enum PrioLevel {
@@ -118,6 +119,8 @@ private:
     RTimer_p        m_pRTimer;
     TimerFunctor_t  m_LEDTimerFunctor;
     int_t			m_iLEDTimerID;
+    TimerFunctor_t  m_HiddenTimerFunctor;
+    int_t			m_iHiddenTimerID;
 
     IO();
 
@@ -127,6 +130,7 @@ private:
 	void_t HandleLEDTimerWork(void_p);
 	void_t ButtonEvents(bool_t);
 	void_t HiddenFunctions();
+	void_t HandleHiddenTimerWork(void_p);
 };
 
 typedef IO 	IO_t;
