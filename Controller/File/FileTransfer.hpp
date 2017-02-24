@@ -9,13 +9,16 @@
 #define LIBRARIES_FILE_FILETRANSFER_HPP_
 
 #include "String.hpp"
+#include "LogPlus.hpp"
 #include "Ftplib.h"
 #include "LThread.hpp"
 #include "Locker.hpp"
 #include "RTimer.hpp"
 
-#define SERVER_IP           "125.212.226.54"
-#define SERVER_PORT         "21"
+#define HC_FW					(1)
+#define HC_APP					(2)
+#define LC_FW					(3)
+#define LC_APP					(4)
 
 class FileTransfer {
 private:
@@ -25,6 +28,7 @@ private:
     String m_strUser;
     String m_strPassword;
     String m_strLocation;
+    String m_strFileLocation;
     String m_strMD5;
 
     LThread_p m_pBackupThread;
@@ -50,7 +54,7 @@ public:
         UPGRADE_HC
     } Action;
 
-    FileTransfer(String strIP = SERVER_IP, String strPort = SERVER_PORT);
+    FileTransfer();
     ~FileTransfer();
 
     bool   Connect();
@@ -62,6 +66,7 @@ public:
     void_t SetServerUser(String);
     void_t SetServerPassword(String);
     void_t SetServerLocation(String);
+    void_t SetFileLocation(String);
     void_t SetMD5(String);
 
     void_t Do(FileTransfer::Action);
@@ -72,5 +77,8 @@ public:
 
     void_t HandleFileTransferProcess(void_p pBuffer);
 };
+
+typedef FileTransfer  FileTransfer_t;
+typedef FileTransfer* FileTransfer_p;
 
 #endif /* LIBRARIES_FILE_FILETRANSFER_HPP_ */

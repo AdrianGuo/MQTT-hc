@@ -7,8 +7,8 @@
 
 #ifndef DRIVERS_IO_LED_HPP_
 #define DRIVERS_IO_LED_HPP_
-//#ifdef MT7688
 
+#ifdef MT7688
 #include <typedefs.h>
 #include <mraa.hpp>
 #include <Locker.hpp>
@@ -46,6 +46,6 @@ public:
     void_t Lock();
     void_t UnLock();
 };
+#endif
 
-//#endif
 #endif /* DRIVERS_IO_LED_HPP_ */

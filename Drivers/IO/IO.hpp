@@ -14,18 +14,41 @@
 #include <LED.hpp>
 #include <Button.hpp>
 
+#ifdef MT7688
+#define IO_Init()		{IO::GetInstance();}
 #define Notify(x)		{IO::GetInstance()->Inform(IO::Event::x);}
+#else
+#define IO_Init()		{}
+#define Notify(x)		{}
+#endif
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
-
+#ifdef MT7688
 class IO {
 public:
     ~IO();
     static IO* s_pInstance;
     static  IO* GetInstance();
 
+    typedef enum Event {
+    	Unidentified = 0,	/* 0:  */
+		Backup, 			/* 1:  */
+    	NotStart, 			/* 2:  latch-pink */
+        Start, 				/* 3:  blink-pink-3 */
+		Reset, 				/* 4:  blink-pink-3 */
+		Upgraded, 			/* 5:  blink-pink-3 */
+        NotInternet, 		/* 6:  blink-red-0 */
+        NotReach, 			/* 7:  latch-red */
+		Reach, 				/* 8:  latch-blue */
+		AppSig, 			/* 9:  blink-blue-1 */
+		DevSig, 			/* 10: blink-red-1 */
+		Broadcast, 			/* 11: blink-blue-10 */
+		Upgrading, 			/* 12: blink-blue/red-0*/
+		Allowed, 			/* 13: blink-blue-0*/
+		HoldButton				/* 14: */
+    } Event_t;
 
     typedef enum PrioLevel {
     	Low = 0,
@@ -35,6 +58,7 @@ public:
     } PrioLevel_t;
 
     typedef struct IOState {
+    	IO::Event		ioName = Unidentified;
     	LED::Color_t 	ioColor = LED::Color::Off;
     	LED::Action_t 	ioAction = LED::Action::Latch;
     	u32_t 			ioTime = 0;
@@ -42,6 +66,7 @@ public:
     	u32_t 			ioNo = 0;
     	bool_t			boIsBAKed = FALSE;
     	PrioLevel_t 	prioLevel = PrioLevel::Low;
+
         /*
          * Overloaded operators
          */
@@ -49,6 +74,7 @@ public:
         operator=(
             const IOState& rhs
         ){
+        	ioName		= rhs.ioName;
         	ioColor		= rhs.ioColor;
         	ioAction	= rhs.ioAction;
         	ioTime		= rhs.ioTime;
@@ -61,6 +87,7 @@ public:
         operator!=(
             const IOState& rhs
         ){
+        	if(ioName != rhs.ioName) return true;
             if(ioColor != rhs.ioColor) return true;
             if(ioAction != rhs.ioAction) return true;
             if(ioTime != rhs.ioTime) return true;
@@ -70,33 +97,7 @@ public:
         }
     } IOState_t;
 
-    typedef enum Event {
-    	NotStart = 0, // latch-pink
-        Start, // blink-pink-3
-		Reset, // blink-pink-3
-		Upgraded, // blink-pink-3
-        NotInternet, // blink-red-0
-        NotReach, // latch-red
-		Reach, // latch-blue
-		AppSig, // blink-blue-1
-		DevSig, // blink-red-1
-		Broadcast, // blink-blue-10
-		Upgrading, // blink-blue/red-0
-		Allowed, // blink-blue-0
-		Hold1s,
-		Hold3s,
-		Hold7s,
-		Hold10s
-    } Event_t;
-
-    void_t Indicate(IOState_t);
-	void_t Indicate(LED::Color_t ioColor, LED::Action_t ioAction, u32_t idwTime,
-			u32_t idwDuty, u32_t idwNo, bool_t boIsBAKed,
-			PrioLevel_t prioCurLevel);
-	void_t HandleLEDTimerWork(void_p);
-
 	void_t Inform(Event_t);
-	void_t ButtonEvents(bool_t);
 
 private:
     LED       	m_LED;
@@ -119,10 +120,17 @@ private:
     int_t			m_iLEDTimerID;
 
     IO();
+
     void_t RegisterEvent();
+    void_t Indicate(IOState_t);
+
+	void_t HandleLEDTimerWork(void_p);
+	void_t ButtonEvents(bool_t);
+	void_t HiddenFunctions();
 };
 
 typedef IO 	IO_t;
 typedef IO* IO_p;
+#endif
 
 #endif /* DRIVERS_IO_HPP_ */

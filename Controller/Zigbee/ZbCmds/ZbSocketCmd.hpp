@@ -40,6 +40,8 @@ public:
     void_t SendZbStt(Device_t, Json::Value, JsonCommand::Flag des = JsonCommand::Flag::Coord);
     void_t SendResetRes(u8_t, JsonCommand::Flag des = JsonCommand::Flag::Coord);
 
+    void_t SendDevAdd(i8_t, JsonCommand::Flag des = JsonCommand::Flag::Coord);
+
     //Client
     void_t SendAuthRes(NetDevice_t);
 };

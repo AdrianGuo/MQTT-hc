@@ -94,6 +94,14 @@
 #include "JsonRuleInfor.hpp"
 #include "JsonRuleSync.hpp"
 
+#include "JsonFile/JsonFileInfoReq.hpp"
+#include "JsonFile/JsonFileInfoRes.hpp"
+#include "JsonFile/JsonFileGet.hpp"
+#include "JsonFile/JsonFileRes.hpp"
+#include "JsonFile/JsonFwInfoReq.hpp"
+#include "JsonFile/JsonFwInfoRes.hpp"
+#include "JsonFile/JsonFwForce.hpp"
+
 #include "HcCtrller.hpp"
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
@@ -123,7 +131,7 @@
 HcCtrller::HcCtrller(const_char_p ipname, int_t ipport, const_char_p cMacID) :
 		m_DbManager(), m_DevManager(), m_NetManager(cMacID), m_RuManager(), m_SessionClient(
 				ipname, ipport), m_pZwCtrller(NULL), m_pZbCtrller(NULL), m_pRuleCtrller(
-		NULL), m_pHCCtrllerLocker(new Locker()), m_boIsDebug(FALSE) {
+		NULL), m_pFileManager(NULL), m_pHCCtrllerLocker(new Locker()), m_boIsDebug(FALSE) {
 	m_pDbModelDb = DbModel::CreateModel("newhc.db");
 	m_HCCtrllerFunctor = makeFunctor((HCCtrllerFunctor_p) NULL, *this,
 			&HcCtrller::RecvCommandFromSession);
@@ -259,11 +267,34 @@ void_t HcCtrller::RegisterHandler() {
 			makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdLstAddRes));
 	RegisterHandler(JsonDevLstDelRes::GetStrCmd(),
-			makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager,
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdLstDelRes));
 	RegisterHandler(JsonDevSyncRes::GetStrCmd(),
 			makeFunctor((HandlerDevCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdSyncRes));
+
+	/* File, Firmware */
+	RegisterHandler(JsonFileInfoReq::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
+	RegisterHandler(JsonFileInfoRes::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
+	RegisterHandler(JsonFileGet::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
+	RegisterHandler(JsonFileRes::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
+	RegisterHandler(JsonFwInfoReq::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
+	RegisterHandler(JsonFwInfoRes::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
+	RegisterHandler(JsonFwForce::GetStrCmd(),
+			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
+					&DevManager::HandlerDevCmdFile));
 
 	/* Network */
 	RegisterHandler(JsonAuthRes::GetStrCmd(),
@@ -369,6 +400,16 @@ void_t HcCtrller::AddRuleCtrller(RuleCtrller_p pRuleCtrller) {
 }
 
 /**
+ * @func   AddZbCtrller
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t HcCtrller::AddFileManager(FileManager_p pFileManager) {
+	m_pFileManager = pFileManager;
+	m_pFileManager->CtrllerRecvFunctor(&m_CtrllerFunctor);
+}
+/**
  * @func   RecvCommandFromSession
  * @brief  None
  * @param  None
@@ -449,6 +490,13 @@ void_t HcCtrller::Process() {
 		} else if (pJsonCommand->GetDesFlag() == JsonCommand::Flag::Rule) {
 			if (m_pRuleCtrller != NULL) {
 				m_pRuleCtrller->ProcessHandler(pJsonCommand);
+			} else {
+				delete pJsonCommand;
+				pJsonCommand = NULL;
+			}
+		} else if (pJsonCommand->GetDesFlag() == JsonCommand::Flag::File) {
+			if (m_pFileManager != NULL) {
+				m_pFileManager->ProcessHandler(pJsonCommand);
 			} else {
 				delete pJsonCommand;
 				pJsonCommand = NULL;

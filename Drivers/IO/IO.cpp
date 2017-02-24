@@ -4,9 +4,10 @@
  *  Created on: Dec 12, 2016
  *      Author: taho
  */
-
+#ifdef MT7688
 #include <LogPlus.hpp>
 #include <ZbBasicCmd.hpp>
+#include <ZbSocketCmd.hpp>
 #include <IO.hpp>
 
 #define PERIOD				(100000) //us
@@ -29,7 +30,7 @@ IO::IO(
 {
     m_prioCurLevel = PrioLevel::Low;
     m_idwBlinkedNo = 0;
-    m_idwReleasedNo = 0;
+    m_idwReleasedNo = 1;
     m_byButtonEvent = 0;
     m_ButtonFunctor = makeFunctor((ButtonFunctor_p) NULL, *this, &IO::ButtonEvents);
     m_Button.RecvFunctor(&m_ButtonFunctor);
@@ -67,105 +68,6 @@ IO::GetInstance(
     return s_pInstance;
 }
 
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-IO::Indicate(
-	IOState_t ioState
-) {
-	Indicate(ioState.ioColor, ioState.ioAction,
-			ioState.ioTime, ioState.ioDuty, ioState.ioNo, ioState.boIsBAKed, ioState.prioLevel);
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-IO::Indicate(
-	LED::Color_t ioColor,
-	LED::Action_t ioAction,
-	u32_t ioTime,
-	u32_t ioDuty,
-	u32_t ioNo,
-	bool_t boIsBAKed,
-	PrioLevel_t prioLevel
-) {
-	IOState_t ioTemp;
-	ioTemp.ioColor  = ioColor;
-	ioTemp.ioAction = ioAction;
-	ioTemp.ioTime   = ioTime;
-	ioTemp.ioDuty   = ioDuty;
-	ioTemp.ioNo     = ioNo;
-
-	if(boIsBAKed == TRUE) {
-		LOG_DEBUG("========== Backup State ==========");
-		m_pLocker->Lock();
-		m_ioBakState = ioTemp;
-		m_pLocker->UnLock();
-	}
-
-	if(prioLevel < m_prioCurLevel) {
-		return;
-	} else {
-		m_pLocker->Lock();
-		m_prioCurLevel = prioLevel;
-		m_ioCurState = ioTemp;
-		m_pLocker->UnLock();
-	}
-
-	if(m_iLEDTimerID != -1) {
-		LOG_DEBUG("========== CancelTimer ==========");
-		m_pRTimer->CancelTimer(m_iLEDTimerID);
-		m_pLocker->Lock();
-		m_iLEDTimerID = -1;
-		m_idwBlinkedNo = 0;
-		m_pLocker->UnLock();
-	}
-
-	if(ioAction == LED::Action::Latch) {
-		LOG_DEBUG("========== Start: Latch ==========");
-		m_pLocker->Lock();
-		m_prioCurLevel = PrioLevel::Low;
-		m_pLocker->UnLock();
-		m_LED.Set(ioColor);
-	} else if(ioAction == LED::Action::Hold) {
-		LOG_DEBUG("========== Start: Hold ==========");
-		m_LED.Set(ioColor);
-		if(ioTime > 0) {
-			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::OneTime, ioTime, &m_LEDTimerFunctor, NULL);
-		}
-	} else if(ioAction == LED::Action::Blink) {
-		LOG_DEBUG("========== Start: Blink ==========");
-		if(m_ioCurState.ioColor < 10) {
-			m_LED.Set(ioColor);
-		} else {
-			m_LED.Set((LED::Color) (ioColor/10));
-		}
-		if(m_idwBlinkedNo == 0) {
-			if(ioNo != 0) {
-				m_pLocker->Lock();
-				m_idwBlinkedNo++;
-				m_pLocker->UnLock();
-				LOG_DEBUG("========== %d ==========", m_idwBlinkedNo);
-			}
-			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, (ioDuty + 1), &m_LEDTimerFunctor, NULL);
-		}
-		sleep(ioDuty);
-		if(m_ioCurState.ioColor < 10) {
-			m_LED.Set(LED::Color::Off);
-		} else {
-			m_LED.Set((LED::Color) (ioColor%10));
-		}
-	}
-
-}
 
 /**
  * @func
@@ -178,6 +80,8 @@ IO::RegisterEvent(
 ) {
 	m_mapEvents[IO::Event::NotStart].ioColor = LED::Color::Pink;
 	m_mapEvents[IO::Event::NotStart].ioAction = LED::Action::Latch;
+
+	m_mapEvents[IO::Event::Backup] = m_ioBakState;
 
 	m_mapEvents[IO::Event::Start].ioColor = LED::Color::Pink;
 	m_mapEvents[IO::Event::Start].ioAction = LED::Action::Blink;
@@ -193,7 +97,7 @@ IO::RegisterEvent(
 	m_mapEvents[IO::Event::NotReach].ioColor = LED::Color::Red;
 	m_mapEvents[IO::Event::NotReach].ioAction = LED::Action::Latch;
 
-	m_mapEvents[IO::Event::Reach].ioColor = LED::Color::Red;
+	m_mapEvents[IO::Event::Reach].ioColor = LED::Color::Blue;
 	m_mapEvents[IO::Event::Reach].ioAction = LED::Action::Latch;
 	m_mapEvents[IO::Event::Reach].boIsBAKed = TRUE;
 
@@ -211,26 +115,20 @@ IO::RegisterEvent(
 
 	m_mapEvents[IO::Event::Upgrading].ioColor = LED::Color::RedBlue;
 	m_mapEvents[IO::Event::Upgrading].ioAction = LED::Action::Blink;
+	m_mapEvents[IO::Event::Upgrading].prioLevel = IO::PrioLevel::High;
 
 	m_mapEvents[IO::Event::Allowed].ioColor = LED::Color::Blue;
 	m_mapEvents[IO::Event::Allowed].ioAction = LED::Action::Blink;
 
-	m_mapEvents[IO::Event::Hold1s].ioColor = LED::Color::Pink;
-	m_mapEvents[IO::Event::Hold1s].ioAction = LED::Action::Latch;
-	m_mapEvents[IO::Event::Hold1s].prioLevel = IO::PrioLevel::High;
+	m_mapEvents[IO::Event::HoldButton].ioColor = LED::Color::Pink;
+	m_mapEvents[IO::Event::HoldButton].ioAction = LED::Action::Latch;
+	m_mapEvents[IO::Event::HoldButton].prioLevel = IO::PrioLevel::High;
 
-	m_mapEvents[IO::Event::Hold3s].ioColor = LED::Color::Blue;
-	m_mapEvents[IO::Event::Hold3s].ioAction = LED::Action::Latch;
-	m_mapEvents[IO::Event::Hold3s].prioLevel = IO::PrioLevel::High;
-
-	m_mapEvents[IO::Event::Hold7s].ioColor = LED::Color::Red;
-	m_mapEvents[IO::Event::Hold7s].ioAction = LED::Action::Latch;
-	m_mapEvents[IO::Event::Hold7s].prioLevel = IO::PrioLevel::High;
-
-	m_mapEvents[IO::Event::Hold10s].ioColor = LED::Color::Off;
-	m_mapEvents[IO::Event::Hold10s].ioAction = LED::Action::Latch;
-	m_mapEvents[IO::Event::Hold10s].prioLevel = IO::PrioLevel::High;
+	for(Map<Event_t,IOState_t>::const_iterator it = m_mapEvents.begin(); it != m_mapEvents.end(); it++) {
+		m_mapEvents[it->first].ioName = it->first;
+	}
 }
+
 
 /**
  * @func
@@ -243,12 +141,84 @@ IO::Inform(
 	Event_t ioEvent
 ) {
 	if(m_mapEvents.find(ioEvent) != m_mapEvents.end()) {
-		if(m_ioCurState.ioColor == LED::Color::Pink) {
-			m_LED.Set(LED::Color::Off);
-			usleep(200000);
-		}
 		Indicate(m_mapEvents[ioEvent]);
 	}
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::Indicate(
+	IOState_t ioState
+) {
+	LOG_DEBUG("========== Event: %d, Prio: %d ==========", ioState.ioName, ioState.prioLevel);
+
+	if(ioState.boIsBAKed == TRUE) {
+		m_pLocker->Lock();
+		m_ioBakState = ioState;
+		m_pLocker->UnLock();
+		m_mapEvents[IO::Event::Backup] = m_ioBakState;
+	}
+
+	if(ioState.prioLevel < m_prioCurLevel) {
+		LOG_DEBUG("========== Lower priority!!! ==========");
+		return;
+	} else {
+
+		if(m_iLEDTimerID != -1) {
+			LOG_DEBUG("========== CancelTimer ==========");
+			m_pRTimer->CancelTimer(m_iLEDTimerID);
+			m_pLocker->Lock();
+			m_iLEDTimerID = -1;
+			m_idwBlinkedNo = 0;
+			m_pLocker->UnLock();
+		}
+
+		m_pLocker->Lock();
+		m_prioCurLevel = ioState.prioLevel;
+		m_ioCurState = ioState;
+		m_pLocker->UnLock();
+	}
+
+	if(m_ioCurState.ioAction == LED::Action::Latch) {
+		LOG_DEBUG("========== Start: Latch ==========");;
+		m_LED.Set(m_ioCurState.ioColor);
+//		m_pLocker->Lock();
+//		m_prioCurLevel = PrioLevel::Low;
+//		m_pLocker->UnLock();
+	} else if(m_ioCurState.ioAction == LED::Action::Hold) {
+		LOG_DEBUG("========== Start: Hold ==========");
+		m_LED.Set(m_ioCurState.ioColor);
+		if(ioState.ioTime > 0) {
+			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::OneTime, m_ioCurState.ioTime, &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
+		}
+	} else if(m_ioCurState.ioAction == LED::Action::Blink) {
+		LOG_DEBUG("========== Start: Blink ==========");
+		if(m_ioCurState.ioColor < 10) {
+			m_LED.Set(m_ioCurState.ioColor);
+		} else {
+			m_LED.Set((LED::Color) (m_ioCurState.ioColor/10));
+		}
+		if(m_idwBlinkedNo == 0) {
+			if(m_ioCurState.ioNo != 0) {
+				m_pLocker->Lock();
+				m_idwBlinkedNo++;
+				m_pLocker->UnLock();
+			}
+			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, (m_ioCurState.ioDuty + 1), &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
+		}
+		sleep(m_ioCurState.ioDuty);
+		if(m_ioCurState.ioColor < 10) {
+			m_LED.Set(LED::Color::Off);
+		} else {
+			m_LED.Set((LED::Color) (m_ioCurState.ioColor%10));
+		}
+	}
+
 }
 
 /**
@@ -262,10 +232,13 @@ IO::HandleLEDTimerWork(
 	void_p pbyBuffer
 ) {
 	LOG_DEBUG("========== HandleLEDTimerWork ==========");
-	if(m_iLEDTimerID == -1) return;
+	if(m_iLEDTimerID == -1 ||
+			m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 
 	if(m_ioCurState.ioAction == LED::Action::Hold) {
 		LOG_DEBUG("========== Handle: Hold ==========");
+		if(m_iLEDTimerID == -1 ||
+				m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 		m_prioCurLevel = PrioLevel::Low;
 		Indicate(m_ioBakState);
 	} else if (m_ioCurState.ioAction == LED::Action::Blink) {
@@ -275,18 +248,27 @@ IO::HandleLEDTimerWork(
 				m_pLocker->Lock();
 				m_idwBlinkedNo++;
 				m_pLocker->UnLock();
-				LOG_DEBUG("========== %d ==========", m_idwBlinkedNo);
 			}
 			if(m_ioCurState.ioColor < 10) {
+				if(m_iLEDTimerID == -1 ||
+							m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 				m_LED.Set(m_ioCurState.ioColor);
 				sleep(m_ioCurState.ioDuty);
+				if(m_iLEDTimerID == -1 ||
+							m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 				m_LED.Set(LED::Color::Off);
 			} else {
+				if(m_iLEDTimerID == -1 ||
+							m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 				m_LED.Set((LED::Color) (m_ioCurState.ioColor/10));
 				sleep(m_ioCurState.ioDuty);
+				if(m_iLEDTimerID == -1 ||
+							m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 				m_LED.Set((LED::Color) (m_ioCurState.ioColor%10));
 			}
 		} else if(m_idwBlinkedNo >= m_ioCurState.ioNo) {
+			if(m_iLEDTimerID == -1 ||
+						m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 			m_pRTimer->CancelTimer(m_iLEDTimerID);
 			m_pLocker->Lock();
 			m_iLEDTimerID = -1;
@@ -310,72 +292,100 @@ IO::ButtonEvents(
 ) {
 	if(IsPressed == TRUE) {
 		LOG_DEBUG("========== The button was pressed! ==========");
+
+		if(m_idwReleasedNo >= 0xFFFFFFFE)
+			m_idwReleasedNo = 1;
+
+		u32_t tmpNo = m_idwReleasedNo;
+
 		u8_t byCount = 0;
+		bool_t byResetCount = TRUE;
 		m_byButtonEvent = 0;
 		while(1) {
 			usleep(PERIOD);
 			byCount++;
-			if(byCount >= ALLOW && m_byButtonEvent == 0) {
-				if(m_ioCurState.ioColor == LED::Color::Pink) {
-					m_LED.Set(LED::Color::Off);
-					usleep(200000);
+			if(byCount >= ALLOW) {
+				if(byResetCount == TRUE){
+					m_idwReleasedNo = 1;
+					byResetCount = FALSE;
 				}
-				m_byButtonEvent = 1;
-				Inform(IO::Event::Hold1s);
-			}
 
-			if(byCount >= DISALLOW && m_byButtonEvent == 1) {
-				m_byButtonEvent = 3;
-				Inform(IO::Event::Hold3s);
-			}
+				if(m_byButtonEvent == 0) {
+					if(m_ioCurState.ioColor == LED::Color::Pink) {
+						m_LED.Set(LED::Color::Off);
+						usleep(200000);
+					}
+					m_byButtonEvent = 1;
+					Inform(IO::Event::HoldButton);
+				}
 
-			if(byCount >= HARDRESET && m_byButtonEvent == 3) {
-				m_byButtonEvent = 7;
-				Inform(IO::Event::Hold7s);
-			}
+				if(byCount >= DISALLOW && m_byButtonEvent == 1) {
+					m_byButtonEvent = 3;
+					m_LED.Set(LED::Color::Blue);
+				}
 
-			if(byCount >= CANCEL && m_byButtonEvent == 7) {
-				m_byButtonEvent = 10;
-				Inform(IO::Event::Hold10s);
-			}
+				if(byCount >= HARDRESET && m_byButtonEvent == 3) {
+					m_byButtonEvent = 7;
+					m_LED.Set(LED::Color::Red);
+				}
 
-			if(m_idwReleasedNo > 0) {
-				m_pLocker->Lock();
-				m_idwReleasedNo = 0;
-				m_pLocker->UnLock();
-				return;
+				if(byCount >= CANCEL && m_byButtonEvent == 7) {
+					m_byButtonEvent = 10;
+					m_LED.Set(LED::Color::Off);
+				}
+
+				if(m_idwReleasedNo > 1) {
+					m_pLocker->Lock();
+					m_idwReleasedNo = 1;
+					m_pLocker->UnLock();
+					return;
+				}
+			} else {
+				if(m_idwReleasedNo != tmpNo)
+					return;
 			}
 		}
-		LOG_DEBUG("**********************************************");
 	} else {
 		LOG_DEBUG("========== The button was released! ==========");
-		m_pLocker->Lock();
 		m_idwReleasedNo++;
-		m_pLocker->UnLock();
 
-		m_prioCurLevel = PrioLevel::Low;
+		if(m_idwReleasedNo >= 10) {
+			HiddenFunctions();
+		}
+
+		if(m_byButtonEvent != 0) {
+			m_pLocker->Lock();
+			m_prioCurLevel = PrioLevel::Low;
+			m_pLocker->UnLock();
+		}
 
 		if(m_byButtonEvent == 1) {
 			/*
 			 * Allow to join network.
 			 */
+			LOG_DEBUG("Allow to join network!");
 			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Allowed);
-			ZbBasicCmd::GetInstance()->JoinNwkAllow(0xFF);
+			ZbSocketCmd::GetInstance()->SendDevAdd(0);
 		} else if(m_byButtonEvent == 3) {
 			/*
 			 * Disallow to join network.
 			 */
+			LOG_DEBUG("Disallow to join network!");
 			m_LED.Set(LED::Color::Off);
 			Indicate(m_ioBakState);
-			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
+			ZbSocketCmd::GetInstance()->SendDevAdd(1);
 		} else if(m_byButtonEvent == 7) {
 			/*
 			 * Factor reset.
 			 */
 			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Reset);
+			sleep(2);
 			LOG_WARN("Factory reset !!!");
+			system("jffs2reset -y");
+			system("sync");
+			system("reboot");
 		} else if(m_byButtonEvent == 10) {
 			/*
 			 * Cancel press button event.
@@ -383,12 +393,23 @@ IO::ButtonEvents(
 			m_LED.Set(LED::Color::Off);
 			Indicate(m_ioBakState);
 			LOG_WARN("Pressed cancel!");
-			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
 		}
-		while(1){
-			usleep(10000);
-			LOG_DEBUG("________________________________________________");
-		}
-		LOG_DEBUG("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 	}
 }
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::HiddenFunctions(
+) {
+/*
+ * For hidden functions for future!!!
+ */
+	LOG_DEBUG("========== HiddenFunctions! ==========");
+	m_idwReleasedNo = 1;
+}
+#endif

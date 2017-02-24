@@ -65,6 +65,8 @@ public:
     void_t HandlerDevCmdLstDelRes(JsonCommand_p pJsonCommand);
 
     void_t HandlerDevCmdSyncRes(JsonCommand_p pJsonCommand);
+
+    void_t HandlerDevCmdFile(JsonCommand_p pJsonCommand);
 };
 
 typedef DevManager  DevManager_t;

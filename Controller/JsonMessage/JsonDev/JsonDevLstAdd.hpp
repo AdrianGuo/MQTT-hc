@@ -20,6 +20,7 @@
 #include "Vector.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"
+#include "IO.hpp"
 #include "JsonCommand.hpp"
 
 class JsonDevLstAdd : public JsonMessageBase {
@@ -105,6 +106,7 @@ inline JsonCommand_p
 JsonDevLstAdd::CreateJsonCommand(
     Vector<Device_t> vecLstAdd
 ) {
+	Notify(DevSig);
     JsonCommand_p pJsonCommand = new JsonCommand("dev=lstadd");
     Json::Value jsonValue;
 

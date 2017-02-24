@@ -38,6 +38,8 @@ private:
     int_t m_iDAHandle;
     int_t m_iAEHandle;
 
+    u16_p m_pDA;
+
     ZbZdoCmd();
     bool_t RestoreBuDevice(u16_t, BackupDev_t);
     void_t RequestMMInfo(u16_t);

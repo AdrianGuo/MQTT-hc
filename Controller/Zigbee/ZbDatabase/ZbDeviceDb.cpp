@@ -15,6 +15,9 @@
 
 #include <ZbDeviceDb.hpp>
 
+#define Backup(x)                           {PreValue(x) = AttributeData(x);}
+#define PopReq(x)                           {if(Action[x].DP_PendingReqs.size() > 0) \
+                                              {Action[x].DP_PendingReqs.pop();}}
 /**
  * @func
  * @brief  None

@@ -15,10 +15,6 @@
 #include "JsonCommand.hpp"
 
 class JsonFileInfoReq : public JsonMessageBase {
-private:
-    Vector<Device_t> m_vecLstDev;
-    bool_t ParseJsonValue(Json::Value& jsonValue);
-
 public:
     JsonFileInfoReq() {}
     virtual ~JsonFileInfoReq() {}

@@ -210,6 +210,20 @@ DevManager::HandlerDevCmdSet(
 }
 
 /**
+ * @func   HandlerDevCmdSet
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+DevManager::HandlerDevCmdFile(
+    JsonCommand_p pJsonCommand
+) {
+	pJsonCommand->SetDesFlag(JsonCommand::Flag::File);
+	PushJsonCommand(pJsonCommand);
+}
+
+/**
  * @func   HandlerDevCmdGet
  * @brief  None
  * @param  None

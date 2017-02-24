@@ -5,7 +5,7 @@
  *      Author: taho
  */
 #include <IO/LED.hpp>
-
+#ifdef MT7688
 #define ON      (1)
 #define OFF     (0)
 
@@ -112,3 +112,4 @@ LED::UnLock(
 	m_boIsLocked = FALSE;
 	m_pLocker->UnLock();
 }
+#endif

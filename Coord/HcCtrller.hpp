@@ -42,6 +42,7 @@
 #include "ZwCtrller.hpp"
 #include "ZbCtrller.hpp"
 #include "RuleCtrller.hpp"
+#include "File/FileManager.hpp"
 
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
@@ -61,6 +62,7 @@ private:
     ZwCtrller_p  m_pZwCtrller;
     ZbCtrller_p  m_pZbCtrller;
     RuleCtrller_p m_pRuleCtrller;
+    FileManager_p m_pFileManager;
 
     Locker_p     m_pHCCtrllerLocker;
     bool_t       m_boIsDebug;
@@ -89,6 +91,7 @@ public:
     void_t AddZwCtrller(ZwCtrller_p pZwCtrller);
     void_t AddZbCtrller(ZbCtrller_p pZbCtrller);
     void_t AddRuleCtrller(RuleCtrller_p pRuleCtrller);
+    void_t AddFileManager(FileManager_p pFileManager);
 
     bool_t RecvCommandFromSession(JsonCommand_p pJsonCommand);
     bool_t RecvCommandFromModules(JsonCommand_p pJsonCommand);

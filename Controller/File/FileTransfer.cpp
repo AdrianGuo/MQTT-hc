@@ -10,8 +10,11 @@
 #include <sys/stat.h>
 #include <md5.hpp>
 #include <HelperHc.hpp>
-#include <FileTransfer.hpp>
 
+#include "File/FileTransfer.hpp"
+
+#define SERVER_IP           "125.212.226.54"
+#define SERVER_PORT         "21"
 #define SERVER_USERNAME     "ftpuser"
 #define SERVER_PASSWORD     "ftpuser"
 #define SERVER_LOCATION     "/home/ftpuser/MAC/"
@@ -24,24 +27,24 @@
 #define UPGRADE_COMMAND     "sysupgrade -c hc.img"
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
  */
 FileTransfer::FileTransfer(
-    String strIP,
-    String strPort
 ) {
-    m_strIP         = strIP;
-    m_strPort       = strPort;
+    m_strIP         = SERVER_IP;
+    m_strPort       = SERVER_PORT;
     m_strUser       = SERVER_USERNAME;
     m_strPassword   = SERVER_PASSWORD;
     m_strLocation   = SERVER_LOCATION;
+    m_strFileLocation = "";
     m_strMD5      = "";
 
     m_pBackupThread  = new LThread();
     m_pRestoreThread = new LThread();
+    m_pUpgradeHCThread = new LThread();
     m_pUpgradeOSThread = new LThread();
     m_BackupFunctor  = makeFunctor((threadFunctor_p) NULL, *this, &FileTransfer::Backup);
     m_RestoreFunctor = makeFunctor((threadFunctor_p) NULL, *this, &FileTransfer::Restore);
@@ -59,7 +62,7 @@ FileTransfer::FileTransfer(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -73,7 +76,7 @@ FileTransfer::~FileTransfer() {
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -84,7 +87,7 @@ FileTransfer::Connect() {
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -95,7 +98,7 @@ FileTransfer::Login() {
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -106,7 +109,7 @@ FileTransfer::Logout() {
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -121,7 +124,7 @@ FileTransfer::SetServerIP(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -136,7 +139,7 @@ FileTransfer::SetServerPort(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -151,7 +154,7 @@ FileTransfer::SetServerUser(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -166,7 +169,7 @@ FileTransfer::SetServerPassword(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -181,7 +184,21 @@ FileTransfer::SetServerLocation(
 }
 
 /**
- * @func   ListenThread
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+FileTransfer::SetFileLocation(
+    String strFileLocation
+) {
+    m_pLocker->Lock();
+    m_strFileLocation = strFileLocation;
+    m_pLocker->UnLock();
+}
+/**
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -194,7 +211,7 @@ FileTransfer::SetMD5(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -214,7 +231,7 @@ FileTransfer::Do(
     }
 }
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -238,7 +255,7 @@ FileTransfer::Backup(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -262,7 +279,7 @@ FileTransfer::Restore(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -271,6 +288,7 @@ void_p
 FileTransfer::UpgradeHC(
     void_p pBuffer
 ) {
+	LOG_DEBUG("============== UpgradeHC - Start ==============");
     if(!Connect()) {
         m_pUpgradeOSThread->Stop();
         return NULL;
@@ -280,7 +298,7 @@ FileTransfer::UpgradeHC(
         u8_t byCount = 0;
         remove(HC_BAK_LOCATION);
         while(byCount < 3) {
-            if(m_Ftp.Get(HC_BAK_LOCATION, m_strLocation.c_str(), Ftplib::image) == 1)
+            if(m_Ftp.Get(HC_BAK_LOCATION, m_strFileLocation.c_str(), Ftplib::image) == 1)
                 byCount = 4;
             else
                 byCount++;
@@ -289,6 +307,7 @@ FileTransfer::UpgradeHC(
         if(byCount == 4 &&
                 String(md5file(HC_LOCATION).c_str()) == m_strMD5
         ) {
+        	LOG_DEBUG("============== UpgradeHC - Downloaded ==============");
             remove(HC_LOCATION);
             CopyFile(HC_BAK_LOCATION, HC_LOCATION);
             chmod(HC_LOCATION, S_IRWXU);
@@ -304,7 +323,7 @@ FileTransfer::UpgradeHC(
 }
 
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None
@@ -340,7 +359,7 @@ FileTransfer::UpgradeOS(
     return NULL;
 }
 /**
- * @func   ListenThread
+ * @func
  * @brief  None
  * @param  None
  * @retval None

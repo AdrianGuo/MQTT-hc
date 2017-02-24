@@ -1,6 +1,7 @@
 #ifndef JSONCOMMAND_HPP_
 #define JSONCOMMAND_HPP_
 
+#include "typedefs.h"
 #include "json-forwards.h"
 #include "json.h"
 #include "String.hpp"
@@ -25,7 +26,8 @@ public:
         Rule        = 0x0010,
         Zwave       = 0x0020,
         Zigbee      = 0x0040,
-        Client      = 0x0080
+        Client      = 0x0080,
+		File        = 0x0100
     } Flag;
 
     const static u32_t SrcDefault = Flag::Server;

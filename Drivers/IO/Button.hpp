@@ -8,6 +8,7 @@
 #ifndef DRIVERS_IO_BUTTON_HPP_
 #define DRIVERS_IO_BUTTON_HPP_
 
+#ifdef MT7688
 #include <typedefs.h>
 #include <mraa.hpp>
 #include <Functor.hpp>
@@ -29,5 +30,5 @@ public:
     static mraa::Gpio m_sButton;
     bool_t RecvFunctor(ButtonFunctor_p pRecvFunctor);
 };
-
+#endif
 #endif /* DRIVERS_IO_BUTTON_HPP_ */

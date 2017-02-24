@@ -24,6 +24,7 @@
 #include "JsonDevReset.hpp"
 #include "JsonDevRestart.hpp"
 #include "JsonAuthReq.hpp"
+#include "IO.hpp"
 #include "ZbDriver.hpp"
 
 ZbDriver* ZbDriver::s_pInstance = NULL;
@@ -256,13 +257,16 @@ ZbDriver::ProcCmdAdd(
 
     u8_t byTime = 0x00;
     if(pJsonDevAdd->Act() == 0) {
+    	Notify(Allowed);
         byTime = 0xFE;
     } else if(pJsonDevAdd->Act() == 1) {
+    	Notify(Backup);
         byTime = 0x00;
-        ZbZclGlobalCmd::GetInstance()->Broadcast();
+//        ZbZclGlobalCmd::GetInstance()->Broadcast();
     }
     pZbMessage->Push(byTime);
     ZbBasicCmd::s_pInstance->JoinNwkAllow(pZbMessage);
+
 }
 
 /**

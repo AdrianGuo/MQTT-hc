@@ -28,6 +28,7 @@
 #include "JsonAuthRes.hpp"
 #include "JsonKaliveReq.hpp"
 #include "JsonKaliveRes.hpp"
+#include "IO.hpp"
 
 #include "NetManager.hpp"
 
@@ -198,12 +199,16 @@ NetManager::HandlerNetCmdAuthRes(
     if (jsonAuthRes->Ret() == 0) {
         LOG_INFO("authen success");
         m_boAuthenticated = TRUE;
+        Notify(Reach);
     } else if (jsonAuthRes->Ret() == 1) {
         LOG_INFO("authen not active");
+        Notify(NotReach);
     } else if (jsonAuthRes->Ret() == 2) {
         LOG_INFO("authen expired");
+        Notify(NotReach);
     } else {
         LOG_INFO("authen error");
+        Notify(NotReach);
     }
 }
 
@@ -292,6 +297,7 @@ NetManager::HandleConnectProcess(
 
         StopHandleConnect();
         m_boAuthenticated = FALSE;
+        Notify(NotReach);
         ProcessAuthenReq();
         StartHandleAuthen();
     } else {
@@ -325,6 +331,7 @@ NetManager::HandleAuthenProcess(
                 LOG_INFO("close success");
                 m_boIsConnected = FALSE;
                 m_boAuthenticated = FALSE;
+                Notify(NotReach);
                 StopHandleAuthen();
                 StartHandleConnect();
             } else {
@@ -357,6 +364,7 @@ NetManager::HandleKeepAliveProcess(
             LOG_INFO("close success");
             m_boIsConnected = FALSE;
             m_boAuthenticated = FALSE;
+            Notify(NotReach);
             StopHandleKeepAlive();
             StartHandleConnect();
         } else {

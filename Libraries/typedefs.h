@@ -53,7 +53,7 @@ typedef unsigned int            u32_t;      // 4 byte
 typedef unsigned long int       u64_t;
 #elif __WORDSIZE == 32
 typedef unsigned int            u32_t;      // 4 byte
-typedef unsigned long long       u64_t;
+typedef unsigned long long      u64_t;
 #endif
 
 typedef signed char             i8_t;       // 1 byte

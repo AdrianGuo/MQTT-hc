@@ -26,10 +26,6 @@
 #define DIName(x)                           Action[x].DP_DIName
 #define DIStringName(x)                     Action[x].DP_DIStringName
 
-#define Backup(x)                           {PreValue(x) = AttributeData(x);}
-#define PopReq(x)                           {if(Action[x].DP_PendingReqs.size() > 0) \
-                                              {Action[x].DP_PendingReqs.pop();}}
-
 typedef Vector<DeviceProperty>              DeviceProperties;
 
 class ZbDeviceDb {

@@ -4,7 +4,7 @@
  *  Created on: Dec 12, 2016
  *      Author: taho
  */
-
+#ifdef MT7688
 #include <Button.hpp>
 
 mraa::Gpio Button::m_sButton = mraa::Gpio(38);
@@ -80,4 +80,4 @@ Button::RecvFunctor(
     }
     return FALSE;
 }
-
+#endif

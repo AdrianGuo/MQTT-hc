@@ -13,6 +13,7 @@
 #include <JsonDevStt.hpp>
 #include <JsonDevResetRes.hpp>
 #include <JsonAuthRes.hpp>
+#include <JsonDevAdd.hpp>
 #include <LogPlus.hpp>
 #include <ZbSocketCmd.hpp>
 
@@ -32,6 +33,7 @@ ZbSocketCmd::ZbSocketCmd() {
     m_pJsonSendSession->MapJsonMessage<JsonDevStt>(JsonDevStt::GetStrCmd());
     m_pJsonSendSession->MapJsonMessage<JsonDevResetRes>(JsonDevResetRes::GetStrCmd());
     m_pJsonSendSession->MapJsonMessage<JsonAuthRes>(JsonAuthRes::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonDevAdd>(JsonDevAdd::GetStrCmd());
 }
 
 /**
@@ -100,6 +102,22 @@ ZbSocketCmd::SendLstAdd(
     SendLstAdd(vecLstDev, des);
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbSocketCmd::SendDevAdd(
+    i8_t ibAct,
+    JsonCommand::Flag des
+) {
+    JsonMessagePtr<JsonDevAdd> jsonDevAdd = m_pJsonSendSession->GetJsonMapping<JsonDevAdd>();
+    JsonCommand_p pJsonCommand = jsonDevAdd->CreateJsonCommand(ibAct);
+
+    SendJsonMessage(EvAct::EA_None, pJsonCommand, des);
+}
 /**
  * @func
  * @brief  None

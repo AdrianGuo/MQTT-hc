@@ -37,6 +37,8 @@ ZbZdoCmd::ZbZdoCmd() {
     m_iDAHandle = -1;
     m_AEFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbZdoCmd::HandleActiveEndpoint);
     m_iAEHandle = -1;
+
+    m_pDA = NULL;
 }
 
 /**
@@ -59,6 +61,8 @@ ZbZdoCmd::GetInstance() {
  * @retval None
  */
 ZbZdoCmd::~ZbZdoCmd() {
+	if(m_pDA != NULL)
+		delete m_pDA;
 }
 
 /**
@@ -241,8 +245,11 @@ ZbZdoCmd::ManualDeviceAnnounce(
 
          if(m_iDAHandle != -1) {
              m_pTimer->CancelTimer(m_iDAHandle);
+         	if(m_pDA != NULL)
+         		delete m_pDA;
          }
          u16_p mapEPInforSize = new u16_t();
+         m_pDA = mapEPInforSize;
          *mapEPInforSize = s_mapEPInfo.size();
          m_iDAHandle = m_pTimer->StartTimer(RTimer::Repeat::OneTime, DEVICE_ANNOUNCE_TIME, &m_DAFunctor, mapEPInforSize);
 
@@ -580,6 +587,7 @@ ZbZdoCmd::HandleDeviceAnnounce(
     m_iDAHandle = -1;
     u16_t mapEPsize = *((u16_p) pBuffer);
     delete ((u16_p) pBuffer);
+    m_pDA = NULL;
     LOG_DEBUG("Handle DeviceAnnounce %d", mapEPsize);
     if(s_mapEPInfo.size() <= mapEPsize) {
         for(DeviceLogic_t::const_iterator it = s_mapEPInfo.begin(); it != s_mapEPInfo.end(); it++) {

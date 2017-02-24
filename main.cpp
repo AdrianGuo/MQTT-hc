@@ -27,6 +27,7 @@
 #include "ZwCtrller.hpp"
 #include "ZbCtrller.hpp"
 #include "HcCtrller.hpp"
+#include "File/FileManager.hpp"
 #include "LogPlus.hpp"
 #include "IO.hpp"
 
@@ -41,6 +42,7 @@ static HcCtrller_p  pHcController       = NULL;
 static ZwCtrller_p  pZwController       = NULL;
 static ZbCtrller_p  pZbController       = NULL;
 static RuleCtrller_p pRuleController    = NULL;
+static FileManager_p pFileManager    = NULL;
 
 /******************************************************************************/
 /*                              EXPORTED DATA                                 */
@@ -116,14 +118,23 @@ int main(int argc, char* argv[]) {
 	if (pRuleController != NULL) {
 		pRuleController->Start();
 	}
-	IO::GetInstance();
-//    IO::GetInstance()->Inform(IO::Event::Reach);
-//    IO::GetInstance()->Inform(IO::Event::Start);
-//    IO::GetInstance()->Inform(IO::Event::Upgrading);
+
+	if (pFileManager != NULL) {
+		pFileManager->Start();
+	}
+
+	IO_Init();
+
+//	u8_t count = 1;
+
     while (TRUE) {
         if (pHcController != NULL) {
             pHcController->Process();
         }
+//        if (count == 1) {
+//        	pFileManager->RequestLatestFwVersion();
+////            count = 2;
+//        }
     }
 
     return 0;
@@ -163,5 +174,11 @@ InitController(
 		LOG_INFO("init rule module");
 		pRuleController = new RuleCtrller();
 		pHcController->AddRuleCtrller(pRuleController);
+	}
+
+	{
+		LOG_INFO("init file module");
+		pFileManager = new FileManager();
+		pHcController->AddFileManager(pFileManager);
 	}
 }
