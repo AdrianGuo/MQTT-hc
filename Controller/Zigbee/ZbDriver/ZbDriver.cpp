@@ -23,8 +23,8 @@
 #include "JsonDevInfo.hpp"
 #include "JsonDevReset.hpp"
 #include "JsonDevRestart.hpp"
-#include "JsonAuthReq.hpp"
 #include "IO.hpp"
+
 #include "ZbDriver.hpp"
 
 ZbDriver* ZbDriver::s_pInstance = NULL;
@@ -46,20 +46,27 @@ ZbDriver::ZbDriver(
     m_pZbZclGlobalCmd = ZbZclGlobalCmd::GetInstance();
 
     m_pZbCtrllerFunctor = NULL;
-    m_driverSendFunctor = makeFunctor((DriverFunctor_p) NULL, *this,
-            &ZbDriver::ProcRecvMessage);
+    m_SerialRecvFunctor = makeFunctor((DriverFunctor_p) NULL, *this, &ZbDriver::ProcDevRecvMsg);
     SendDriverFunctor();
 
     s_pZbModel = ZbModelDb::CreateModel("zigbee.db");
 
-    RegisterProcess(ZbMessage::Command::AddDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdAdd));
-    RegisterProcess(ZbMessage::Command::RemoveDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdDel));
-    RegisterProcess(ZbMessage::Command::SetDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdSet));
-    RegisterProcess(ZbMessage::Command::GetDevice, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdGet));
-    RegisterProcess(ZbMessage::Command::InfoReq, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdInfo));
-    RegisterProcess(ZbMessage::Command::ResetReq, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdReset));
-    RegisterProcess(ZbMessage::Command::RestartReq, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdRestart));
-    RegisterProcess(ZbMessage::Command::AuthReq, makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdAuth));
+    m_pJsonRecvSession = JsonRecvZigbeeSession::CreateSession();
+    m_pJsonRecvSession->MapJsonMessage<JsonDevAdd>(JsonDevAdd::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonDevDel>(JsonDevDel::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonDevSet>(JsonDevSet::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonDevGet>(JsonDevGet::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonDevInfo>(JsonDevInfo::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonDevReset>(JsonDevReset::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonDevRestart>(JsonDevRestart::GetStrCmd());
+
+    RegisterProcess(JsonDevAdd::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdAdd));
+    RegisterProcess(JsonDevDel::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdDel));
+    RegisterProcess(JsonDevSet::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdSet));
+    RegisterProcess(JsonDevGet::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdGet));
+    RegisterProcess(JsonDevInfo::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdInfo));
+    RegisterProcess(JsonDevReset::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdReset));
+    RegisterProcess(JsonDevRestart::GetStrCmd(), makeFunctor((ProcZbCmdFunctor_p) NULL, *this, &ZbDriver::ProcCmdRestart));
 }
 
 /**
@@ -99,10 +106,10 @@ ZbDriver::~ZbDriver() {
  */
 void_t
 ZbDriver::RegisterProcess(
-    ZbMessage::Command ZbCommand,
+    String strCommand,
     ProcZbCmdFunctor_t funcTor
 ) {
-    m_mapProcFunctor[ZbCommand] = funcTor;
+    m_mapProcFunctor[strCommand] = funcTor;
 }
 
 /**
@@ -112,13 +119,13 @@ ZbDriver::RegisterProcess(
  * @retval None
  */
 void_t
-ZbDriver::ProcSendMessage(
-    ZbMessage_p pZbMessage
+ZbDriver::ProcSerRecvMsg(
+    JsonCommand_p pJsonCommand
 ) {
-    ZbMessage::Command ZbCommand = pZbMessage->GetZbCommad();
-    MapProcFunctor::const_iterator it = m_mapProcFunctor.find(ZbCommand);
+    String strCommand = pJsonCommand->GetFullCommand();
+    MapProcFunctor::const_iterator it = m_mapProcFunctor.find(strCommand);
     if (it != m_mapProcFunctor.end()) {
-        m_mapProcFunctor[ZbCommand](pZbMessage);
+        m_mapProcFunctor[strCommand](pJsonCommand);
     }
 }
 
@@ -129,7 +136,7 @@ ZbDriver::ProcSendMessage(
  * @retval None
  */
 void_t
-ZbDriver::ProcRecvMessage(
+ZbDriver::ProcDevRecvMsg(
     void_p pInBuffer
 ) {
     ZbPacket_p pZbPacket = (ZbPacket_p) pInBuffer;
@@ -163,7 +170,7 @@ ZbDriver::ProcRecvMessage(
 }
 
 void_t ZbDriver::SendDriverFunctor() {
-    m_SZbSerial.RecvFunctor(&m_driverSendFunctor);
+    m_SZbSerial.RecvFunctor(&m_SerialRecvFunctor);
 }
 
 void_t ZbDriver::ZbDriverRecvFunctor(ZbCtrllerFunctor_p pZbCtrllerFunctor) {
@@ -238,9 +245,9 @@ ZbDriver::SendJsonMessage(
  * @param  None
  * @retval None
  */
-Queue<ZbMessage_p>&
-ZbDriver::GetSendZbMsgQueue() {
-    return m_queSendZbMsg;
+Queue<JsonCommand_p>&
+ZbDriver::GetSerRecvMsgQueue() {
+    return m_queRecvMsg;
 }
 
 /**
@@ -251,22 +258,19 @@ ZbDriver::GetSendZbMsgQueue() {
  */
 void_t
 ZbDriver::ProcCmdAdd(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
-    JsonDevAdd_p pJsonDevAdd = (JsonDevAdd_p) pZbMessage->GetJsonMessageObject();
+	JsonMessagePtr<JsonDevAdd> jsonDevAdd = m_pJsonRecvSession->GetJsonMapping<JsonDevAdd>();
+	if (!jsonDevAdd->ParseJsonCommand(pJsonCommand)) return;
 
-    u8_t byTime = 0x00;
-    if(pJsonDevAdd->Act() == 0) {
+	i8_t act = jsonDevAdd->Act();
+    if(act == 0) {
     	Notify(Allowed);
-        byTime = 0xFE;
-    } else if(pJsonDevAdd->Act() == 1) {
+        m_pZbBasicCmd->JoinNwkAllow((u8_t) 0XFF);
+    } else if(act == 1) {
     	Notify(Backup);
-        byTime = 0x00;
-//        ZbZclGlobalCmd::GetInstance()->Broadcast();
+    	m_pZbBasicCmd->JoinNwkAllow((u8_t) 0X00);
     }
-    pZbMessage->Push(byTime);
-    ZbBasicCmd::s_pInstance->JoinNwkAllow(pZbMessage);
-
 }
 
 /**
@@ -277,7 +281,7 @@ ZbDriver::ProcCmdAdd(
  */
 void_t
 ZbDriver::ProcCmdReset(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
     ZbSocketCmd::GetInstance()->SendResetRes(0);
     DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
@@ -296,7 +300,7 @@ ZbDriver::ProcCmdReset(
  */
 void_t
 ZbDriver::ProcCmdDel(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
     ZbSocketCmd::GetInstance()->SendResetRes(0);
     DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
@@ -315,36 +319,36 @@ ZbDriver::ProcCmdDel(
  */
 void_t
 ZbDriver::ProcCmdSet(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
-    JsonDevSet_p pJsonDevSet = (JsonDevSet_p) pZbMessage->GetJsonMessageObject();
-	LOG_DEBUG("------------------------------- %s", pJsonDevSet->GetStrCmd().c_str());
-    Vector<JsonDevSet::Device_t> vecLstDev = pJsonDevSet->LstDev();
-	LOG_DEBUG("xxxxxxxxxxxxxxxxxxxxxxxx  %d %d %d", vecLstDev.size(), vecLstDev[0].devid, vecLstDev[0].order);
+	Notify(AppSig);
+	JsonMessagePtr<JsonDevSet> jsonDevSet = m_pJsonRecvSession->GetJsonMapping<JsonDevSet>();
+	if (!jsonDevSet->ParseJsonCommand(pJsonCommand)) return;
+    Vector<JsonDevSet::Device_t> vecLstDev = jsonDevSet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
         Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
         if(device.Modify() == NULL) { continue; }
-        device.Modify()->OwnersReq.push(pZbMessage->GetClientId());
+        device.Modify()->OwnersReq.push(pJsonCommand->GetClientId());
         switch (device->RealType) {
             case LUMI_DEVICE_SWITCH:
             case LUMI_DEVICE_INPUT:
-                ForwardSetValueToDevice(pZbMessage, device, vecLstDev[i].value);
+                ForwardSetValueToDevice(device, vecLstDev[i].value);
                 break;
 
             case LUMI_DEVICE_DIMMER:
-                ForwardSetValueToDimmer(pZbMessage, device, vecLstDev[i].value);
+                ForwardSetValueToDimmer(device, vecLstDev[i].value);
                 break;
 
             case LUMI_DEVICE_CURTAIN:
-                ForwardSetValueToCurtain(pZbMessage, device, vecLstDev[i].value);
+                ForwardSetValueToCurtain(device, vecLstDev[i].value);
                 break;
 
             case LUMI_DEVICE_FAN:
-                ForwardSetValueToFan(pZbMessage, device, vecLstDev[i].value);
+                ForwardSetValueToFan(device, vecLstDev[i].value);
                 break;
 
             case LUMI_DEVICE_IR:
-                ForwardSetValueToIr(pZbMessage, device, vecLstDev[i].value);
+                ForwardSetValueToIr(device, vecLstDev[i].value);
                 break;
 
             case LUMI_DEVICE_RGB:
@@ -365,7 +369,6 @@ ZbDriver::ProcCmdSet(
                 break;
         }
     }
-//    pJsonDevSet->Refresh();
 }
 
 
@@ -377,14 +380,15 @@ ZbDriver::ProcCmdSet(
  */
 void_t
 ZbDriver::ProcCmdGet(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
-    JsonDevGet_p pJsonDevGet = (JsonDevGet_p) pZbMessage->GetJsonMessageObject();
-    Vector<JsonDevGet::Device_t> vecLstDev = pJsonDevGet->LstDev();
+	JsonMessagePtr<JsonDevGet> jsonDevGet = m_pJsonRecvSession->GetJsonMapping<JsonDevGet>();
+	if (!jsonDevGet->ParseJsonCommand(pJsonCommand)) return;
+    Vector<JsonDevGet::Device_t> vecLstDev = jsonDevGet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
         Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
         if(device.Modify() == NULL) { continue; }
-        device.Modify()->OwnersReq.push(pZbMessage->GetClientId());
+        device.Modify()->OwnersReq.push(pJsonCommand->GetClientId());
         switch (device->RealType) {
             case LUMI_DEVICE_SWITCH:
             case LUMI_DEVICE_INPUT:
@@ -406,15 +410,13 @@ ZbDriver::ProcCmdGet(
                 break;
 
             case LUMI_DEVICE_IR:
-                pZbMessage->SetCmdID(ZCL_CMD_REQ);
-                ZbZclCmd::GetInstance()->SetIR(pZbMessage, device, IrCommand::IRCMD_State);
+                m_pZbZclCmd->SetIR(device, IrCommand::IRCMD_State);
                 break;
 
             default:
                 break;
         }
     }
-    pJsonDevGet->Refresh();
 }
 
 
@@ -426,7 +428,7 @@ ZbDriver::ProcCmdGet(
  */
 void_t
 ZbDriver::ProcCmdInfo(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
 
 }
@@ -439,52 +441,8 @@ ZbDriver::ProcCmdInfo(
  */
 void_t
 ZbDriver::ProcCmdRestart(
-    ZbMessage_p pZbMessage
+    JsonCommand_p pJsonCommand
 ) {
-
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbDriver::ProcCmdAuth(
-    ZbMessage_p pZbMessage
-) {
-    JsonAuthReq_p pJsonAuthReq = (JsonAuthReq_p) pZbMessage->GetJsonMessageObject();
-    JsonAuthReq::Device_t dev = pJsonAuthReq->Dev();
-    NetDevice_t netDevice = s_pZbModel->Find<NetDeviceDb>().Where("MAC=?").Bind(dev.mac);
-    if(netDevice.Modify() == NULL) {
-        netDevice = ZbDriver::s_pZbModel->Add(new NetDeviceDb());
-        for(int_t i = 1; i < std::numeric_limits<int_t>::max(); i++) {
-            NetDevice_t tmp = s_pZbModel->Find<NetDeviceDb>().Where("DeviceID=?").Bind(i);
-            if(tmp.Modify() == NULL) {
-                netDevice.Modify()->DeviceID = i;
-                break;
-            }
-        }
-        netDevice.Modify()->MAC = dev.mac;
-        netDevice.Modify()->Type = dev.type;
-        netDevice.Modify()->NetID = pZbMessage->GetClientId();
-
-        Vector<JsonDevLstAdd::Device_t> vecLstDev;
-        JsonDevLstAdd::Device_t lstDev;
-        lstDev.devid = netDevice.Modify()->DeviceID.GetValue();
-        lstDev.mac = dev.mac;
-        lstDev.type  = dev.type;
-        lstDev.order = 1;
-        lstDev.netwk = NET_WIFI;
-        vecLstDev.push_back(lstDev);
-        ZbSocketCmd::GetInstance()->SendLstAdd(vecLstDev);
-        ZbSocketCmd::GetInstance()->SendAuthRes(netDevice);
-    } else {
-        netDevice.Modify()->NetID = pZbMessage->GetClientId();
-    }
-    ZbDriver::s_pZbModel->Add(netDevice);
-    ZbDriver::s_pZbModel->UpdateChanges();
 
 }
 
@@ -534,10 +492,10 @@ ZbDriver::Init(
 //                pJsonCommand->SetJsonObject(jsonVal);
 //                JsonDevGet_p pJsonDevGet = new JsonDevGet();
 //                pJsonDevGet->ParseJsonCommand(pJsonCommand);
-//                ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
-//                pZbMessage->SetCmdID(ZCL_CMD_REQ);
-//                ProcSendMessage(pZbMessage);
-//                pZbMessage = NULL;
+//                JsonCommand_p pJsonCommand = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
+//                pJsonCommand->SetCmdID(ZCL_CMD_REQ);
+//                ProcSendMessage(pJsonCommand);
+//                pJsonCommand = NULL;
 //                delete pJsonCommand;
 //                delete pJsonDevGet;
 //            }

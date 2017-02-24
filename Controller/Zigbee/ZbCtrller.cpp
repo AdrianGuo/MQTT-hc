@@ -9,16 +9,6 @@
 #include "LogPlus.hpp"
 #include "LogCommand.hpp"
 #include "LThread.hpp"
-#include "JsonCommand.hpp"
-#include "zcl_lumi.hpp"
-#include "JsonDevAdd.hpp"
-#include "JsonDevDel.hpp"
-#include "JsonDevSet.hpp"
-#include "JsonDevGet.hpp"
-#include "JsonDevInfo.hpp"
-#include "JsonDevReset.hpp"
-#include "JsonDevRestart.hpp"
-#include "JsonAuthReq.hpp"
 
 #include "ZbCtrller.hpp"
 
@@ -31,7 +21,7 @@
 ZbCtrller::ZbCtrller(
     const_char_p chPortname
 ) : m_pZbDriver(ZbDriver::GetInstance(chPortname)),
-    m_queSendZbMsg(m_pZbDriver->GetSendZbMsgQueue())
+    m_queSerRecvMsg(m_pZbDriver->GetSerRecvMsgQueue())
 {
     m_pZbCtrllerThread = new LThread();
     m_pZbCtrllerLocker = new Locker();
@@ -44,11 +34,7 @@ ZbCtrller::ZbCtrller(
     m_ZbCtrllerFunctor = makeFunctor(
             (ZbCtrllerFunctor_p) NULL, *this, &ZbCtrller::PushJsonCommand);
 
-    m_pJsonRecvSession = JsonRecvZigbeeSession::CreateSession();
     CtrllerSendFunctor();
-
-    RegisterZbSession();
-    RegisterHandler();
 }
 
 /**
@@ -133,56 +119,6 @@ ZbCtrller::Start() {
 }
 
 /**
- * @func   RegisterZwSession
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::RegisterZbSession() {
-    m_pJsonRecvSession->MapJsonMessage<JsonDevAdd>(JsonDevAdd::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonDevDel>(JsonDevDel::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonDevSet>(JsonDevSet::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonDevGet>(JsonDevGet::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonDevInfo>(JsonDevInfo::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonDevReset>(JsonDevReset::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonDevRestart>(JsonDevRestart::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonAuthReq>(JsonAuthReq::GetStrCmd());
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::RegisterHandler() {
-    RegisterHandler(JsonDevAdd::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdAdd));
-    RegisterHandler(JsonDevDel::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdDel));
-    RegisterHandler(JsonDevSet::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdSet));
-    RegisterHandler(JsonDevGet::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdGet));
-    RegisterHandler(JsonDevInfo::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdInfo));
-    RegisterHandler(JsonDevReset::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdReset));
-    RegisterHandler(JsonDevRestart::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdRestart));
-    RegisterHandler(JsonAuthReq::GetStrCmd(), makeFunctor((HandlerZbCmdFunctor_p) NULL, *this, &ZbCtrller::HandlerCmdAuth));
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::RegisterHandler(
-    String strJsonCommand,
-    HandlerZbCmdFunctor_t funcTor
-) {
-    m_mapHandlerFunctor[strJsonCommand] = funcTor;
-}
-
-/**
  * @func
  * @brief  None
  * @param  None
@@ -192,12 +128,11 @@ void_t
 ZbCtrller::ProcessHandler(
     JsonCommand_p pJsonCommand
 ) {
-    String strJsonCommandName = pJsonCommand->GetFullCommand();
-    MapHandlerFunctor::const_iterator it = m_mapHandlerFunctor.find(strJsonCommandName);
-    if (it != m_mapHandlerFunctor.end()) {
-        m_mapHandlerFunctor[strJsonCommandName](pJsonCommand);
-    }
-    delete pJsonCommand;
+	if(pJsonCommand == NULL) return;
+
+    m_pZbCtrllerLocker->Lock();
+    m_queSerRecvMsg.push(pJsonCommand);
+    m_pZbCtrllerLocker->UnLock();
 }
 
 /**
@@ -240,197 +175,22 @@ ZbCtrller::ZbCtrlllerThreadProc(
     void_p pInBuffer
 ) {
     while (TRUE) {
-        ZbMessage_p pZbMessage = NULL;
+    	JsonCommand_p pJsonCommand = NULL;
         m_pZbCtrllerLocker->Lock();
-        if (!m_queSendZbMsg.empty()) {
-            pZbMessage = m_queSendZbMsg.front();
-            m_queSendZbMsg.pop();
+        if (!m_queSerRecvMsg.empty()) {
+        	pJsonCommand = m_queSerRecvMsg.front();
+            m_queSerRecvMsg.pop();
         }
         m_pZbCtrllerLocker->UnLock();
 
-        if (pZbMessage != NULL) {
-            m_pZbDriver->ProcSendMessage(pZbMessage);
-            delete pZbMessage;
+        if (pJsonCommand != NULL) {
+            m_pZbDriver->ProcSerRecvMsg(pJsonCommand);
+            delete pJsonCommand;
         }
     }
 
     pthread_exit(NULL);
     return NULL;
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdAdd(
-    JsonCommand_p pJsonCommand
-) {
-    JsonMessageMap<JsonDevAdd>* jsonDevAdd = m_pJsonRecvSession->GetJsonMapping<JsonDevAdd>();
-    JsonDevAdd_p pJsonDevAdd = jsonDevAdd->Object();
-    pJsonDevAdd->ParseJsonCommand(pJsonCommand);
-
-    ZbMessage_p pZbMessage = new ZbMessage(pJsonDevAdd,
-            ZbMessage::Command::AddDevice);
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdDel(
-    JsonCommand_p pJsonCommand
-) {
-    JsonMessageMap<JsonDevDel>* jsonDevDel = m_pJsonRecvSession->GetJsonMapping<JsonDevDel>();
-    JsonDevDel_p pJsonDevDel = jsonDevDel->Object();
-    pJsonDevDel->ParseJsonCommand(pJsonCommand);
-
-    ZbMessage_p pZbMessage = new ZbMessage(pJsonDevDel,
-            ZbMessage::Command::RemoveDevice);
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdSet(
-    JsonCommand_p pJsonCommand
-) {
-    JsonMessageMap<JsonDevSet>* jsonDevSet = m_pJsonRecvSession->GetJsonMapping<JsonDevSet>();
-    JsonDevSet_p pJsonDevSet = jsonDevSet->Object();
-    pJsonDevSet->ParseJsonCommand(pJsonCommand);
-
-    Vector<JsonDevSet::Device_t> vecLstDev = pJsonDevSet->LstDev();
-	LOG_DEBUG("______________________________________  %d", vecLstDev.size());
-    for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
-    	LOG_DEBUG("_____________________________  %d %d", vecLstDev[i].devid, vecLstDev[i].order);
-    }
-
-    ZbMessage_p pZbMessage = new ZbMessage(pJsonDevSet,
-            ZbMessage::Command::SetDevice);
-    pZbMessage->SetClientId(pJsonCommand->GetClientId());
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdGet(
-    JsonCommand_p pJsonCommand
-) {
-    JsonMessageMap<JsonDevGet>* jsonDevGet = m_pJsonRecvSession->GetJsonMapping<JsonDevGet>();
-    JsonDevGet_p pJsonDevGet = jsonDevGet->Object();
-    pJsonDevGet->ParseJsonCommand(pJsonCommand);
-
-    ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet,
-            ZbMessage::Command::GetDevice);
-    pZbMessage->SetClientId(pJsonCommand->GetClientId());
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdInfo(
-    JsonCommand_p pJsonCommand
-) {
-    ZbMessage_p pZbMessage = new ZbMessage(NULL,
-            ZbMessage::Command::InfoReq);
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdReset(
-    JsonCommand_p pJsonCommand
-) {
-    ZbMessage_p pZbMessage = new ZbMessage(NULL,
-            ZbMessage::Command::ResetReq);
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdRestart(
-    JsonCommand_p pJsonCommand
-) {
-    ZbMessage_p pZbMessage = new ZbMessage(NULL,
-            ZbMessage::Command::ResetReq);
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
-}
-
-/**
- * @func   None
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-ZbCtrller::HandlerCmdAuth(
-    JsonCommand_p pJsonCommand
-) {
-    JsonMessageMap<JsonAuthReq>* jsonAuthReq = m_pJsonRecvSession->GetJsonMapping<JsonAuthReq>();
-    JsonAuthReq_p pJsonAuthReq = jsonAuthReq->Object();
-    pJsonAuthReq->ParseJsonCommand(pJsonCommand);
-
-    ZbMessage_p pZbMessage = new ZbMessage(pJsonAuthReq,
-            ZbMessage::Command::AuthReq);
-    pZbMessage->SetClientId(pJsonCommand->GetClientId());
-
-    m_pZbCtrllerLocker->Lock();
-    m_queSendZbMsg.push(pZbMessage);
-    m_pZbCtrllerLocker->UnLock();
 }
 
 /**

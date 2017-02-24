@@ -24,8 +24,8 @@ public:
 
     void_t ProcRecvMessage(void_p);
 
-    void_t SetDevice(ZbPacket_p, Device_t, u8_t);
-    void_t SetIR(ZbPacket_p, Device_t, IrCommand, u16_t irID = 0);
+    void_t SetDevice(Device_t, u8_t);
+    void_t SetIR(Device_t, IrCommand, u16_t irID = 0);
 };
 
 typedef ZbZclCmd ZbZclCmd_t;

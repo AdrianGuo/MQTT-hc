@@ -13,7 +13,6 @@
 #include <RTimer.hpp>
 #include <ZbPacket.hpp>
 #include <ZbModelDb.hpp>
-#include <ZbMessage.hpp>
 
 class ZbBasicCmd {
 private:

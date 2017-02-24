@@ -12,6 +12,7 @@
 #include <zcl_lumi.hpp>
 #include <ZbConvertValueFrom.hpp>
 #include <ZbHelper.hpp>
+#include <IO.hpp>
 
 #include <ZbDeviceDb.hpp>
 
@@ -119,6 +120,8 @@ ZbDeviceDb::ReceiveInforFromDevice(
     DeviceProperties vDP,
     Vector<u8_p> vpData
 ){
+	Notify(DevSig);
+
     u8_t byLimit = vDP.size();
 
     switch (RealType) {

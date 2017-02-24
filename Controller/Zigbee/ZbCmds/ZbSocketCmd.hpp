@@ -10,7 +10,6 @@
 
 #include <typedefs.h>
 #include <Vector.hpp>
-#include <ZbMessage.hpp>
 #include <IZbDriver.hpp>
 #include <ZbDriver.hpp>
 #include <ZbModelDb.hpp>

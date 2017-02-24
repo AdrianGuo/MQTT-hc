@@ -163,8 +163,6 @@ ZbBasicCmd::JoinNwkAllow(
     ZbPacket_p pZbPacket
 ){
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
-
-//    ZbZclGlobalCmd::GetInstance()->Broadcast();
 }
 
 /**

@@ -74,10 +74,11 @@ ZbZclCmd::ProcRecvMessage(
  */
 void_t
 ZbZclCmd::SetDevice(
-        ZbPacket_p pZbPacket,
         Device_t device,
         u8_t byValue
 ){
+    ZbPacket_p pZbPacket = new ZbPacket(5);
+    pZbPacket->SetCmdID(ZCL_CMD_REQ);
     u16_t wNwk = (u16_t) device->Network.GetValue();
     pZbPacket->Push(wNwk >> 8);
     pZbPacket->Push(wNwk & 0xFF);
@@ -112,6 +113,7 @@ ZbZclCmd::SetDevice(
     device.Modify()->OwnersReq.pop();
 
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+    delete pZbPacket;
 }
 
 /**
@@ -122,11 +124,12 @@ ZbZclCmd::SetDevice(
  */
 void_t
 ZbZclCmd::SetIR(
-        ZbPacket_p pZbPacket,
         Device_t device,
         IrCommand irCommand,
         u16_t irID
 ){
+    ZbPacket_p pZbPacket = new ZbPacket(5);
+    pZbPacket->SetCmdID(ZCL_CMD_REQ);
     u16_t wNwk = (u16_t) device->Network.GetValue();
     pZbPacket->Push(wNwk >> 8);
     pZbPacket->Push(wNwk & 0xFF);
@@ -152,4 +155,5 @@ ZbZclCmd::SetIR(
     device.Modify()->OwnersReq.pop();
 
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
+    delete pZbPacket;
 }
