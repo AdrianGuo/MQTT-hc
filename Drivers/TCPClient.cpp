@@ -80,7 +80,7 @@ TCPClient::TCPClient(
         }
     }
 
-    m_idwSockfd = 0;
+    m_idwSockfd = INVALID_SOCKET;
     m_idwPort = idwPort;
 
     m_pbBuffer = new u8_t[BUFFER_SOCKET_SIZE];
@@ -175,6 +175,8 @@ TCPClient::Connect() {
     m_boIsClosing = FALSE;
     m_idwSockfd = idwSockfd;
 
+    SetBlocking();
+
     if (m_pSockAddr != NULL) {
         int_t idwResult =
         connect(m_idwSockfd, (struct sockaddr*) m_pSockAddr, sizeof(*m_pSockAddr));
@@ -267,6 +269,13 @@ TCPClient::Connect() {
  */
 bool_t
 TCPClient::Close() {
+	if(m_idwSockfd == INVALID_SOCKET) {
+		m_pClientSockLocker->Lock();
+		m_boIsConnected = FALSE;
+		m_pClientSockLocker->UnLock();
+		return TRUE;
+	}
+
     int_t idwResult;
 
     LOG_INFO("close sockfd %d", m_idwSockfd);

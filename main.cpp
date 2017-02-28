@@ -172,7 +172,7 @@ InitController(
 
 	{
 		LOG_INFO("init file module");
-		pFileManager = new FileManager();
+		pFileManager = new FileManager(macId);
 		pHcController->AddFileManager(pFileManager);
 	}
 }

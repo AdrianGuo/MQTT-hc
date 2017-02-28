@@ -5,31 +5,30 @@
  *      Author: taho
  */
 
-#ifndef CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWINFOREQ_HPP_
-#define CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWINFOREQ_HPP_
+#ifndef CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWVERREQ_HPP_
+#define CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWVERREQ_HPP_
 
 #include "typedefs.h"
-#include "Vector.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"
 
-class JsonFwInfoReq : public JsonMessageBase {
+class JsonFwVerReq : public JsonMessageBase {
 private:
     bool_t ParseJsonValue(Json::Value& jsonValue);
 public:
-    JsonFwInfoReq() {}
-    virtual ~JsonFwInfoReq() {}
+    JsonFwVerReq() {}
+    virtual ~JsonFwVerReq() {}
 
-    static String GetStrCmd() { return "fw=inforeq"; }
+    static String GetStrCmd() { return "fw=verreq"; }
     virtual void_t Refresh() {}
 
     bool_t ParseJsonCommand(JsonCommand_p pJsonCommand);
-    JsonCommand_p CreateJsonCommand();
+    JsonCommand_p CreateJsonCommand(String strType);
 };
 
-typedef JsonFwInfoReq  JsonFwInfoReq_t;
-typedef JsonFwInfoReq* JsonFwInfoReq_p;
+typedef JsonFwVerReq  JsonFwInfoReq_t;
+typedef JsonFwVerReq* JsonFwInfoReq_p;
 
 /**
  * @func   ParseJsonCommand
@@ -38,7 +37,7 @@ typedef JsonFwInfoReq* JsonFwInfoReq_p;
  * @retval None
  */
 inline bool_t
-JsonFwInfoReq::ParseJsonCommand(
+JsonFwVerReq::ParseJsonCommand(
     JsonCommand_p pJsonCommand
 ) {
     return ParseJsonValue(pJsonCommand->GetJsonOjbect());
@@ -51,7 +50,7 @@ JsonFwInfoReq::ParseJsonCommand(
  * @retval None
  */
 inline bool_t
-JsonFwInfoReq::ParseJsonValue(
+JsonFwVerReq::ParseJsonValue(
     Json::Value& jsonValue
 ) {
     return TRUE;
@@ -64,9 +63,14 @@ JsonFwInfoReq::ParseJsonValue(
  * @retval None
  */
 inline JsonCommand_p
-JsonFwInfoReq::CreateJsonCommand(
+JsonFwVerReq::CreateJsonCommand(
+	String strType
 ) {
-    return new JsonCommand("fw=inforeq", "{}");
+    JsonCommand_p pJsonCommand = new JsonCommand("fw=verreq");
+    Json::Value jsonValue;
+    jsonValue["type"] = std::string(strType.c_str());
+    pJsonCommand->SetJsonObject(jsonValue);
+    return pJsonCommand;
 }
 
-#endif /* CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWINFOREQ_HPP_ */
+#endif /* CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWVERREQ_HPP_ */

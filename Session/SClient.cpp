@@ -22,7 +22,7 @@ SClient::SClient(
     const_char_p pChostname,
     int_t idwPort
 ) : m_ClientSock (pChostname, idwPort) {
-    m_ClientSock.SetNonBlocking();
+//    m_ClientSock.SetNonBlocking();
     m_SClientSendFunctor =
     makeFunctor((SClientFunctor_p) NULL, *this, &SClient::BufferToJsCmdClass);
     SClientSendFunctor();

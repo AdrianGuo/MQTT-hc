@@ -235,6 +235,12 @@ RTimer::IsExpired(
     return boRetVal;
 }
 
+/**
+ * @func   ChangeTimeout
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 bool_t
 RTimer::ChangeTimeout(
 	u32_t dwTimerID,

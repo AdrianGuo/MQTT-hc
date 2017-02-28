@@ -54,14 +54,14 @@ class Serial {
     String m_strNamePort;
     Queue<Packet_p> m_queSerialPacket;
     Locker_p m_pSerialLocker;
-    LThread_p m_pSerialThread;
-    threadFunctor_t m_SerialthreadFunctor;
+    LThread_p m_pSerialReadThread;
+    threadFunctor_t m_SerialReadThreadFunctor;
     SerialFunctor_p m_pSerialFunctor;
 public:
     Serial(const_char_p portName, u16_t wBaudRate = BAUD1152);
     ~Serial();
 
-    void_p SerialThreadProc(void_p pBuffer);
+    void_p SerialReadThread(void_p pBuffer);
 
     bool_t SerialRecvFunctor(SerialFunctor_p pRecvFunctor);
 

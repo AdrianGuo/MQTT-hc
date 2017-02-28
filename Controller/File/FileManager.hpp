@@ -12,7 +12,15 @@
 #include "JsonCommand.hpp"
 #include "LThread.hpp"
 #include "ICtrller.hpp"
-#include "File/JsonFileSession.hpp"
+#include <JsonFile/JsonFileAccReq.hpp>
+#include <JsonFile/JsonFileAccRes.hpp>
+#include <JsonFile/JsonFileGetReq.hpp>
+#include <JsonFile/JsonFileGetRes.hpp>
+#include <JsonFile/JsonFwVerReq.hpp>
+#include <JsonFile/JsonFwVerRes.hpp>
+#include <JsonFile/JsonFilePut.hpp>
+#include <JsonFile/JsonFwForce.hpp>
+#include <File/JsonFileSession.hpp>
 #include "FileTransfer.hpp"
 
 typedef Functor1_t(JsonCommand_p)   	HandlerFileCmdFunctor_t;
@@ -33,13 +41,13 @@ private:
     MapHandlerFunctor   m_mapHandlerFunctor;
 
     void_t RegisterHandler(String strJsonCommand, HandlerFileCmdFunctor_t funcTor);
-    void_t HandlerCmdFileInfoRes(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdFileRes(JsonCommand_p pJsonCommand);
-    void_t HandlerCmdFwInfoRes(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdFileAccRes(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdFileGetRes(JsonCommand_p pJsonCommand);
+    void_t HandlerCmdFwVerRes(JsonCommand_p pJsonCommand);
     void_t HandlerCmdFwForce(JsonCommand_p pJsonCommand);
 
 public:
-    FileManager();
+    FileManager(String strMAC);
     ~FileManager();
 
     void_t Start();
@@ -52,8 +60,9 @@ public:
 
     void_t RequestServerInfo();
     void_t RequestFileInfo(u8_t, String);
-    void_t RequestLatestFwVersion();
-    void_t ResponseFwVersion();
+    void_t RequestLatestFwVersion(String);
+    void_t ResponseFwVersion(JsonFwVerRes::VerInfo_t verInfo);
+    void_t ResponseFilePut(JsonFilePut::FileInfo_t fileInfo);
 };
 
 typedef FileManager  FileManager_t;

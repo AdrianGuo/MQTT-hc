@@ -9,7 +9,6 @@
 #define CONTROLLER_JSONMESSAGE_JSONFILE_JSONFWFORCE_HPP_
 
 #include "typedefs.h"
-#include "Vector.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"
@@ -17,8 +16,9 @@
 class JsonFwForce : public JsonMessageBase {
 public:
     typedef struct {
-        u8_t       	 type;
+    	String       type;
         String       version;
+        String       path;
     } Firmware_t, *FileRes_p;
 
 private:
@@ -63,9 +63,11 @@ JsonFwForce::ParseJsonValue(
     Json::Value& jsonValue
 ) {
     if (!jsonValue.isMember("type")||
-    		!jsonValue.isMember("version")) { return FALSE; }
-    m_Firmware.type = atoi(jsonValue["type"].asCString());
-    m_Firmware.version = String(jsonValue["version"].asCString());
+    		!jsonValue.isMember("version")||
+			!jsonValue.isMember("path")) { return FALSE; }
+    m_Firmware.type 	= String(jsonValue["type"].asCString());
+    m_Firmware.version 	= String(jsonValue["version"].asCString());
+    m_Firmware.path 	= String(jsonValue["path"].asCString());
 
     return TRUE;
 }

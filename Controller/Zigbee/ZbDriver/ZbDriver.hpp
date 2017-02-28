@@ -20,6 +20,7 @@
 #include <ZbZclCmd.hpp>
 #include <ZbZclGlobalCmd.hpp>
 #include <ZbZdoCmd.hpp>
+#include <Locker.hpp>
 #include <JsonZigbeeSession.hpp>
 
 #define WAIT_PACKET_RESPONSE             4000
@@ -32,6 +33,7 @@ private:
     DriverFunctor_t     m_SerialRecvFunctor;
     ZbCtrllerFunctor_p  m_pZbCtrllerFunctor;
     SZbSerial_t 		m_SZbSerial;
+    Locker_p			m_pLocker;
 
     ZbBasicCmd_p     	m_pZbBasicCmd;
     ZbZdoCmd_p       	m_pZbZdoCmd;

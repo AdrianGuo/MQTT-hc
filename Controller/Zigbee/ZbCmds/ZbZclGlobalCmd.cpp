@@ -457,22 +457,15 @@ void_t
 ZbZclGlobalCmd::RequestDevicesState(
     Device_t device
 ) {
-//    Json::Value jsonDev, jsonVal;
-//    jsonDev["devid"] = std::to_string(device->DeviceID.GetValue());
-//    jsonDev["ord"] = std::to_string(device->Endpoint.GetValue());
-//    jsonDev["net"] = std::to_string(1);
-//    jsonDev["type"] = std::to_string(device->RealType);
-//    jsonVal["dev"].append(jsonDev);
-//    JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
-//    pJsonCommand->SetJsonObject(jsonVal);
-//    JsonDevGet_p pJsonDevGet = new JsonDevGet();
-//    pJsonDevGet->ParseJsonCommand(pJsonCommand);
-//    ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
-//    pZbMessage->SetCmdID(ZCL_CMD_REQ);
-//    ZbDriver::GetInstance()->ProcSendMessage(pZbMessage);
-//    pZbMessage = NULL;
-//    delete pJsonCommand;
-//    delete pJsonDevGet;
+    Json::Value jsonDev, jsonVal;
+    jsonDev["devid"] = std::to_string(device->DeviceID.GetValue());
+    jsonDev["ord"] = std::to_string(device->Endpoint.GetValue());
+    jsonDev["net"] = std::to_string(1);
+    jsonDev["type"] = std::to_string(device->RealType);
+    jsonVal["dev"].append(jsonDev);
+    JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
+    pJsonCommand->SetJsonObject(jsonVal);
+    ZbDriver::GetInstance()->ProcSerRecvMsg(pJsonCommand);
 }
 
 /**

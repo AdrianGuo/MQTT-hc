@@ -15,21 +15,25 @@
 #include "Locker.hpp"
 #include "RTimer.hpp"
 
-#define HC_FW					(1)
-#define HC_APP					(2)
-#define LC_FW					(3)
-#define LC_APP					(4)
+static const String HC_FW 		= String("hcos");
+static const String HC_APP 		= String("hcapp");
+static const String LC_FW 		= String("lcos");
+static const String LC_APP 		= String("lcapp");
+static const String DATABASE 	= String("database");
+static const String LOG 		= String("log");
 
 class FileTransfer {
 private:
     Ftplib m_Ftp;
+    String m_strMAC;
     String m_strIP;
     String m_strPort;
     String m_strUser;
     String m_strPassword;
-    String m_strLocation;
+    String m_strServerFolder;
     String m_strFileLocation;
     String m_strMD5;
+    String m_strFullPath;
 
     LThread_p m_pBackupThread;
     LThread_p m_pRestoreThread;
@@ -54,7 +58,7 @@ public:
         UPGRADE_HC
     } Action;
 
-    FileTransfer();
+    FileTransfer(String strMAC);
     ~FileTransfer();
 
     bool   Connect();
@@ -65,9 +69,11 @@ public:
     void_t SetServerPort(String);
     void_t SetServerUser(String);
     void_t SetServerPassword(String);
-    void_t SetServerLocation(String);
+    void_t SetServerFolder(String);
     void_t SetFileLocation(String);
     void_t SetMD5(String);
+
+    bool_t CreateSaveFolder();
 
     void_t Do(FileTransfer::Action);
     void_p Backup(void_p);

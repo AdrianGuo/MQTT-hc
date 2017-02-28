@@ -19,6 +19,12 @@
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
+#include <JsonFile/JsonFileAccReq.hpp>
+#include <JsonFile/JsonFileAccRes.hpp>
+#include <JsonFile/JsonFileGetReq.hpp>
+#include <JsonFile/JsonFileGetRes.hpp>
+#include <JsonFile/JsonFwVerReq.hpp>
+#include <JsonFile/JsonFwVerRes.hpp>
 #include <stddef.h>
 #include <unistd.h>
 #include "HelperHc.hpp"
@@ -94,12 +100,6 @@
 #include "JsonRuleInfor.hpp"
 #include "JsonRuleSync.hpp"
 
-#include "JsonFile/JsonFileInfoReq.hpp"
-#include "JsonFile/JsonFileInfoRes.hpp"
-#include "JsonFile/JsonFileGet.hpp"
-#include "JsonFile/JsonFileRes.hpp"
-#include "JsonFile/JsonFwInfoReq.hpp"
-#include "JsonFile/JsonFwInfoRes.hpp"
 #include "JsonFile/JsonFwForce.hpp"
 
 #include "HcCtrller.hpp"
@@ -274,22 +274,22 @@ void_t HcCtrller::RegisterHandler() {
 					&DevManager::HandlerDevCmdSyncRes));
 
 	/* File, Firmware */
-	RegisterHandler(JsonFileInfoReq::GetStrCmd(),
+	RegisterHandler(JsonFileAccReq::GetStrCmd(),
 			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdFile));
-	RegisterHandler(JsonFileInfoRes::GetStrCmd(),
+	RegisterHandler(JsonFileAccRes::GetStrCmd(),
 			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdFile));
-	RegisterHandler(JsonFileGet::GetStrCmd(),
+	RegisterHandler(JsonFileGetReq::GetStrCmd(),
 			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdFile));
-	RegisterHandler(JsonFileRes::GetStrCmd(),
+	RegisterHandler(JsonFileGetRes::GetStrCmd(),
 			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdFile));
-	RegisterHandler(JsonFwInfoReq::GetStrCmd(),
+	RegisterHandler(JsonFwVerReq::GetStrCmd(),
 			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdFile));
-	RegisterHandler(JsonFwInfoRes::GetStrCmd(),
+	RegisterHandler(JsonFwVerRes::GetStrCmd(),
 			makeFunctor((HandlerNetCmdFunctor_p) NULL, m_DevManager,
 					&DevManager::HandlerDevCmdFile));
 	RegisterHandler(JsonFwForce::GetStrCmd(),

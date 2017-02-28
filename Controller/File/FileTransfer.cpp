@@ -33,14 +33,17 @@
  * @retval None
  */
 FileTransfer::FileTransfer(
+	String strMAC
 ) {
-    m_strIP         = SERVER_IP;
-    m_strPort       = SERVER_PORT;
-    m_strUser       = SERVER_USERNAME;
-    m_strPassword   = SERVER_PASSWORD;
-    m_strLocation   = SERVER_LOCATION;
-    m_strFileLocation = "";
-    m_strMD5      = "";
+	m_strMAC			= strMAC;
+    m_strIP         	= SERVER_IP;
+    m_strPort       	= SERVER_PORT;
+    m_strUser       	= SERVER_USERNAME;
+    m_strPassword   	= SERVER_PASSWORD;
+    m_strServerFolder 	= SERVER_LOCATION;
+    m_strFileLocation 	= "";
+    m_strMD5      		= "";
+    m_strFullPath		= m_strServerFolder + "/" + m_strMAC;
 
     m_pBackupThread  = new LThread();
     m_pRestoreThread = new LThread();
@@ -175,11 +178,12 @@ FileTransfer::SetServerPassword(
  * @retval None
  */
 void_t
-FileTransfer::SetServerLocation(
-    String strLocation
+FileTransfer::SetServerFolder(
+    String strServerFolder
 ) {
     m_pLocker->Lock();
-    m_strLocation = strLocation;
+    m_strServerFolder 	= strServerFolder;
+    m_strFullPath		= m_strServerFolder + "/" + m_strMAC;
     m_pLocker->UnLock();
 }
 
@@ -197,6 +201,7 @@ FileTransfer::SetFileLocation(
     m_strFileLocation = strFileLocation;
     m_pLocker->UnLock();
 }
+
 /**
  * @func
  * @brief  None
@@ -208,6 +213,30 @@ FileTransfer::SetMD5(
     String strMD5
 ) {
     m_strMD5 = strMD5;
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+FileTransfer::CreateSaveFolder(
+) {
+    if(!Connect()) {
+        return FALSE;
+    }
+
+    if (Login()) {
+    	if(m_Ftp.Mkdir(m_strFullPath.c_str()) != 1)
+    		return FALSE;
+    	Logout();
+    } else {
+    	return FALSE;
+    }
+
+	return TRUE;
 }
 
 /**
@@ -246,7 +275,8 @@ FileTransfer::Backup(
     }
 
     if (Login()) {
-
+    	if(m_Ftp.Put(HC_LOCATION, m_strFullPath.c_str(), Ftplib::image) == 1)
+    		LOG_DEBUG("File uploaded!");
         Logout();
     }
 
@@ -341,7 +371,7 @@ FileTransfer::UpgradeOS(
         u8_t byCount = 0;
         remove(FW_LOCATION);
         while(byCount < 3) {
-            if(m_Ftp.Get(FW_LOCATION, m_strLocation.c_str(), Ftplib::image) == 1)
+            if(m_Ftp.Get(FW_LOCATION, m_strServerFolder.c_str(), Ftplib::image) == 1)
                 byCount = 4;
             else
                 byCount++;

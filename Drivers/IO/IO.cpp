@@ -138,6 +138,34 @@ IO::RegisterEvent(
 	}
 }
 
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::Restore(
+) {
+	m_pLocker->Lock();
+	m_LED.Set(m_ioCurState.ioColor);
+	m_pLocker->UnLock();
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+IO::DrtSet(
+	LED::Color_t color
+) {
+	m_pLocker->Lock();
+	m_LED.Set(color);
+	m_pLocker->UnLock();
+}
 
 /**
  * @func
@@ -194,7 +222,7 @@ IO::Indicate(
 	}
 
 	if(m_ioCurState.ioAction == LED::Action::Latch) {
-		LOG_DEBUG("========== Start: Latch ==========");;
+		LOG_DEBUG("========== Start: Latch ==========");
 		m_LED.Set(m_ioCurState.ioColor);
 	} else if(m_ioCurState.ioAction == LED::Action::Hold) {
 		LOG_DEBUG("========== Start: Hold ==========");
@@ -204,9 +232,9 @@ IO::Indicate(
 		}
 	} else if(m_ioCurState.ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Start: Blink ==========");
+		m_idwBlinkedNo = 0;
 		m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, 0, &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
 	}
-
 }
 
 /**
@@ -231,7 +259,9 @@ IO::HandleLEDTimerWork(
 	} else if (m_ioCurState.ioAction == LED::Action::Blink) {
 		LOG_DEBUG("========== Handle: Blink ==========");
 		if(m_idwBlinkedNo < m_ioCurState.ioNo || m_ioCurState.ioNo == 0) {
-			m_pRTimer->ChangeTimeout(m_iLEDTimerID, m_ioCurState.ioDuty + 1);
+			if(m_ioCurState.ioNo == 0 && m_idwBlinkedNo == 0) {
+				m_pRTimer->ChangeTimeout(m_iLEDTimerID, m_ioCurState.ioDuty + 1);
+			}
 			if(m_ioCurState.ioNo != 0) {
 				m_pLocker->Lock();
 				m_idwBlinkedNo++;
@@ -426,12 +456,11 @@ IO::HandleHiddenTimerWork(
 		system("uci delete  network.lan.netmask");
 	} else if(pressed == 3) {
 		LOG_DEBUG("xxxxxxxxxxxx Switch to AP xxxxxxxxxxxx");
-		system("uci set  wireless.radio0.linkit_mode=sta");
-		system("uci set wireless.sta.disabled=0");
+		system("wifi_mode ap");
+		system("wifi");
 	} else if (pressed == 5) {
 		LOG_DEBUG("xxxxxxxxxxxx Switch to STA xxxxxxxxxxxx");
-		system("uci set  wireless.radio0.linkit_mode=sta");
-		system("uci set wireless.sta.disabled=0");
+		system("wifi_mode sta");
 	} else if (pressed == 7) {
 		LOG_DEBUG("xxxxxxxxxxxx Reset password xxxxxxxxxxxx");
 		system("cp /etc/shadow.bak /etc/shadow");

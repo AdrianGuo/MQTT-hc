@@ -6,13 +6,6 @@
  */
 
 #include "LogPlus.hpp"
-#include "JsonFile/JsonFileInfoReq.hpp"
-#include "JsonFile/JsonFileInfoRes.hpp"
-#include "JsonFile/JsonFileGet.hpp"
-#include "JsonFile/JsonFileRes.hpp"
-#include "JsonFile/JsonFwInfoReq.hpp"
-#include "JsonFile/JsonFwInfoRes.hpp"
-#include "JsonFile/JsonFwForce.hpp"
 #include "Version.hpp"
 
 #include "File/FileManager.hpp"
@@ -24,7 +17,8 @@
  * @retval None
  */
 FileManager::FileManager(
-) : m_FileTransfer ()
+	String strMAC
+) : m_FileTransfer (strMAC)
 {
     m_pFileManagerThread = new LThread();
     m_pFileManagerThreadFunctor = makeFunctor((threadFunctor_p) NULL, *this, &FileManager::FileManagerThreadProc);
@@ -33,21 +27,21 @@ FileManager::FileManager(
     m_pLocker = new Locker();
 
     m_pJsonRecvSession = JsonRecvFileSession::CreateSession();
-    m_pJsonRecvSession->MapJsonMessage<JsonFileInfoRes>(JsonFileInfoRes::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonFileRes>(JsonFileRes::GetStrCmd());
-    m_pJsonRecvSession->MapJsonMessage<JsonFwInfoRes>(JsonFwInfoRes::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonFileAccRes>(JsonFileAccRes::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonFileGetRes>(JsonFileGetRes::GetStrCmd());
+    m_pJsonRecvSession->MapJsonMessage<JsonFwVerRes>(JsonFwVerRes::GetStrCmd());
     m_pJsonRecvSession->MapJsonMessage<JsonFwForce>(JsonFwForce::GetStrCmd());
 
-    RegisterHandler(JsonFileInfoRes::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFileInfoRes));
-    RegisterHandler(JsonFileRes::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFileRes));
-    RegisterHandler(JsonFwInfoRes::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFwInfoRes));
+    RegisterHandler(JsonFileAccRes::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFileAccRes));
+    RegisterHandler(JsonFileGetRes::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFileGetRes));
+    RegisterHandler(JsonFwVerRes::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFwVerRes));
     RegisterHandler(JsonFwForce::GetStrCmd(), makeFunctor((HandlerFileCmdFunctor_p) NULL, *this, &FileManager::HandlerCmdFwForce));
 
     m_pJsonSendSession = JsonSendFileSession::CreateSession();
-    m_pJsonSendSession->MapJsonMessage<JsonFileInfoReq>(JsonFileInfoReq::GetStrCmd());
-    m_pJsonSendSession->MapJsonMessage<JsonFileGet>(JsonFileGet::GetStrCmd());
-    m_pJsonSendSession->MapJsonMessage<JsonFwInfoReq>(JsonFwInfoReq::GetStrCmd());
-    m_pJsonSendSession->MapJsonMessage<JsonFwInfoRes>(JsonFwInfoRes::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonFileAccReq>(JsonFileAccReq::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonFileGetReq>(JsonFileGetReq::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonFwVerReq>(JsonFwVerReq::GetStrCmd());
+    m_pJsonSendSession->MapJsonMessage<JsonFwVerRes>(JsonFwVerRes::GetStrCmd());
 }
 
 /**
@@ -160,22 +154,24 @@ FileManager::ProcessHandler(
  * @retval None
  */
 void_t
-FileManager::HandlerCmdFileInfoRes(
+FileManager::HandlerCmdFileAccRes(
 	JsonCommand_p pJsonCommand
 ) {
 	LOG_DEBUG("============== HandlerCmdFileInfoRes ==============");
-	JsonMessagePtr<JsonFileInfoRes> jsonFileInfoRes = m_pJsonRecvSession->GetJsonMapping<JsonFileInfoRes>();
+	JsonMessagePtr<JsonFileAccRes> jsonFileInfoRes = m_pJsonRecvSession->GetJsonMapping<JsonFileAccRes>();
 
 	if (!jsonFileInfoRes->ParseJsonCommand(pJsonCommand)) {
 		return;
 	}
 
-	JsonFileInfoRes::Server_t server = jsonFileInfoRes->ServerInfo();
+	JsonFileAccRes::Server_t server = jsonFileInfoRes->ServerInfo();
 	m_FileTransfer.SetServerIP(server.host);
 	m_FileTransfer.SetServerPort(server.port);
 	m_FileTransfer.SetServerUser(server.user);
 	m_FileTransfer.SetServerPassword(server.password);
-	m_FileTransfer.SetServerLocation(server.path);
+	m_FileTransfer.SetServerFolder(server.path);
+
+	m_FileTransfer.CreateSaveFolder();
 }
 
 /**
@@ -185,17 +181,17 @@ FileManager::HandlerCmdFileInfoRes(
  * @retval None
  */
 void_t
-FileManager::HandlerCmdFileRes(
+FileManager::HandlerCmdFileGetRes(
 	JsonCommand_p pJsonCommand
 ) {
 	LOG_DEBUG("============== HandlerCmdFileRes ==============");
-	JsonMessagePtr<JsonFileRes> jsonFileRes = m_pJsonRecvSession->GetJsonMapping<JsonFileRes>();
+	JsonMessagePtr<JsonFileGetRes> jsonFileRes = m_pJsonRecvSession->GetJsonMapping<JsonFileGetRes>();
 
 	if (!jsonFileRes->ParseJsonCommand(pJsonCommand)) {
 		return;
 	}
 
-	JsonFileRes::FileRes_t file = jsonFileRes->FileInfo();
+	JsonFileGetRes::FileInfo_t file = jsonFileRes->FileInfo();
 	if(file.type == HC_APP) {
 		m_FileTransfer.SetFileLocation(file.path);
 		m_FileTransfer.SetMD5(file.md5);
@@ -211,17 +207,17 @@ FileManager::HandlerCmdFileRes(
  * @retval None
  */
 void_t
-FileManager::HandlerCmdFwInfoRes(
+FileManager::HandlerCmdFwVerRes(
 	JsonCommand_p pJsonCommand
 ) {
 	LOG_DEBUG("============== HandlerCmdFileRes ==============");
-	JsonMessagePtr<JsonFwInfoRes> jsonFwInfoRes = m_pJsonRecvSession->GetJsonMapping<JsonFwInfoRes>();
+	JsonMessagePtr<JsonFwVerRes> jsonFwInfoRes = m_pJsonRecvSession->GetJsonMapping<JsonFwVerRes>();
 
 	if (!jsonFwInfoRes->ParseJsonCommand(pJsonCommand)) {
 		return;
 	}
 
-	String fwVersion = jsonFwInfoRes->Version();
+//	String fwVersion = jsonFwInfoRes->Version();
 }
 
 /**
@@ -268,7 +264,7 @@ FileManager::PushJsonCommand(
 void_t
 FileManager::RequestServerInfo(
 ) {
-    JsonMessagePtr<JsonFileInfoReq> jsonFileInfoReq = m_pJsonSendSession->GetJsonMapping<JsonFileInfoReq>();
+    JsonMessagePtr<JsonFileAccReq> jsonFileInfoReq = m_pJsonSendSession->GetJsonMapping<JsonFileAccReq>();
     JsonCommand_p pJsonCommand = jsonFileInfoReq->CreateJsonCommand();
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
     PushJsonCommand(pJsonCommand);
@@ -285,11 +281,11 @@ FileManager::RequestFileInfo(
 	u8_t fileType,
 	String strVersion
 ) {
-	JsonFileGet::FileGet_t fileGet;
+	JsonFileGetReq::FileInfo_t fileGet;
 	fileGet.type = fileType;
 	fileGet.version = strVersion;
 
-    JsonMessagePtr<JsonFileGet> jsonFileGet = m_pJsonSendSession->GetJsonMapping<JsonFileGet>();
+    JsonMessagePtr<JsonFileGetReq> jsonFileGet = m_pJsonSendSession->GetJsonMapping<JsonFileGetReq>();
     JsonCommand_p pJsonCommand = jsonFileGet->CreateJsonCommand(fileGet);
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
     PushJsonCommand(pJsonCommand);
@@ -303,9 +299,10 @@ FileManager::RequestFileInfo(
  */
 void_t
 FileManager::RequestLatestFwVersion(
+	String strType
 ) {
-    JsonMessagePtr<JsonFwInfoReq> jsonFwInfoReq = m_pJsonSendSession->GetJsonMapping<JsonFwInfoReq>();
-    JsonCommand_p pJsonCommand = jsonFwInfoReq->CreateJsonCommand();
+    JsonMessagePtr<JsonFwVerReq> jsonFwInfoReq = m_pJsonSendSession->GetJsonMapping<JsonFwVerReq>();
+    JsonCommand_p pJsonCommand = jsonFwInfoReq->CreateJsonCommand(strType);
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
     PushJsonCommand(pJsonCommand);
 }
@@ -318,9 +315,27 @@ FileManager::RequestLatestFwVersion(
  */
 void_t
 FileManager::ResponseFwVersion(
+	JsonFwVerRes::VerInfo_t verInfo
 ) {
-    JsonMessagePtr<JsonFwInfoRes> jsonFwInfoRes = m_pJsonSendSession->GetJsonMapping<JsonFwInfoRes>();
-    JsonCommand_p pJsonCommand = jsonFwInfoRes->CreateJsonCommand(VERSION);
+    JsonMessagePtr<JsonFwVerRes> jsonFwInfoRes = m_pJsonSendSession->GetJsonMapping<JsonFwVerRes>();
+    JsonCommand_p pJsonCommand = jsonFwInfoRes->CreateJsonCommand(verInfo);
+    pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
+    PushJsonCommand(pJsonCommand);
+}
+
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+FileManager::ResponseFilePut(
+	JsonFilePut::FileInfo_t fileInfo
+) {
+    JsonMessagePtr<JsonFilePut> jsonFwInfoRes = m_pJsonSendSession->GetJsonMapping<JsonFilePut>();
+    JsonCommand_p pJsonCommand = jsonFwInfoRes->CreateJsonCommand(fileInfo);
     pJsonCommand->SetDesFlag(JsonCommand::Flag::NetWork);
     PushJsonCommand(pJsonCommand);
 }

@@ -39,7 +39,7 @@ ZbModelDb_p ZbDriver::s_pZbModel = NULL;
 ZbDriver::ZbDriver(
     const_char_p chPortname
 ) : m_SZbSerial(chPortname) {
-
+	m_pLocker 		  = new Locker();
     m_pZbBasicCmd     = ZbBasicCmd::GetInstance();
     m_pZbZdoCmd       = ZbZdoCmd::GetInstance();
     m_pZbZclCmd       = ZbZclCmd::GetInstance();
@@ -95,7 +95,7 @@ ZbDriver::~ZbDriver() {
     delete m_pZbZclGlobalCmd;
     delete m_pZbCtrllerFunctor;
     delete s_pZbModel;
-    delete s_pInstance;
+    delete m_pLocker;;
 }
 
 /**
@@ -221,8 +221,11 @@ void_t
 ZbDriver::SendZbPacket(
     ZbPacket_p pZbPacket
 ) {
-    if(pZbPacket != NULL)
+    if(pZbPacket != NULL) {
+    	m_pLocker->Lock();
         m_SZbSerial.PushZbPacket(pZbPacket);
+        m_pLocker->UnLock();
+    }
 }
 
 /**
@@ -490,14 +493,7 @@ ZbDriver::Init(
 //                jsonVal["dev"].append(jsonDev);
 //                JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
 //                pJsonCommand->SetJsonObject(jsonVal);
-//                JsonDevGet_p pJsonDevGet = new JsonDevGet();
-//                pJsonDevGet->ParseJsonCommand(pJsonCommand);
-//                JsonCommand_p pJsonCommand = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
-//                pJsonCommand->SetCmdID(ZCL_CMD_REQ);
-//                ProcSendMessage(pJsonCommand);
-//                pJsonCommand = NULL;
-//                delete pJsonCommand;
-//                delete pJsonDevGet;
+//                ProcSerRecvMsg(pJsonCommand);
 //            }
 
         }

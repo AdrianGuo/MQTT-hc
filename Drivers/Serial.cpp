@@ -50,10 +50,10 @@ Serial::Serial(
     memset(m_pByBuffer, 0, BUFFER_SERIAL_SIZE);
 
     m_pSerialLocker = new Locker();
-    m_pSerialThread = new LThread();
-    m_SerialthreadFunctor =
-    makeFunctor((threadFunctor_p) NULL, *this, &Serial::SerialThreadProc);
-    m_pSerialThread->RegThreadFunctor(&m_SerialthreadFunctor);
+    m_pSerialReadThread = new LThread();
+    m_SerialReadThreadFunctor =
+    makeFunctor((threadFunctor_p) NULL, *this, &Serial::SerialReadThread);
+    m_pSerialReadThread->RegThreadFunctor(&m_SerialReadThreadFunctor);
 }
 
 /**
@@ -86,7 +86,7 @@ Serial::~Serial() {
  * @retval None
  */
 void_p
-Serial::SerialThreadProc(
+Serial::SerialReadThread(
     void_p pBuffer
 ) {
     Packet_p pSendPacket = NULL;
@@ -97,7 +97,7 @@ Serial::SerialThreadProc(
         }
         m_pSerialLocker->UnLock();
 
-        if (IsConnected() && IsReadable(200)) {
+        if (IsConnected() && IsReadable(0)) {
             int_t iLength = read(m_idwPortfd, m_pByBuffer, BUFFER_SERIAL_SIZE);
             if ((m_pSerialFunctor != NULL) && (iLength > 0)) {
                 (*m_pSerialFunctor)(m_pByBuffer, iLength);
@@ -122,7 +122,7 @@ Serial::SerialThreadProc(
             }
             m_pSerialLocker->UnLock();
         }
-        usleep(50000);
+//        usleep(50000);
     }
     m_pSerialLocker->UnLock();
 
@@ -391,7 +391,7 @@ bool_t
 Serial::Start() {
     bool_t boRetVal = FALSE;
 
-    if (!m_boIsStarted && (m_pSerialThread->Start())) {
+    if (!m_boIsStarted && (m_pSerialReadThread->Start())) {
         m_boIsStarted = TRUE;
         boRetVal = TRUE;
     }
@@ -442,7 +442,7 @@ void_t
 Serial::PushPacket(
     Packet_p pPacket
 ) {
-    m_pSerialLocker->Lock();
+//    m_pSerialLocker->Lock();
     m_queSerialPacket.push(pPacket);
-    m_pSerialLocker->UnLock();
+//    m_pSerialLocker->UnLock();
 }

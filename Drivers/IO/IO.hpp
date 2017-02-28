@@ -17,9 +17,13 @@
 #ifdef MT7688
 #define IO_Init()		{IO::GetInstance();}
 #define Notify(x)		{IO::GetInstance()->Inform(IO::Event::x);}
+#define DrtSetLED(x)	{IO::GetInstance()->DrtSet(LED::Color::x);}
+#define RestoreLED()	{IO::GetInstance()->Restore();}
 #else
 #define IO_Init()		{}
 #define Notify(x)		{}
+#define DrtSet(x)		{}
+#define Restore()		{}
 #endif
 
 /******************************************************************************/
@@ -99,6 +103,8 @@ public:
     } IOState_t;
 
 	void_t Inform(Event_t);
+	void_t Restore();
+	void_t DrtSet(LED::Color_t);
 
 private:
     LED       	m_LED;
