@@ -22,6 +22,7 @@
 #include <ZbZdoCmd.hpp>
 #include <Locker.hpp>
 #include <JsonZigbeeSession.hpp>
+#include "RTimer.hpp"
 
 #define WAIT_PACKET_RESPONSE             4000
 
@@ -47,6 +48,15 @@ private:
     MapProcFunctor      m_mapProcFunctor;
 
     ZbDriver(const_char_p chPortname);
+
+    RTimer_p m_pTimer;
+    int_t m_iRequest;
+    TimerFunctor_t m_RequestFunctor;
+//    int_t m_iAffirm;
+//    TimerFunctor_t m_AffirmFunctor;
+
+    void_t HandleRequest(void_p);
+//    void_t HandleAffirm(void_p);
 
 public:
     virtual ~ZbDriver();
@@ -74,7 +84,7 @@ public:
     void_t ProcCmdDel(JsonCommand_p);
     void_t ProcCmdSet(JsonCommand_p);
     void_t ProcCmdGet(JsonCommand_p);
-    void_t ProcCmdReset(JsonCommand_p);
+    void_t ProcCmdReset(JsonCommand_p pJsonCommand = NULL);
     void_t ProcCmdRestart(JsonCommand_p);
     void_t ProcCmdInfo(JsonCommand_p);
 

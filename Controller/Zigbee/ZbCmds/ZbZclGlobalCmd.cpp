@@ -279,10 +279,20 @@ ZbZclGlobalCmd::ReadAttributeResponse(
             }
             SaveDevicesInfo(wNwk);
     	} else {
-    		for(u8_t i = 0; i < (u8_t) vpData.size(); i++) {
-    			delete[] vpData[i];
-    		}
+    	    //Check device's connection
+    	    for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
+    	        if (vResponseDP[i].DP_AttributeID == ATTRID_BASIC_ZCL_VERSION) {
+    	            for (Devices_t::const_iterator it = devices.begin();
+    	                    it != devices.end(); it++) {
+    	                    (*it).Modify()->IsAlive = TRUE;
+    	            }
+    	        }
+    	    }
+            for(u8_t i = 0; i < (u8_t) vpData.size(); i++) {
+                delete[] vpData[i];
+            }
     	}
+
         vpData.clear();
     } else {
         device.Modify()->ReceiveInforFromDevice(vResponseDP, vpData);
@@ -438,11 +448,9 @@ ZbZclGlobalCmd::Broadcast() {
     pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC >> 8);
     pZbPacket->Push(ZCL_CLUSTER_ID_GEN_BASIC & 0xFF);
     pZbPacket->Push(ZCL_CMD_READ);
-    pZbPacket->Push(0x04); //Payload's length
-    pZbPacket->Push(ATTRID_BASIC_MODEL_ID & 0xFF);
-    pZbPacket->Push(ATTRID_BASIC_MODEL_ID >> 8);
-    pZbPacket->Push(ATTRID_BASIC_MANUFACTURER_NAME & 0xFF);
-    pZbPacket->Push(ATTRID_BASIC_MANUFACTURER_NAME >> 8);
+    pZbPacket->Push(0x02); //Payload's length
+    pZbPacket->Push(ATTRID_BASIC_ZCL_VERSION & 0xFF);
+    pZbPacket->Push(ATTRID_BASIC_ZCL_VERSION >> 8);
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }

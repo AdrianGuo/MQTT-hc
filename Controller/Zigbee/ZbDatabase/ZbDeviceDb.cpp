@@ -38,10 +38,13 @@ ZbDeviceDb::ZbDeviceDb() :
     State           (Action[DI_State].DP_AttributeData)
 {
     RealType    =   0;
+    Name        = "Unknown";
+    IsAlive     = TRUE;
     m_pLocker   =   new Locker();
 
     SyncDeviceAction(DI_Model,           ZCL_CLUSTER_ID_GEN_BASIC, ATTRID_BASIC_MODEL_ID);
     SyncDeviceAction(DI_Manufacturer,    ZCL_CLUSTER_ID_GEN_BASIC, ATTRID_BASIC_MANUFACTURER_NAME);
+    SyncDeviceAction(DI_ZCLVersion,      ZCL_CLUSTER_ID_GEN_BASIC, ATTRID_BASIC_ZCL_VERSION);
 }
 
 /**
@@ -129,11 +132,19 @@ ZbDeviceDb::ReceiveInforFromDevice(
  *  LUMI_DEVICE_SWITCH, LUMI_DEVICE_INPUT
  */
         case LUMI_DEVICE_SWITCH:
+//            break;
+
         case LUMI_DEVICE_INPUT: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Backup(vDP[i].DP_DIName);
-                AttributeData(vDP[i].DP_DIName) = *vpData[i];
-                ForwardStateToOutside(this);
+                if(vDP[i].DP_DIName == DI_ZCLVersion) {
+                    m_pLocker->Lock();
+                    IsAlive = TRUE;
+                    m_pLocker->UnLock();
+                } else {
+                    Backup(vDP[i].DP_DIName);
+                    AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                    ForwardStateToOutside(this);
+                }
             }
         }
             break;
@@ -144,28 +155,34 @@ ZbDeviceDb::ReceiveInforFromDevice(
         case LUMI_DEVICE_CURTAIN:
         case LUMI_DEVICE_FAN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Backup(vDP[i].DP_DIName);
-                if(vDP[i].DP_DIName == DI_State) {
-                    if(((PendingReqs(DI_State).front().ReqValue - *vpData[i]) > 5) ||
-                            ((PendingReqs(DI_State).front().ReqValue - *vpData[i]) < -5)) {
-                                AttributeData(vDP[i].DP_DIName) = *vpData[i];
-                            } else {
-                                AttributeData(vDP[i].DP_DIName) = PendingReqs(DI_State).front().ReqValue;
-                            }
+                if(vDP[i].DP_DIName == DI_ZCLVersion) {
+                    m_pLocker->Lock();
+                    IsAlive = TRUE;
+                    m_pLocker->UnLock();
                 } else {
-                    AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                    Backup(vDP[i].DP_DIName);
+                    if(vDP[i].DP_DIName == DI_State) {
+                        if(((PendingReqs(DI_State).front().ReqValue - *vpData[i]) > 5) ||
+                                ((PendingReqs(DI_State).front().ReqValue - *vpData[i]) < -5)) {
+                            AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                        } else {
+                            AttributeData(vDP[i].DP_DIName) = PendingReqs(DI_State).front().ReqValue;
+                        }
+                    } else {
+                        AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                    }
+                    IsResponsed(vDP[i].DP_DIName) = TRUE;
+                    PopReq(vDP[i].DP_DIName);
                 }
-                IsResponsed(vDP[i].DP_DIName) = TRUE;
-                PopReq(vDP[i].DP_DIName);
             }
-            if(IsResponsed(DI_State) && IsResponsed(DI_OnOff)) {
-                if(RealType == LUMI_DEVICE_FAN) ForwardFanStateToOutside(this);
-                else if (RealType == LUMI_DEVICE_CURTAIN) ForwardCurtainStateToOutside(this);
-                else ForwardDimmerStateToOutside(this);
-
-                IsResponsed(DI_State) = FALSE;
-                IsResponsed(DI_OnOff) = FALSE;
-            }
+//            if(IsResponsed(DI_State) && IsResponsed(DI_OnOff)) {
+//                if(RealType == LUMI_DEVICE_FAN) ForwardFanStateToOutside(this);
+//                else if (RealType == LUMI_DEVICE_CURTAIN) ForwardCurtainStateToOutside(this);
+//                else ForwardDimmerStateToOutside(this);
+//
+//                IsResponsed(DI_State) = FALSE;
+//                IsResponsed(DI_OnOff) = FALSE;
+//            }
         }
             break;
 /*
@@ -173,18 +190,24 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_IR: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Backup(vDP[i].DP_DIName);
-                if (vDP[i].DP_DIName == DI_IR_Data) {
-                    u8_p pbyData = vpData[i];
-                    State = *pbyData;
-                    ++pbyData;
-                    ReserveData(DI_State) = LittleWord(&pbyData, false);
-                    IsResponsed(vDP[i].DP_DIName) = TRUE;
-                    ForwardIrState(this);
-                    pbyData = NULL;
-                    IsResponsed(vDP[i].DP_DIName) = FALSE;
+                if(vDP[i].DP_DIName == DI_ZCLVersion) {
+                    m_pLocker->Lock();
+                    IsAlive = TRUE;
+                    m_pLocker->UnLock();
+                } else {
+                    Backup(vDP[i].DP_DIName);
+                    if (vDP[i].DP_DIName == DI_IR_Data) {
+                        u8_p pbyData = vpData[i];
+                        State = *pbyData;
+                        ++pbyData;
+                        ReserveData(DI_State) = LittleWord(&pbyData, false);
+                        IsResponsed(vDP[i].DP_DIName) = TRUE;
+//                        ForwardIrState(this);
+                        pbyData = NULL;
+                        IsResponsed(vDP[i].DP_DIName) = FALSE;
+                    }
+                    PopReq(vDP[i].DP_DIName);
                 }
-                PopReq(vDP[i].DP_DIName);
             }
         }
             break;
@@ -192,20 +215,29 @@ ZbDeviceDb::ReceiveInforFromDevice(
  * LUMI_DEVICE_DOOR, LUMI_DEVICE_PIR, LUMI_DEVICE_POWER
  * LUMI_DEVICE_TEMPERATURE, LUMI_DEVICE_HUMIDITY, LUMI_DEVICE_ILLUMINANCE
  */
-        case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_PIR:
+            break;
+
+        case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_POWER:
+
         case LUMI_DEVICE_TEMPERATURE:
         case LUMI_DEVICE_HUMIDITY:
         case LUMI_DEVICE_ILLUMINANCE: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Backup(vDP[i].DP_DIName);
-                if (vDP[i].DP_DIName == DI_State) {
-                    if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
-                    else if((RealType == LUMI_DEVICE_PIR) || (RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
-                    else AttributeData(DI_State) = *vpData[i];
+                if(vDP[i].DP_DIName == DI_ZCLVersion) {
+                    m_pLocker->Lock();
+                    IsAlive = TRUE;
+                    m_pLocker->UnLock();
+                } else {
+                    Backup(vDP[i].DP_DIName);
+                    if (vDP[i].DP_DIName == DI_State) {
+                        if(RealType == LUMI_DEVICE_TEMPERATURE) State = *((i16_p) vpData[i]);
+                        else if((RealType == LUMI_DEVICE_HUMIDITY) || (RealType == LUMI_DEVICE_ILLUMINANCE)) State = *((u16_p) vpData[i]);
+                        else AttributeData(DI_State) = *vpData[i];
+                    }
+                    PopReq(vDP[i].DP_DIName);
                 }
-                PopReq(vDP[i].DP_DIName);
             }
             ForwardStateToOutside(this);
 
@@ -216,10 +248,16 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_RGB: {
             for (u8_t i = 0; i < byLimit; i++) {
-                Backup(vDP[i].DP_DIName);
-                AttributeData(vDP[i].DP_DIName) = *vpData[i];
-                IsResponsed(vDP[i].DP_DIName) = TRUE;
-                PopReq(vDP[i].DP_DIName);
+                if(vDP[i].DP_DIName == DI_ZCLVersion) {
+                    m_pLocker->Lock();
+                    IsAlive = TRUE;
+                    m_pLocker->UnLock();
+                } else {
+                    Backup(vDP[i].DP_DIName);
+                    AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                    IsResponsed(vDP[i].DP_DIName) = TRUE;
+                    PopReq(vDP[i].DP_DIName);
+                }
             }
             if (IsResponsed(DI_RGB_Red) &&
                     IsResponsed(DI_RGB_Green) &&
@@ -227,7 +265,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
                 IsResponsed(DI_RGB_Red)     = FALSE;
                 IsResponsed(DI_RGB_Green)   = FALSE;
                 IsResponsed(DI_RGB_Blue)    = FALSE;
-                ForwardRGBStateToOutside(this);
+//                ForwardRGBStateToOutside(this);
             }
         }
             break;
@@ -236,23 +274,29 @@ ZbDeviceDb::ReceiveInforFromDevice(
  */
         case LUMI_DEVICE_DAIKIN: {
             for(u8_t i = 0; i < byLimit; i++) {
-                Backup(vDP[i].DP_DIName);
-                if ((vDP[i].DP_DIName == DI_Daikin_Control_Seq_Operation) ||
-                        (vDP[i].DP_DIName == DI_Daikin_System_Mode) ||
-                        (vDP[i].DP_DIName == DI_Daikin_Fan_Mode) ||
-                        (vDP[i].DP_DIName == DI_Daikin_Fan_Direction))
-                {
-                    AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                if(vDP[i].DP_DIName == DI_ZCLVersion) {
+                    m_pLocker->Lock();
+                    IsAlive = TRUE;
+                    m_pLocker->UnLock();
                 } else {
-                    AttributeData(vDP[i].DP_DIName) = *((i16_p) vpData[i]);
-                }
-                IsResponsed(vDP[i].DP_DIName) = TRUE;
-//                if(AttributeData(vDP[i].DP_DIName) != PreValue(vDP[i].DP_DIName)) {
-//                    IsResponsed(vDP[i].DP_DIName) = TRUE;
-//                }
+                    Backup(vDP[i].DP_DIName);
+                    if ((vDP[i].DP_DIName == DI_Daikin_Control_Seq_Operation) ||
+                            (vDP[i].DP_DIName == DI_Daikin_System_Mode) ||
+                            (vDP[i].DP_DIName == DI_Daikin_Fan_Mode) ||
+                            (vDP[i].DP_DIName == DI_Daikin_Fan_Direction))
+                    {
+                        AttributeData(vDP[i].DP_DIName) = *vpData[i];
+                    } else {
+                        AttributeData(vDP[i].DP_DIName) = *((i16_p) vpData[i]);
+                    }
+                    IsResponsed(vDP[i].DP_DIName) = TRUE;
+//                    if(AttributeData(vDP[i].DP_DIName) != PreValue(vDP[i].DP_DIName)) {
+//                        IsResponsed(vDP[i].DP_DIName) = TRUE;
+//                    }
 
-                IsRequested(vDP[i].DP_DIName) = FALSE;
-                PopReq(vDP[i].DP_DIName);
+                    IsRequested(vDP[i].DP_DIName) = FALSE;
+                    PopReq(vDP[i].DP_DIName);
+                }
             }
 
             bool_t boCheck = TRUE;
@@ -262,9 +306,9 @@ ZbDeviceDb::ReceiveInforFromDevice(
                     break;
                 }
             }
-            if(boCheck || (AttributeData(DI_State) == 0)){
-                ForwardDaikinStateToOutside(this);
-            }
+//            if(boCheck || (AttributeData(DI_State) == 0)){
+//                ForwardDaikinStateToOutside(this);
+//            }
 
         }
             break;
@@ -294,15 +338,19 @@ ZbDeviceDb::EnvAttached() {
     if (Type == ZCL_HA_DEVICEID_TEMPERATURE_SENSOR) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_TEMPERATURE;
+        Name = "Temperature_" + MAC.GetValue();
     } else if (Type == ZCL_HA_DEVICEID_THERMOSTAT) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_RELATIVE_HUMIDITY,          ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE);
         RealType = LUMI_DEVICE_HUMIDITY;
+        Name = "Humidity_" + MAC.GetValue();
     } else if (Type == ZCL_HA_DEVICEID_LIGHT_SENSOR) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_ILLUMINANCE_MEASUREMENT,    ATTRID_MS_ILLUMINANCE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_ILLUMINANCE;
+        Name = "Light_" + MAC.GetValue();
     } else if (Type == ZCL_LUMI_DEVICEID_POWER) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
         RealType = LUMI_DEVICE_POWER;
+        Name = "Pin_" + MAC.GetValue();
     }
 }
 
@@ -333,21 +381,25 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_SWITCH;
+        Name = "Switch_" + MAC.GetValue();
     } else if (prefixModel == String("LM-DZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_DIMMER;
+        Name = "Dimmer_" + MAC.GetValue();
     } else if (prefixModel == String("LM-FZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_FAN;
+        Name = "Fan_" + MAC.GetValue();
     } else if (prefixModel == String("LM-BZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_CURTAIN;
+        Name = "Curtain_" + MAC.GetValue();
     } else if (prefixModel == String("LM-IR")) {
         SyncDeviceAction(DI_State,         ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRSTATE);
         SyncDeviceAction(DI_IR_Data,       ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRCMD);
@@ -356,10 +408,12 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_BINARY_INPUT,    ATTRID_BINARY_INPUT_PRESENT_VALUE);
 
         RealType = LUMI_DEVICE_INPUT;
+        Name = "Input_" + MAC.GetValue();
     }   else if (prefixModel == String("LM-PIR")) {
         if (Type == ZCL_HA_DEVICEID_IAS_ZONE) {
             SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_SS_IAS_ZONE,         ATTRID_SS_IAS_ZONE_STATUS);
             RealType = LUMI_DEVICE_PIR;
+            Name = "Pir_" + MAC.GetValue();
         } else {
             EnvAttached();
         }
@@ -367,6 +421,7 @@ ZbDeviceDb::GenerateDeviceInfo(
         if (Type == ZCL_HA_DEVICEID_DOOR_LOCK) {
             SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG, ATTRID_CLOSURES_DOOR_STATE);
             RealType = LUMI_DEVICE_DOOR;
+            Name = "Door_" + MAC.GetValue();
         } else {
             EnvAttached();
         }
@@ -379,9 +434,11 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_RGB_Green,                       ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_G_INTENSITY);
         SyncDeviceAction(DI_RGB_Blue,                        ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_B_INTENSITY);
         RealType = LUMI_DEVICE_RGB;
+        Name = "RGB_" + MAC.GetValue();
     } else if(prefixModel == String("LM-INPUT")) {
         SyncDeviceAction(DI_State,                           ZCL_CLUSTER_ID_GEN_BINARY_INPUT,        ATTRID_BINARY_INPUT_PRESENT_VALUE);
         RealType = LUMI_DEVICE_INPUT;
+        Name = "INPUT_" + MAC.GetValue();
     } else if (prefixModel == String("LM-DKZ")) {
         SyncDeviceAction(DI_State,                           ZCL_CLUSTER_ID_GEN_ON_OFF,              ATTRID_ON_OFF);
         SyncDeviceAction(DI_Daikin_Local_Temperature,        ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_LOCAL_TEMPERATURE);
@@ -410,7 +467,10 @@ ZbDeviceDb::GenerateDeviceInfo(
         Action[DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandirect");
 
         RealType = LUMI_DEVICE_DAIKIN;
+        Name = "Daikin_" + MAC.GetValue();
     } else {
+        RealType = UNKNOWN_DEVICE;
+        Name = "Unknown_" + MAC.GetValue();
         if(RealType == OTHER_BRAND_DEVICE) { OtherBrandsDevice(); }
     }
 
@@ -476,6 +536,7 @@ ZbDeviceDb::OtherBrandsDevice() {
         default:
             prefixModel = "OTHER";
             RealType = UNKNOWN_DEVICE;
+            Name = "Unknown-" + MAC.GetValue();
             boRetVal = FALSE;
             break;
     }

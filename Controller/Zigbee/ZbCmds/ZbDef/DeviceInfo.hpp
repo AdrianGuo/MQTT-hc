@@ -28,6 +28,7 @@ typedef enum {
     DI_State = 0,
     DI_Model,
     DI_Manufacturer,
+    DI_ZCLVersion,
     //Dimmer, Curtain, Fan
     DI_OnOff,
     //IR

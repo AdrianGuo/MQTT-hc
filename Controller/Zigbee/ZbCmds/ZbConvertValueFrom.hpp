@@ -16,6 +16,8 @@
 #include <ZbDriver.hpp>
 #include <json.h>
 
+#include "SMQTT.hpp"
+
 
 /*****************************************************************************/
 /***                            To Outside                                 ***/
@@ -31,14 +33,15 @@ void_t
 ForwardStateToOutside(
     const ZbDeviceDb_p device
 ) {
-    Json::Value val;
-    val["level"] = std::to_string(device->State);
-    if(device->State == 0) {
-        val["state"] = std::string("off");
-    } else {
-        val["state"] = std::string("on");
-    }
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//    Json::Value val;
+//    val["level"] = std::to_string(device->State);
+//    if(device->State == 0) {
+//        val["state"] = std::string("off");
+//    } else {
+//        val["state"] = std::string("on");
+//    }
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+    SMQTT::s_pInstance->Publish(device->Name.c_str(), device->Action[DI_State].DP_AttributeData);
 }
 
 /**

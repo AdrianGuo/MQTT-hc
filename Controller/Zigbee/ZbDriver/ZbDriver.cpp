@@ -25,7 +25,13 @@
 #include "JsonDevRestart.hpp"
 #include "IO.hpp"
 
+#include "LogPlus.hpp"
+
 #include "ZbDriver.hpp"
+#include "SMQTT.hpp"
+
+#define REQUEST_INTERVAL   (5*60+30)
+#define AFFIRM_INTERVAL        (10)
 
 ZbDriver* ZbDriver::s_pInstance = NULL;
 ZbModelDb_p ZbDriver::s_pZbModel = NULL;
@@ -50,6 +56,12 @@ ZbDriver::ZbDriver(
     SendDriverFunctor();
 
     s_pZbModel = ZbModelDb::CreateModel("zigbee.db");
+
+    m_pTimer = RTimer::getTimerInstance();
+    m_RequestFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbDriver::HandleRequest);
+    m_iRequest = -1;
+//    m_AffirmFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbDriver::HandleAffirm);
+//    m_iAffirm = -1;
 
     m_pJsonRecvSession = JsonRecvZigbeeSession::CreateSession();
     m_pJsonRecvSession->MapJsonMessage<JsonDevAdd>(JsonDevAdd::GetStrCmd());
@@ -125,6 +137,7 @@ ZbDriver::ProcSerRecvMsg(
     String strCommand = pJsonCommand->GetFullCommand();
     MapProcFunctor::const_iterator it = m_mapProcFunctor.find(strCommand);
     if (it != m_mapProcFunctor.end()) {
+        LOG_DEBUG("%s - %s ", __FUNCTION__, strCommand.c_str());
         m_mapProcFunctor[strCommand](pJsonCommand);
     }
 }
@@ -267,6 +280,7 @@ ZbDriver::ProcCmdAdd(
 	if (!jsonDevAdd->ParseJsonCommand(pJsonCommand)) return;
 
 	i8_t act = jsonDevAdd->Act();
+	LOG_DEBUG("%s - act %d ", __FUNCTION__, act);
     if(act == 0) {
     	Notify(Allowed);
         m_pZbBasicCmd->JoinNwkAllow((u8_t) 0XFF);
@@ -493,9 +507,75 @@ ZbDriver::Init(
 //                jsonVal["dev"].append(jsonDev);
 //                JsonCommand_p pJsonCommand = new JsonCommand(String("dev"), String("get"));
 //                pJsonCommand->SetJsonObject(jsonVal);
-//                ProcSerRecvMsg(pJsonCommand);
+//                JsonDevGet_p pJsonDevGet = new JsonDevGet();
+//                pJsonDevGet->ParseJsonCommand(pJsonCommand);
+//                ZbMessage_p pZbMessage = new ZbMessage(pJsonDevGet, ZbMessage::Command::GetDevice);
+//                pZbMessage->SetCmdID(ZCL_CMD_REQ);
+//                ProcSendMessage(pZbMessage);
+//                pZbMessage = NULL;
+//                delete pJsonCommand;
+//                delete pJsonDevGet;
 //            }
 
         }
     }
+    //Start keepalive timer
+    m_iRequest = m_pTimer->StartTimer(RTimer::Repeat::OneTime, REQUEST_INTERVAL, &m_RequestFunctor, NULL);
 }
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ZbDriver::HandleRequest(
+   void_p pbyBuffer
+) {
+    LOG_DEBUG("Affirm alive state of devices!");
+    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
+    for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+        Device_t tmp = (*it);
+        if(tmp.Modify()->RealType > 0) {
+            if(tmp.Modify()->IsAlive == FALSE) {
+                SMQTT::s_pInstance->Publish(tmp.Modify()->Name.c_str(), -1);
+ //             SMQTT::s_pInstance->PushNotification();
+            } else {
+                tmp.Modify()->IsAlive = FALSE;
+            }
+        }
+    }
+//   LOG_DEBUG("Check alive state of devices!");
+    LOG_DEBUG("Send global ZCL request to check alive!");
+   m_pZbZclGlobalCmd->Broadcast();
+//   m_iAffirm = m_pTimer->StartTimer(RTimer::Repeat::OneTime, AFFIRM_INTERVAL, &m_AffirmFunctor, NULL);
+}
+
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+//void_t
+//ZbDriver::HandleAffirm(
+//   void_p pbyBuffer
+//) {
+//   LOG_DEBUG("Affirm alive state of devices!");
+//   Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
+//   for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+//       Device_t tmp = (*it);
+//       if(tmp.Modify()->RealType > 0) {
+//           if(tmp.Modify()->IsAlive == FALSE) {
+//               SMQTT::s_pInstance->Publish(tmp.Modify()->Name.c_str(), -1);
+////             SMQTT::s_pInstance->PushNotification();
+//           } else {
+//               tmp.Modify()->IsAlive = FALSE;
+//           }
+//       }
+//   }
+//   m_iRequest = m_pTimer->StartTimer(RTimer::Repeat::OneTime, REQUEST_INTERVAL, &m_RequestFunctor, NULL);
+//}
+

@@ -22,8 +22,8 @@
 #else
 #define IO_Init()		{}
 #define Notify(x)		{}
-#define DrtSet(x)		{}
-#define Restore()		{}
+#define DrtSetLED(x)	{}
+#define RestoreLED()	{}
 #endif
 
 /******************************************************************************/

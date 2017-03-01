@@ -92,12 +92,15 @@ void_t
 ZbBasicCmd::NwkInit(){
     ZbPacket_p pZbPacket = new ZbPacket(3);
     pZbPacket->SetCmdID(NWK_INIT);
-    u8_p pbyPanID = new u8_t[2];
-    pbyPanID[0] = 0xFF;
-    pbyPanID[1] = 0xFF;
-    u8_t byChannel = 11;
-    pZbPacket->Push(pbyPanID,2);
-    pZbPacket->Push(byChannel);
+//    u8_p pbyPanID = new u8_t[2];
+//    pbyPanID[0] = 0xFF;
+//    pbyPanID[1] = 0xFF;
+//    u8_t byChannel = 11;
+//    pZbPacket->Push(pbyPanID,2);
+//    pZbPacket->Push(byChannel);
+    pZbPacket->Push(0xFF);  //PanID
+    pZbPacket->Push(0xFF); //PanID
+    pZbPacket->Push(11);   //Channel
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;
 }
@@ -127,7 +130,7 @@ ZbBasicCmd::NwkInfoReq(){
  */
 void_t
 ZbBasicCmd::NwkInfoRsp(
-        ZbPacket_p pZbPacket
+    ZbPacket_p pZbPacket
 ){
     u8_p pbyBuffer = pZbPacket->GetBuffer();
     String strExPanID = HexToString(pbyBuffer, 8);

@@ -1,0 +1,22 @@
+[INFO][2107-03-01 09:33:10.427][4160546624][     Transport.cpp: 179] Transport connecting...
+[INFO][2107-03-01 09:33:10.431][4160546624][     Transport.cpp: 212] Transport connecting success - m_idwSockfd = 4
+[INFO][2107-03-01 09:33:10.431][4160546624][         SMQTT.cpp: 196] MQTT Established!
+[INFO][2107-03-01 09:33:10.431][4160546624][         SMQTT.cpp: 279] Successfully cmdtopic subscribed!
+[INFO][2107-03-01 09:33:10.431][4160546624][         SMQTT.cpp: 298] Successfully systopic subscribed!
+[INFO][2107-03-01 09:33:10.431][4160546624][     Transport.cpp: 224] start thread Transport
+[INFO][2107-03-01 09:33:10.431][4160546624][       LThread.cpp:  74] start thread 0
+[INFO][2107-03-01 09:33:10.432][4160546624][       LThread.cpp:  74] start thread 1
+[INFO][2107-03-01 09:33:10.432][4134135552][       LThread.cpp:  24] execute thread 0
+[INFO][2107-03-01 09:33:10.432][4125742848][       LThread.cpp:  24] execute thread 1
+[INFO][2107-03-01 09:33:10.443][4125742848][         SMQTT.cpp: 351] MQTTPacket_read idwRet = 2
+[INFO][2107-03-01 09:33:10.447][4125742848][         SMQTT.cpp: 351] MQTTPacket_read idwRet = 9
+[INFO][2107-03-01 09:33:10.448][4125742848][         SMQTT.cpp: 351] MQTTPacket_read idwRet = 9
+[INFO][2107-03-01 09:33:10.839][4160546624][        Serial.cpp: 253] connect success
+[INFO][2107-03-01 09:33:10.839][4160546624][     ZbCtrller.cpp:  96] Zigbee connect success
+[INFO][2107-03-01 09:33:10.839][4160546624][       LThread.cpp:  74] start thread 3
+[INFO][2107-03-01 09:33:10.839][4160546624][     ZbCtrller.cpp: 111] START SUCCESS
+[INFO][2107-03-01 09:33:10.839][4160546624][       LThread.cpp:  74] start thread 4
+[INFO][2107-03-01 09:33:10.839][4117350144][       LThread.cpp:  24] execute thread 3
+[EROR][2107-03-01 09:33:10.839][4117350144][        Serial.cpp: 118] send packet fail
+[INFO][2107-03-01 09:33:10.839][4108957440][       LThread.cpp:  24] execute thread 4
+[EROR][2107-03-01 09:33:15.000][4117350144][        Serial.cpp: 118] send packet fail

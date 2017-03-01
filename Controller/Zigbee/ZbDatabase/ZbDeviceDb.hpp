@@ -48,9 +48,11 @@ public:
     Collection<DbPtr<ZbDeviceDb>> IrCmd;
 
     int_t           RealType;
+    String          Name;
     Action_t        Action;
     int_t&          State;
     Queue<u32_t>    OwnersReq;
+    bool_t          IsAlive;
 
     void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();

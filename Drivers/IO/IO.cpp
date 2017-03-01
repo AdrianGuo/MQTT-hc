@@ -7,14 +7,16 @@
 #ifdef MT7688
 #include <LogPlus.hpp>
 #include <ZbBasicCmd.hpp>
-#include <ZbSocketCmd.hpp>
+#include <ZbDriver.hpp>
+//#include <ZbSocketCmd.hpp>
 #include <IO.hpp>
 
 #define PERIOD				(100000) //us
 #define ALLOW 				(1*1000000/PERIOD)
 #define DISALLOW 			(3*1000000/PERIOD)
-#define HARDRESET 			(7*1000000/PERIOD)
-#define CANCEL 				(10*1000000/PERIOD)
+#define REMOVE              (7*1000000/PERIOD)
+#define HARDRESET 			(10*1000000/PERIOD)
+#define CANCEL 				(13*1000000/PERIOD)
 
 #define HIDDEN 				(3)
 
@@ -346,13 +348,18 @@ IO::ButtonEvents(
 					m_LED.Set(LED::Color::Blue);
 				}
 
-				if(byCount >= HARDRESET && m_byButtonEvent == 3) {
+				if(byCount >= REMOVE && m_byButtonEvent == 3) {
 					m_byButtonEvent = 7;
 					m_LED.Set(LED::Color::Red);
 				}
 
-				if(byCount >= CANCEL && m_byButtonEvent == 7) {
-					m_byButtonEvent = 10;
+                if(byCount >= HARDRESET && m_byButtonEvent == 7) {
+                    m_byButtonEvent = 10;
+                    m_LED.Set(LED::Color::Pink);
+                }
+
+				if(byCount >= CANCEL && m_byButtonEvent == 10) {
+					m_byButtonEvent = 13;
 					m_LED.Set(LED::Color::Off);
 				}
 
@@ -384,7 +391,8 @@ IO::ButtonEvents(
 			LOG_DEBUG("Allow to join network!");
 			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Allowed);
-			ZbSocketCmd::GetInstance()->SendDevAdd(0);
+//			ZbSocketCmd::GetInstance()->SendDevAdd(0);
+			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0xFF);
 		} else if(m_byButtonEvent == 3) {
 			/*
 			 * Disallow to join network.
@@ -392,19 +400,31 @@ IO::ButtonEvents(
 			LOG_DEBUG("Disallow to join network!");
 			m_LED.Set(LED::Color::Off);
 			Indicate(m_ioBakState);
-			ZbSocketCmd::GetInstance()->SendDevAdd(1);
-		} else if(m_byButtonEvent == 7) {
+//			ZbSocketCmd::GetInstance()->SendDevAdd(1);
+			ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
+        } else if(m_byButtonEvent == 7) {
+            /*
+             * Remove all device.
+             */
+            m_LED.Set(LED::Color::Off);
+            Inform(IO::Event::Reset);
+            sleep(2);
+            LOG_WARN("Remove all device !!!");
+            ZbDriver::GetInstance()->ProcCmdReset();
+		} else if(m_byButtonEvent == 10) {
 			/*
 			 * Factor reset.
 			 */
 			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Reset);
 			sleep(2);
+			LOG_WARN("Remove all device !!!");
+			ZbDriver::GetInstance()->ProcCmdReset();
 			LOG_WARN("Factory reset !!!");
 			system("jffs2reset -y");
 			system("sync");
 			system("reboot");
-		} else if(m_byButtonEvent == 10) {
+		} else if(m_byButtonEvent == 13) {
 			/*
 			 * Cancel press button event.
 			 */
