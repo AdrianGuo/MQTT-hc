@@ -12,6 +12,7 @@
 #include "Queue.hpp"
 #include "String.hpp"
 #include "Locker.hpp"
+#include "LThread.hpp"
 #include "RTimer.hpp"
 #include "Vector.hpp"
 
@@ -40,30 +41,28 @@ typedef PhoneWork*  PhoneWork_p;
 
 class Phone {
 private:
-    String m_strDev;
     Vector<String> m_vecLstDev;
 
     static Phone* s_pInstance;
-    Phone(String strDev = std::string("/dev/ttyUSB0"));
+    Phone();
 
     Queue<PhoneWork_p> m_quePhoneWork;
     Locker_p m_pLocker;
 
-    RTimer_p m_pTimer;
-    int_t m_iDoWork;
-    TimerFunctor_t m_DoWorkFunctor;
-    void_t DoWorkFunc(void_p);
-
-public:
-    static Phone* getInstant(String strDev = std::string("/dev/ttyUSB0"));
-    virtual ~Phone();
-
     bool_t SendSms(String, String);
     bool_t MakeCall(String);
 
-    bool_t AddWork(PhoneWork::Type, String, String strText = "");
-
     void_t UpdateTtyDev();
+
+    void_p DoWorkFunc(void_p);
+    LThread_p m_pDoWorkThread;
+    threadFunctor_t m_DoWorkFunctor;
+
+public:
+    static Phone* getInstant();
+    virtual ~Phone();
+
+    bool_t AddWork(PhoneWork::Type, String, String strText = "");
 };
 
 typedef Phone   Phone_t;

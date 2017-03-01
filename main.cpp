@@ -52,14 +52,12 @@ int main(int argc, char* argv[]) {
     pSMQTT->Connect();
     pSMQTT->Start();
 
-#ifdef MT7688
     ZbCtrller_p pZbController = new ZbCtrller(argv[7]);
 
     pZbController->Connect();
     pZbController->Start();
     pZbController->Init();
-#endif //MT7688
-//
+
     sleep(1);
 //    ZbBasicCmd::GetInstance()->JoinNwkAllow(0xFF);
 
@@ -70,8 +68,6 @@ int main(int argc, char* argv[]) {
 
     while(1) {
         pTimer->Process();
-//      pSMQTT->Publish("test", -1);
-//      sleep(1);
     }
     return 0;
 }

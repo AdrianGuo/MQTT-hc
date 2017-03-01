@@ -33,7 +33,7 @@ SMQTT::SMQTT(
 	String strPhoneNo,
 	String strHWID,
 	String strDev
-)  {
+) {
 	m_strTenant = strTenant;
 	m_strPhoneNo = strPhoneNo;
 	m_strHWID = strHWID;
@@ -62,7 +62,7 @@ SMQTT::SMQTT(
     m_SMQTTSendFunctor = makeFunctor((SMQTTFunctor_p) NULL, *this, &SMQTT::RecvData);
     SMQTTSendFunctor();
 
-    Phone::getInstant(std::string("/dev/ttyUSB0"));
+    Phone::getInstant();
 }
 
 /**
@@ -501,7 +501,7 @@ SMQTT::NotifyFunc(
 	void_p byBuffer
 ) {
     LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, m_strPhoneNo.c_str());
-	Phone::getInstant(m_strDev)->AddWork(PhoneWork::Type::Call, m_strPhoneNo);
+	Phone::getInstant()->AddWork(PhoneWork::Type::Call, m_strPhoneNo);
 
     m_pNotificationThread->Stop();
     return NULL;

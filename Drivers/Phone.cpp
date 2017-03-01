@@ -6,6 +6,7 @@
  */
 
 #include <stddef.h>
+#include <unistd.h>
 #include <dirent.h>
 
 #include "LogPlus.hpp"
@@ -45,26 +46,20 @@ PhoneWork::GetText() {
 
 
 Phone*
-Phone::getInstant(
-    String strDev
-) {
+Phone::getInstant() {
     if (s_pInstance == NULL) {
-        s_pInstance = new Phone(strDev);
+        s_pInstance = new Phone();
     }
     return s_pInstance;
 }
 
-Phone::Phone(
-    String strDev
-) {
-    LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, strDev.c_str());
-    m_strDev = strDev;
-
+Phone::Phone() {
     m_pLocker = new Locker();
 
-    m_pTimer = RTimer::getTimerInstance();
-    m_DoWorkFunctor = makeFunctor((TimerFunctor_p)NULL, *this, &Phone::DoWorkFunc);
-    m_iDoWork = m_pTimer->StartTimer(RTimer::Forever, DO_WORK_INTERVAL, &m_DoWorkFunctor, NULL);
+    m_pDoWorkThread = new LThread();
+    m_DoWorkFunctor = makeFunctor((threadFunctor_p)NULL, *this, &Phone::DoWorkFunc);
+    m_pDoWorkThread->RegThreadFunctor(&m_DoWorkFunctor);
+    m_pDoWorkThread->Start();
 }
 
 Phone::~Phone() {
@@ -79,7 +74,9 @@ Phone::SendSms(
     String strPhoneNumber,
     String strText
 ) {
-    LOG_DEBUG(" %s: \"%s\", \"%s\"", __FUNCTION__, strPhoneNumber.c_str(), strText.c_str());
+    LOG_INFO(" %s: \"%s\", \"%s\"", __FUNCTION__, strPhoneNumber.c_str(), strText.c_str());
+
+    sleep(1);
     return TRUE;
 }
 
@@ -91,10 +88,11 @@ Phone::MakeCall(
     for(Vector<String>::iterator it = m_vecLstDev.begin(); it != m_vecLstDev.end(); ++it) {
         strDev = *it;
         String strATCall = R"(echo -e "ATD)" + strPhoneNumber + R"(;" > )" + strDev;
-        LOG_DEBUG("Send AT command: %s", strATCall.c_str());
+        LOG_INFO("Send AT command: %s", strATCall.c_str());
         system(strATCall.c_str());
     }
 
+    sleep(30);
     return TRUE;
 }
 
@@ -111,27 +109,35 @@ Phone::AddWork(
     return TRUE;
 }
 
-void_t
+void_p
 Phone::DoWorkFunc(
     void_p pbyBuffer
 ) {
-    m_pLocker->Lock();
-    PhoneWork_p pPhoneWork = NULL;
-    if (!m_quePhoneWork.empty()) {
-        UpdateTtyDev();
-        pPhoneWork = m_quePhoneWork.front();
-        if (pPhoneWork->GetType() == PhoneWork::Type::Sms) {
-            SendSms(pPhoneWork->GetPhoneNumber(), pPhoneWork->GetText());
-        } else {
-            MakeCall(pPhoneWork->GetPhoneNumber());
+    while (1) {
+        m_pLocker->Lock();
+        PhoneWork_p pPhoneWork = NULL;
+        if (!m_quePhoneWork.empty()) {
+            UpdateTtyDev();
+            pPhoneWork = m_quePhoneWork.front();
+            if (pPhoneWork->GetType() == PhoneWork::Type::Sms) {
+                SendSms(pPhoneWork->GetPhoneNumber(), pPhoneWork->GetText());
+            } else {
+                MakeCall(pPhoneWork->GetPhoneNumber());
+            }
+            m_quePhoneWork.pop();
+            if (pPhoneWork != NULL) {
+                delete(pPhoneWork);
+                pPhoneWork = NULL;
+            }
         }
-        m_quePhoneWork.pop();
-        if (pPhoneWork != NULL) {
-            delete(pPhoneWork);
-            pPhoneWork = NULL;
-        }
+        m_pLocker->UnLock();
+        usleep(50000);
     }
     m_pLocker->UnLock();
+
+    LOG_INFO("thread exit");
+    pthread_exit(NULL);
+    return NULL;
 }
 
 void_t
@@ -142,7 +148,7 @@ Phone::UpdateTtyDev() {
     m_vecLstDev.erase(m_vecLstDev.begin(), m_vecLstDev.end());
     dpdf = opendir("/dev");
     if (dpdf != NULL){
-        while (epdf = readdir(dpdf)){
+        while ((epdf = readdir(dpdf)) != NULL) {
             if (std::string(epdf->d_name).find("ttyUSB") != std::string::npos) {
 //                LOG_DEBUG("Find ttyUSB : %s",epdf->d_name);
                 m_vecLstDev.push_back(std::string(std::string("/dev/") + epdf->d_name));
