@@ -452,7 +452,7 @@ ZbZdoCmd::SimpleDescResponse(
     pbyBuffer += 2; //Application profile identifier
     u16_t wType = BigWord(&pbyBuffer); //Application device identifier
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
-    if (device.Modify() == NULL) { return; }
+    if (device.get() == NULL) { return; }
     if (wType == 0) {
         SimpleDescRequest(device);
         return;

@@ -136,7 +136,7 @@ ZbBasicCmd::NwkInfoRsp(
     String strExPanID = HexToString(pbyBuffer, 8);
     Controller_t controller = ZbDriver::s_pZbModel->Find<ZbControllerDb>().Where("ExPanID=?").Bind(strExPanID);
     pbyBuffer += 8;
-    if(controller.Modify() == NULL) {
+    if(controller.get() == NULL) {
         ZbCtrllerDb_p pZbCtrller = new ZbControllerDb();
         u16_t wPanID = LittleWord(&pbyBuffer);
         pZbCtrller->ExPanID = strExPanID;

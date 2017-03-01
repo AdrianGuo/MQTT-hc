@@ -344,7 +344,7 @@ ZbDriver::ProcCmdSet(
     Vector<JsonDevSet::Device_t> vecLstDev = jsonDevSet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
         Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
-        if(device.Modify() == NULL) { continue; }
+        if(device.get() == NULL) { continue; }
         device.Modify()->OwnersReq.push(pJsonCommand->GetClientId());
         switch (device->RealType) {
             case LUMI_DEVICE_SWITCH:
@@ -404,7 +404,7 @@ ZbDriver::ProcCmdGet(
     Vector<JsonDevGet::Device_t> vecLstDev = jsonDevGet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
         Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
-        if(device.Modify() == NULL) { continue; }
+        if(device.get() == NULL) { continue; }
         device.Modify()->OwnersReq.push(pJsonCommand->GetClientId());
         switch (device->RealType) {
             case LUMI_DEVICE_SWITCH:

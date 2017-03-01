@@ -168,7 +168,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
 
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
 
-    if(device.Modify() == NULL &&
+    if(device.get() == NULL &&
             wClusterID == ZCL_CLUSTER_ID_GEN_BASIC &&
 			ZbZdoCmd::s_mapEPInfo.find(wNwk) != ZbZdoCmd::s_mapEPInfo.end() &&
 			ZbZdoCmd::s_mapEPInfo[wNwk].MAC != "" &&
@@ -183,7 +183,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
         return;
     }
 
-    if(device.Modify() == NULL) { return; }
+    if(device.get() == NULL) { return; }
 
     u8_t byLength = *pbyBuffer++; //Payload's length
     DeviceProperties vResponseDP;
@@ -488,7 +488,7 @@ ZbZclGlobalCmd::SaveDevicesInfo(
 ) {
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Model!=?").Bind(wNwk).Bind(String(""));
     BackupDev_t tmpBu = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(ZbZdoCmd::s_mapEPInfo[wNwk].MAC);
-    if(ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE || device.Modify() == NULL || tmpBu.Modify() != NULL) return;
+    if(ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE || device.get() == NULL || tmpBu.Modify() != NULL) return;
     BackupDev_t BuDev = ZbDriver::s_pZbModel->Add(new BackupInfoDb());
     BuDev.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
     BuDev.Modify()->Model = device->Model;

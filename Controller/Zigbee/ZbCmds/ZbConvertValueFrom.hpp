@@ -229,11 +229,11 @@ ForwardIrState(
             DEBUG2("Add new IrCmd %04X,", device->Action[DI_State].DP_ReserveData);
             Device_t pdevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
                     Bind(device->Network.GetValue()).Bind(device->Endpoint.GetValue());
-            if(pdevice.Modify() == NULL) { return; }
+            if(pdevice.get() == NULL) { return; }
 
             Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
                     Bind(device->Action[DI_State].DP_ReserveData).Bind(device->Network.GetValue());
-            if(ircmd.Modify() == NULL) {
+            if(ircmd.get() == NULL) {
                     ZbDeviceDb_p pZbDevice = new ZbDeviceDb();
                     pZbDevice->DeviceID  = device->Action[DI_State].DP_ReserveData;
                     pZbDevice->Network = device->Network.GetValue();
