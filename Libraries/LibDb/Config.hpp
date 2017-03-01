@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: Config.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-18 10:30:00 (Tue, 18 Oct 2016)
  *
@@ -16,10 +16,9 @@
 #ifndef CONFIG_HPP_
 #define CONFIG_HPP_
 
-#include "typedefs.h"
-#include "String.hpp"
-#include "Value.hpp"
-#include "ValueIntDb.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/Value/Value.hpp"
+#include "Libraries/LibDb/ValueIntDb.hpp"
 
 struct ConfigDefault {
     typedef ValueIntDb IdType;

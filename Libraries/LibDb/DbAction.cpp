@@ -1,23 +1,22 @@
 /*******************************************************************************
- *
  * Copyright (c) 2016
  * Lumi, JSC.
  * All Rights Reserved
  *
  * File Name: DbAction.cpp
- * Description: Include file for application
  *
  * Author: TrungTQb
  *
- * Last Changed By:  Author: trungtq
+ * Last Changed By:  Author: TrungTQ (trungkstn@gmail.com)
  * Revision:         Revision: 1.0
  * Last Changed:     Date: 2016-10-07 16:10:00 (Fri, 07 Oct 2016)
  *
  ******************************************************************************/
-#include "DbAction.hpp"
+
+#include "Libraries/LibDb/DbAction.hpp"
 
 /**
- * @func
+ * @func   DbInit
  * @brief  None
  * @param  None
  * @retval None
@@ -25,12 +24,12 @@
 DbInit::DbInit(
     DbContext& dbContext,
     IMapTable& mapTable
-) : m_dbContext(dbContext),
-    m_mapTable(mapTable) {
+) : m_dbContext (dbContext  ),
+    m_mapTable  (mapTable   ) {
 }
 
 /**
- * @func
+ * @func   ActInitMapping
  * @brief  None
  * @param  None
  * @retval None
@@ -45,7 +44,7 @@ DbInit::ActInitMapping(
 }
 
 /**
- * @func
+ * @func   DbDrop
  * @brief  None
  * @param  None
  * @retval None
@@ -53,13 +52,21 @@ DbInit::ActInitMapping(
 DbDrop::DbDrop(
     DbContext& dbContext,
     IMapTable& mapTable
-) : m_dbContext(dbContext),
-    m_mapTable(mapTable) {
-
+) : m_dbContext (dbContext),
+    m_mapTable  (mapTable ) {
 }
 
 /**
- * @func
+ * @func   ~DbDrop
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbDrop::~DbDrop() {
+}
+
+/**
+ * @func   DropTable
  * @brief  None
  * @param  None
  * @retval None
@@ -68,11 +75,11 @@ void_t
 DbDrop::DropTable(
     const String& strTable
 ) {
-    m_dbContext.Execute("DROP TABLE IF EXISTS " + strTable);
+    m_dbContext.ExecuteSql("DROP TABLE IF EXISTS " + strTable);
 }
 
 /**
- * @func
+ * @func   DbAction
  * @brief  None
  * @param  None
  * @retval None
@@ -81,13 +88,13 @@ DbAction::DbAction(
     DbPtrBase& dbPtrBase,
     IMapTable& mapTable
 ) : m_pDbPtrBase (&dbPtrBase),
-    m_pMapTable (&mapTable),
-    m_dwStatementIndex (0) {
+    m_pMapTable  (&mapTable),
+    m_dwStatementIdx (0) {
 
 }
 
 /**
- * @func
+ * @func   GetMapTable
  * @brief  None
  * @param  None
  * @retval None
@@ -98,34 +105,43 @@ DbAction::GetMapTable() {
 }
 
 /**
- * @func
+ * @func   DbSaveAction
  * @brief  None
  * @param  None
  * @retval None
  */
 DbSaveAction::DbSaveAction(
-    DbPtrBase& dbPtrBase,
-    IMapTable& mapTable,
-    SqlStatement_p pStatement,
-    u32_t dwColumn
-) : DbAction(dbPtrBase, mapTable),
+    DbPtrBase&              dbPtrBase,
+    IMapTable&              mapTable,
+    SmartPtr<SqlStatement>  pStatement,
+    u32_t                   dwColumn
+) : DbAction     (dbPtrBase, mapTable),
     m_pStatement (pStatement),
-    m_dwColumn (dwColumn) {
+    m_dwColumn   (dwColumn  ) {
 }
 
 /**
- * @func
+ * @func  ~DbSaveAction
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbSaveAction::~DbSaveAction() {
+}
+
+/**
+ * @func   DbLoadAction
  * @brief  None
  * @param  None
  * @retval None
  */
 DbLoadAction::DbLoadAction(
-    DbPtrBase& dbPtrBase,
-    IMapTable& mapTable,
-    SqlStatement_p pStatement,
-    u32_t dwColumn
-) : DbAction (dbPtrBase, mapTable),
-    m_pStatement (pStatement),
-    m_dwColumn (dwColumn) {
+    DbPtrBase&              dbPtrBase,
+    IMapTable&              mapTable,
+    SmartPtr<SqlStatement>  pStatement,
+    u32_t                   dwColumn
+) : DbAction     (dbPtrBase, mapTable),
+    m_pStatement (pStatement         ),
+    m_dwColumn   (dwColumn           ) {
 
 }

@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: Sqlite3Statement.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-13 09:40:00 (Thu, 13 Oct 2016)
  *
@@ -16,10 +16,11 @@
 #ifndef SQLITE3_BACKEND_HPP_
 #define SQLITE3_BACKEND_HPP_
 
-#include "typedefs.h"
-#include "String.hpp"
-#include "Database.hpp"
-#include "SqlStatement.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/LibDb/Database.hpp"
+#include "Libraries/LibDb/SqlStatement.hpp"
+
+struct sqlite3_stmt;
 
 class Sqlite3Statement : public SqlStatement {
 private:
@@ -74,6 +75,8 @@ public:
 
     virtual int_t count();
     virtual int_t execute();
+
+    virtual String sql() const;
 };
 
 typedef Sqlite3Statement  Sqlite3Statement_t;

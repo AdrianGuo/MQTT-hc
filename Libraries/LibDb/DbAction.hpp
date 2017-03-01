@@ -7,7 +7,7 @@
  *
  * Author: TrungTQb
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-07 16:10:00 (Fri, 07 Oct 2016)
  *
@@ -15,22 +15,22 @@
 #ifndef DBACTION_HPP_
 #define DBACTION_HPP_
 
-#include "typedefs.h"
-#include "debug.hpp"
-#include "sqlite3.h"
-#include "ValueDb.hpp"
-#include "ValueIntDb.hpp"
-#include "SetInfo.hpp"
-#include "DbPtr.hpp"
-#include "Config.hpp"
-#include "ConfigImpl.hpp"
-#include "SqlStatement.hpp"
-#include "DbContext.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/SmartPtr.hpp"
+#include "Libraries/LibDb/sqlite3.h"
+#include "Libraries/LibDb/ValueDb.hpp"
+#include "Libraries/LibDb/ValueIntDb.hpp"
+#include "Libraries/LibDb/SetInfo.hpp"
+#include "Libraries/LibDb/DbPtr.hpp"
+#include "Libraries/LibDb/Config.hpp"
+#include "Libraries/LibDb/ConfigImpl.hpp"
+#include "Libraries/LibDb/SqlStatement.hpp"
+#include "Libraries/LibDb/DbContext.hpp"
 
 template<class C> class Collection;
 
 /**
- * @func
+ * @func   Table
  * @brief  None
  * @param  None
  * @retval None
@@ -44,7 +44,7 @@ void_t Scan(
 }
 
 /**
- * @func
+ * @func   Column
  * @brief  None
  * @param  None
  * @retval None
@@ -60,7 +60,7 @@ void_t Column(
 }
 
 /**
- * @func
+ * @func   Id
  * @brief  None
  * @param  None
  * @retval None
@@ -76,34 +76,36 @@ void_t Id(
 }
 
 /**
- * @func
+ * @func   Belong
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class A, class C>
-void_t Belong(
+void_t
+Belong(
     A& action,
     DbPtr<C>& dbPtr,
     const String& strForeignName,
     u32_t dwFlag = ValueDb::OnDeleteCascade
 ) {
-    ValueDb value (strForeignName,  Value::Type_t::type_interger);
+    ValueDb value (strForeignName, Value::Type_t::type_interger);
     value.SetFlag(dwFlag | ValueDb::ForeignKey);
 
     action.ActDbPtr(dbPtr, value);
 }
 
 /**
- * @func
+ * @func   Belong
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class A, class C>
-void_t Belong(
-    A& action,
-    DbPtr<C>& dbPtr,
+void_t
+Belong(
+    A&          action,
+    DbPtr<C>&   dbPtr,
     typename ConfigTable<C>::IdType& value,
     u32_t dwFlag = ValueDb::Constraint::OnDeleteCascade
 ) {
@@ -112,13 +114,14 @@ void_t Belong(
 }
 
 /**
- * @func
+ * @func   HasMany
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class A, class C>
-void_t HasMany(
+void_t
+HasMany(
     A& action,
     Collection<DbPtr<C>>& collection,
     const String& strForeignName = String()
@@ -146,8 +149,8 @@ public:
     template<class V> void_t ActId(V& value);
     template<class V> void_t ActColumn(V& value);
     template<class C> void_t ActDbPtr(DbPtr<C>& dbPtr, typename ConfigTable<C>::IdType& value);
-    template<class C> void_t ActCollection(Collection<DbPtr<C>>& collection,
-                                           const String& strForeignName);
+    template<class C> void_t
+    ActCollection(Collection<DbPtr<C>>& collection, const String& strForeignName);
     template<class C> void_t Config(C& object);
 };
 
@@ -155,7 +158,7 @@ typedef DbInit  DbInit_t;
 typedef DbInit* DbInit_p;
 
 /**
- * @func
+ * @func   ActId
  * @brief  None
  * @param  None
  * @retval None
@@ -172,7 +175,7 @@ DbInit::ActId(
 }
 
 /**
- * @func
+ * @func   ActColumn
  * @brief  None
  * @param  None
  * @retval None
@@ -186,7 +189,7 @@ DbInit::ActColumn(
 }
 
 /**
- * @func
+ * @func   ActDbPtr
  * @brief  None
  * @param  None
  * @retval None
@@ -202,7 +205,9 @@ DbInit::ActDbPtr(
 
     String strFieldName = pMapTable->NaturalIdName;
 
-    if (strFieldName.empty()) { strFieldName = pMapTable->InsteadIdName; }
+    if (strFieldName.empty()) {
+        strFieldName = pMapTable->InsteadIdName;
+    }
 
     value.SetForeignKeyTable(pMapTable->GetTableName());
     value.SetForeignKeyName(value.GetColumnName());
@@ -211,7 +216,7 @@ DbInit::ActDbPtr(
 }
 
 /**
- * @func
+ * @func   ActCollection
  * @brief  None
  * @param  None
  * @retval None
@@ -223,21 +228,22 @@ DbInit::ActCollection(
     const String& strForeignName
 ) {
     String strTableName = m_dbContext.TableName<C>();
-    String strJoinName = (strForeignName != String()) ? strForeignName : strTableName;
-    m_mapTable.SetInfo.push_back(SetInfo(strTableName, strForeignName, strJoinName));
+    String strJoinName  =
+    (strForeignName != String()) ? strForeignName : strTableName;
+    m_mapTable.SetInfo.push_back(
+    SetInfo(strTableName, strForeignName, strJoinName));
 }
 
 /**
- * @func
+ * @func   Config
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
-void_t
+inline void_t
 DbInit::Config(C& object) {
     m_mapTable.InsteadIdName = ConfigTable<C>::InsteadIdField();
-
     Scan(object, *this);
 }
 
@@ -250,15 +256,18 @@ private:
     IMapTable& m_mapTable;
 public:
     DbDrop(DbContext& dbContext, IMapTable& mapTable);
-    virtual ~DbDrop() {}
+    virtual ~DbDrop();
 
     template<class V> void_t ActId(V& value);
     template<class V> void_t ActColumn(V& value);
     void_t DropTable(const String& strTable);
 
-    template<class C> void_t ActDbPtr(DbPtr<C>& dbPtr, typename ConfigTable<C>::IdType& value) {}
-    template<class C> void_t ActCollection(Collection<DbPtr<C>>& collection,
-                                           const String& strForeignName) {}
+    template<class C> void_t
+    ActDbPtr(DbPtr<C>& dbPtr,
+             typename ConfigTable<C>::IdType& value) {}
+    template<class C> void_t
+    ActCollection(Collection<DbPtr<C>>& collection,
+                  const String& strForeignName) {}
     template<class C> void_t Config(C& object);
 };
 
@@ -266,7 +275,7 @@ typedef DbDrop  DbDrop_t;
 typedef DbDrop* DbDrop_p;
 
 /**
- * @func
+ * @func   ActId
  * @brief  None
  * @param  None
  * @retval None
@@ -280,7 +289,7 @@ DbDrop::ActId(
 }
 
 /**
- * @func
+ * @func   ActColumn
  * @brief  None
  * @param  None
  * @retval None
@@ -294,13 +303,13 @@ DbDrop::ActColumn(
 }
 
 /**
- * @func
+ * @func   Config
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
-void_t
+inline void_t
 DbDrop::Config(C& object) {
     DropTable(m_mapTable.TableName);
 }
@@ -312,62 +321,85 @@ class DbAction {
 protected:
     DbPtrBase_p m_pDbPtrBase;
     IMapTable_p m_pMapTable;
-    u32_t m_dwStatementIndex;
+    u32_t       m_dwStatementIdx;
 public:
     DbAction(DbPtrBase& dbPtrBase, IMapTable& mapTable);
     virtual ~DbAction() {}
 
     IMapTable& GetMapTable();
-    template<class C> void_t ActCollection(Collection<DbPtr<C>>& collection,
-                                           const String& strForeignName);
+    template<class C> void_t
+    ActCollection(Collection<DbPtr<C>>& collection,
+                  const String& strForeignName);
 };
 
 typedef DbAction  DbAction_t;
 typedef DbAction* DbAction_p;
 
+/**
+ * @func   ActCollection
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
 template<class C>
 inline void_t
 DbAction::ActCollection(
     Collection<DbPtr<C>>& collection,
     const String& strForeignName
 ) {
-    DbContext_p pDbContex = m_pDbPtrBase->GetDbContext();
+    try {
+//        LOG_DEBUG("action collection");
+        DbContext_p pDbContext = m_pDbPtrBase->GetDbContext();
 
-    u32_t dwStatementIndex = DbContext::SELECTSET + m_dwStatementIndex;
-    String strSqlStatement = pDbContex->GetSqlStatement(m_pMapTable->TableName, dwStatementIndex);
-    size_t posFrom  = strSqlStatement.find(" FROM ");
-    String strSqlCountStatement = "SELECT COUNT(1) " + strSqlStatement.substr(posFrom);
+        if (pDbContext != NULL) {
+            u32_t dwStatementIndex = DbContext::SELECTSET + m_dwStatementIdx;
 
-    SqlStatement_p pSqlStatement = pDbContex->GetStatement(strSqlStatement);
-    SqlStatement_p pSqlCountStatement = pDbContex->GetStatement(strSqlCountStatement);
+            String strSqlStatement =
+            pDbContext->GetSqlStatement(m_pMapTable->TableName, dwStatementIndex);
 
-    m_pDbPtrBase->BindId(pSqlStatement, 0);
-    m_pDbPtrBase->BindId(pSqlCountStatement, 0);
+            size_t posFrom = strSqlStatement.find(" FROM ");
 
-    collection = Collection<DbPtr<C>>(pDbContex, pSqlStatement, pSqlCountStatement);
+            String strSqlCountStatement =
+            "SELECT COUNT(1) " + strSqlStatement.substr(posFrom);
 
-    m_dwStatementIndex++;
+            SmartPtr<SqlStatement> pSqlStatement =
+            pDbContext->GetStatement(strSqlStatement);
+
+            SmartPtr<SqlStatement> pSqlCountStatement =
+            pDbContext->GetStatement(strSqlCountStatement);
+
+            m_pDbPtrBase->BindId(pSqlStatement, 0);
+            m_pDbPtrBase->BindId(pSqlCountStatement, 0);
+
+            collection =
+            Collection<DbPtr<C>>(pDbContext, pSqlStatement, pSqlCountStatement);
+            collection.SetRelationData(m_pDbPtrBase);
+
+            m_dwStatementIdx++;
+        }
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
 }
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
 class DbSaveAction : public DbAction {
-private:
-
 protected:
-    SqlStatement_p m_pStatement;
-    u32_t   m_dwColumn;
+    SmartPtr<SqlStatement>  m_pStatement;
+    u32_t                   m_dwColumn;
 public:
-    DbSaveAction(DbPtrBase& dbPtrBase,
-                 IMapTable& mapTable,
-                 SqlStatement_p pStatement = NULL,
-                 u32_t dwColumn = 0);
+    DbSaveAction(DbPtrBase&             dbPtrBase,
+                 IMapTable&             mapTable,
+                 SmartPtr<SqlStatement> pStatement  = NULL,
+                 u32_t                  dwColumn    = 0);
 
-    virtual ~DbSaveAction() { m_dwColumn = 0;}
+    virtual ~DbSaveAction();
 
     template<class V> void_t ActColumn(V& value);
-    template<class C> void_t ActDbPtr(DbPtr<C>& dbPtr, typename ConfigTable<C>::IdType& value);
+    template<class C> void_t
+    ActDbPtr(DbPtr<C>& dbPtr, typename ConfigTable<C>::IdType& value);
 };
 
 typedef DbSaveAction  DbSaveAction_t;
@@ -409,16 +441,21 @@ DbSaveAction::ActDbPtr(
     DbPtr<C>& dbPtr,
     typename ConfigTable<C>::IdType& value
 ) {
-    if (value.IsChanged()) { // Not Complete
+    DbContext_p pDbContext = m_pDbPtrBase->GetDbContext();
+
+    if (value.IsChanged()) {
         value.ResetBindNull();
-        dbPtr = m_pDbPtrBase->GetDbContext()->Load<C>(value);
+        if (pDbContext != NULL) {
+            dbPtr = pDbContext->LoadId<C>(value);
+        }
     }
 
-    DbPtrCore<C>* pPtrCore = dbPtr.Object();
-    if (pPtrCore->Object() != NULL) {
-        pPtrCore->BindId(m_pStatement, m_dwColumn++);
-        value = pPtrCore->GetId();
-        m_pDbPtrBase->GetDbContext()->FlushObject(pPtrCore);
+    if (dbPtr.Obj() != NULL) {
+        dbPtr.Obj()->BindId(m_pStatement, m_dwColumn++);
+        value = dbPtr.Obj()->GetId();
+        if (pDbContext != NULL) {
+            pDbContext->FlushObject(dbPtr.Obj());
+        }
     } else {
         value.SetBindNull();
         Column(*this, value);
@@ -432,11 +469,11 @@ DbSaveAction::ActDbPtr(
 template<class C>
 class DbSaveObject : public DbSaveAction {
 private:
-    DbPtrCore<C>& m_dbPtrCore;
-    bool_t m_boIsInsert;
+    DbPtrCore<C>&   m_dbPtrCore;
+    bool_t          m_boIsInsert;
 public:
     DbSaveObject(DbPtrCore<C>& dbPtrCore, DbContext::MapTable<C>& mapping);
-    virtual ~DbSaveObject() {}
+    virtual ~DbSaveObject();
 
     template<class V> void_t ActId(V& value);
 
@@ -444,7 +481,7 @@ public:
 };
 
 /**
- * @func
+ * @func   DbSaveObject
  * @brief  None
  * @param  None
  * @retval None
@@ -452,15 +489,27 @@ public:
 template<class C>
 inline
 DbSaveObject<C>::DbSaveObject(
-    DbPtrCore<C>& dbPtrCore,
+    DbPtrCore<C>&           dbPtrCore,
     DbContext::MapTable<C>& mapping
 ) : DbSaveAction (dbPtrCore, mapping),
-    m_dbPtrCore (dbPtrCore),
+    m_dbPtrCore  (dbPtrCore),
     m_boIsInsert (TRUE) {
 }
 
 /**
- * @func
+ * @func   ~DbSaveObject
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbSaveObject<C>::~DbSaveObject() {
+
+}
+
+/**
+ * @func   Config
  * @brief  None
  * @param  None
  * @retval None
@@ -470,41 +519,54 @@ inline void_t
 DbSaveObject<C>::Config(
     C& object
 ) {
-    DbContext* pDbContext = m_dbPtrCore.GetDbContext();
+    try {
+        DbContext_p pDbContext = m_dbPtrCore.GetDbContext();
 
-    if (m_pStatement == NULL) {
-        m_boIsInsert = !m_dbPtrCore.IsRefreshed();
-        m_pStatement = (m_boIsInsert) ? pDbContext->GetStatement<C>(DbContext::INSERT) :
-                                        pDbContext->GetStatement<C>(DbContext::UPDATE);
-    } else {
-        m_boIsInsert = FALSE;
-    }
-
-    typename ConfigTable<C>::IdType value = m_dbPtrCore.GetId();
-
-    m_pStatement->reset(); m_pStatement->ubind();
-    m_dwColumn = 0;
-
-    Scan(object, *this);
-
-    if (!m_boIsInsert) { m_pStatement->bind(m_dwColumn++, value); }
-
-    if (m_pStatement->execute() != SQLITE_DONE) {
-        if (!m_boIsInsert) { // Refresh if error
-            m_pDbPtrBase->GetDbContext()->Refresh<C>(value);
+        if (m_pStatement.get() == NULL) {
+            m_boIsInsert = !m_dbPtrCore.IsRefreshed();
+            if (pDbContext != NULL) {
+                m_pStatement = (m_boIsInsert) ?
+                pDbContext->GetStatement<C>(DbContext::INSERT):
+                pDbContext->GetStatement<C>(DbContext::UPDATE);
+            }
+        } else {
+            m_boIsInsert = FALSE;
         }
-    }
 
-    if (m_boIsInsert && (m_pMapTable->InsteadIdName != String())) {
-        m_dbPtrCore.SetId(m_pStatement->insertId());
-    }
+        typename ConfigTable<C>::IdType value = m_dbPtrCore.GetId();
 
-    m_dbPtrCore.SetTransaction(DbPtrBase::saved_in_transaction);
-    m_dwColumn = 0;
+        m_pStatement->reset();
+        m_pStatement->ubind();
+        m_dwColumn = 0;
+
+        Scan(object, *this); // Binding statements
+
+        if (!m_boIsInsert) { // if update
+            m_pStatement->bind(m_dwColumn++, value); // Binding Id
+        }
+
+        int_t iRet = m_pStatement->execute();
+
+
+        if ((iRet != SQLITE_DONE) || (iRet != SQLITE_DONE)) {
+            if (!m_boIsInsert && (pDbContext != NULL)) { // If update
+                pDbContext->Refresh<C>(value); // Refresh if error
+            }
+        }
+
+        if (m_boIsInsert && (m_pMapTable->InsteadIdName != String())) { // If insert
+            m_dbPtrCore.SetId(m_pStatement->insertId());
+        }
+
+        m_dbPtrCore.SetTransaction(DbPtrBase::saved_in_transaction);
+        m_dwColumn = 0;
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
 }
 
 /**
- * @func
+ * @func   ActId
  * @brief  None
  * @param  None
  * @retval None
@@ -525,25 +587,26 @@ DbSaveObject<C>::ActId(
 /******************************************************************************/
 class DbLoadAction : public DbAction {
 protected:
-    SqlStatement_p m_pStatement;
-    u32_t m_dwColumn;
+    SmartPtr<SqlStatement> m_pStatement;
+    u32_t                  m_dwColumn;
 public:
-    DbLoadAction(DbPtrBase& dbPtrBase,
-                 IMapTable& mapTable,
-                 SqlStatement_p pStatement = NULL,
+    DbLoadAction(DbPtrBase&             dbPtrBase,
+                 IMapTable&             mapTable,
+                 SmartPtr<SqlStatement> pStatement = NULL,
                  u32_t dwColumn = 0);
 
     virtual ~DbLoadAction() {}
 
     template<class V> void_t ActColumn(V& value);
-    template<class C> void_t ActDbPtr(DbPtr<C>& dbPtr, typename ConfigTable<C>::IdType& value);
+    template<class C> void_t
+    ActDbPtr(DbPtr<C>& dbPtr, typename ConfigTable<C>::IdType& value);
 };
 
 typedef DbLoadAction  DbLoadAction_t;
 typedef DbLoadAction* DbLoadAction_p;
 
 /**
- * @func
+ * @func   ActColumn
  * @brief  None
  * @param  None
  * @retval None
@@ -559,7 +622,7 @@ DbLoadAction::ActColumn(
 }
 
 /**
- * @func
+ * @func   ActDbPtr
  * @brief  None
  * @param  None
  * @retval None
@@ -572,8 +635,10 @@ DbLoadAction::ActDbPtr(
 ) {
     Column(*this, value);
     if (!value.IsBindNull()) {
-        DbContext_p pDbContex = m_pDbPtrBase->GetDbContext();
-        dbPtr = pDbContex->Load<C>(value);
+        DbContext_p pDbContext = m_pDbPtrBase->GetDbContext();
+        if (pDbContext != NULL) {
+            dbPtr = pDbContext->LoadId<C>(value);
+        }
     }
 }
 
@@ -585,10 +650,10 @@ class DbLoadObject : public DbLoadAction {
 private:
     DbPtrCore<C>& m_dbPtrCore;
 public:
-    DbLoadObject(DbPtrCore<C>& dbPtrCore,
+    DbLoadObject(DbPtrCore<C>&           dbPtrCore,
                  DbContext::MapTable<C>& mapping,
-                 SqlStatement_p pSqlStatement = NULL);
-    virtual ~DbLoadObject() {}
+                 SmartPtr<SqlStatement>  pSqlStatement = NULL);
+    virtual ~DbLoadObject();
 
     void_t GetInsteadId();
     template<class V> void_t ActId(V& value);
@@ -596,7 +661,7 @@ public:
 };
 
 /**
- * @func
+ * @func   DbLoadObject
  * @brief  None
  * @param  None
  * @retval None
@@ -604,16 +669,27 @@ public:
 template<class C>
 inline
 DbLoadObject<C>::DbLoadObject(
-    DbPtrCore<C>& dbPtrCore,
+    DbPtrCore<C>&           dbPtrCore,
     DbContext::MapTable<C>& mapping,
-    SqlStatement_p pSqlStatement
+    SmartPtr<SqlStatement>  pSqlStatement
 ) : DbLoadAction (dbPtrCore, mapping, pSqlStatement),
-    m_dbPtrCore (dbPtrCore) {
+    m_dbPtrCore  (dbPtrCore) {
+}
+
+/**
+ * @func   ~DbLoadObject
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbLoadObject<C>::~DbLoadObject() {
 
 }
 
 /**
- * @func
+ * @func   GetInsteadId
  * @brief  None
  * @param  None
  * @retval None
@@ -629,7 +705,7 @@ DbLoadObject<C>::GetInsteadId() {
 }
 
 /**
- * @func
+ * @func   Config
  * @brief  None
  * @param  None
  * @retval None
@@ -640,7 +716,6 @@ DbLoadObject<C>::Config(
     C& object
 ) {
     m_pStatement->execute();
-
     m_dwColumn = 0;
     GetInsteadId();
     Scan(object, *this);
@@ -648,7 +723,7 @@ DbLoadObject<C>::Config(
 }
 
 /**
- * @func
+ * @func   ActId
  * @brief  None
  * @param  None
  * @retval None

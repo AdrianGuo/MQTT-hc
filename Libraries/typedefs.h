@@ -8,9 +8,9 @@
  *
  * Description:      Include file for application
  *
- * Author:           TrungTQb
+ * Author:           TrungTQ
  *
- * Last Changed By:  Author: TrungTQ
+ * Last Changed By:  Author: TrungTQ (trungkstn@gmail.com)
  * Revision:         Revision: 1.1
  * Last Changed:     Date: 2016-05-16 11:45:00 (Tue, 16 May 2016)
  *
@@ -21,7 +21,23 @@
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
+
 #include <bits/wordsize.h>
+#include <stddef.h>
+#include <stdarg.h>
+#include <utility>
+#include <sys/time.h>
+#include <iostream>
+#include <exception>
+#include <list>
+#include <map>
+#include <queue>
+#include <set>
+#include <string>
+#include <vector>
+#include <string.h>
+
+
 #ifdef MT7688
 #include <string>
 #include <sstream>
@@ -30,6 +46,12 @@
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
+
+#ifndef __FILENAME__
+#define __FILENAME__  (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif /* __FILENAME__ */
+
+
 typedef unsigned char           byte_t;     // 1 byte
 typedef unsigned short          word_t;     // 2 byte
 typedef unsigned long           dword_t;    // 8 byte
@@ -53,7 +75,7 @@ typedef unsigned int            u32_t;      // 4 byte
 typedef unsigned long int       u64_t;
 #elif __WORDSIZE == 32
 typedef unsigned int            u32_t;      // 4 byte
-typedef unsigned long long      u64_t;
+typedef unsigned long long       u64_t;
 #endif
 
 typedef signed char             i8_t;       // 1 byte
@@ -64,7 +86,7 @@ typedef signed int              i32_t;      // 4 byte
 typedef signed long int         i64_t;
 #elif __WORDSIZE == 32
 typedef signed int              i32_t;      // 4 byte
-typedef signed long long         i64_t;
+typedef signed long long        i64_t;
 #endif
 
 typedef signed int              int_t;
@@ -79,7 +101,7 @@ typedef unsigned int*           u32_p;      // 4 byte
 typedef unsigned long int*      u64_p;
 #elif __WORDSIZE == 32
 typedef unsigned int*           u32_p;      // 4 byte
-typedef unsigned long long*      u64_p;
+typedef unsigned long long*     u64_p;
 #else
 typedef unsigned int*           u32_p;      // 4 byte
 typedef unsigned long int*      u64_p;
@@ -145,6 +167,85 @@ typedef void const*             void_const_p;
 #ifndef MERGE
 #define MERGE(h,l)              (((h) << 8) | (l))
 #endif /* !MERGE */
+
+#ifndef UNUSED
+#define UNUSED(x)               (x) = (x)
+#endif /* UNUSED */
+
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET          (-1)
+#endif /* INVALID_SOCKET */
+
+#ifndef RTIMER_ERROR
+#define RTIMER_ERROR            (-1)
+#endif /* RTIMER_ERROR */
+
+#ifndef SERIAL_ERROR
+#define SERIAL_ERROR            (-1)
+#endif /* SERIAL_ERROR */
+
+#ifndef BAUD96
+#define BAUD96                  (96)
+#endif /* BAUD96 */
+
+#ifndef BAUD192
+#define BAUD192                 (192)
+#endif /* BAUD192 */
+
+#ifndef BAUD384
+#define BAUD384                 (384)
+#endif /* BAUD384 */
+
+#ifndef BAUD576
+#define BAUD576                 (576)
+#endif /* BAUD576 */
+
+#ifndef BAUD1152
+#define BAUD1152                (1152)
+#endif /* BAUD1152 */
+
+#ifndef WAIT_INFINITE
+#define WAIT_INFINITE           (-1)
+#endif /* WAIT_INFINITE */
+
+#ifndef WAIT_IMMEDIATE
+#define WAIT_IMMEDIATE          (0)
+#endif /* WAIT_IMMEDIATE */
+
+#ifndef WAIT_SUCCESS
+#define WAIT_SUCCESS            (0)
+#endif /* EVENT_SUCCESS */
+
+template<typename T> using Vector = std::vector<T>;
+template<typename T> using Queue = std::queue<T>;
+template<typename T> using List = std::list<T>;
+template<typename T> using Set = std::set<T>;
+template<typename K, typename T> using Map = std::map<K, T>;
+using String = std::string;
+
+static std::exception_ptr eptr = NULL;
+
+inline void_t
+Handle_Eptr(std::exception_ptr eptr) {
+    if (eptr != NULL) {
+        try {
+            std::rethrow_exception(eptr);
+        } catch (std::exception &ex) {
+            std::cout << "caught exception " << ex.what() << std::endl;
+        }
+    }
+}
+
+#define MACRO_DBUG(x, args ...) \
+    ST (\
+        struct timeval tv; \
+        gettimeofday(&tv, NULL); \
+        struct tm* now; \
+        now = localtime(&tv.tv_sec); \
+        printf("\x1b[36m[DBUG][%04d-%02d-%02d %02d:%02d:%02d.%03d][%010u][%18s:%4d] " x "\n\x1b[39m", \
+                now->tm_year + 1990, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec, \
+                (int_t) tv.tv_usec / 1000, (u32_t) pthread_self(), __FILENAME__, __LINE__, ##args); \
+    )
 
 #ifdef MT7688
 namespace std {

@@ -16,24 +16,28 @@
 #ifndef VALUE_STRDB_HPP_
 #define VALUE_STRDB_HPP_
 
-#include "typedefs.h"
-#include "String.hpp"
-#include "ValueDb.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/LibDb/ValueDb.hpp"
 
 class ValueStrDb : public ValueDb {
 private:
     String m_strValue;
+
+protected:
+    void_t Swap(ValueStrDb& other);
+
 public:
-    ValueStrDb(String strValue = "",
-               String strColumnName = "");
+    ValueStrDb(String strValue = String(),
+               String strColumnName = String());
+    ValueStrDb(const ValueStrDb& copied);
 
     virtual ~ValueStrDb();
+    virtual void_t SetValueDefault();
 
     String GetValue() const;
     void_t SetValue(String strValue);
-    virtual void_t SetValueDefault() { m_strValue = ""; }
 
-    ValueStrDb& operator= (const ValueStrDb& rhs);
+    ValueStrDb& operator= (const ValueStrDb& copied);
     ValueStrDb& operator= (const String strValue);
     ValueStrDb& operator= (const_char_p rhs);
 
@@ -51,7 +55,7 @@ public:
     bool_t operator<  (const String strValue) const;
     bool_t operator<= (const String strValue) const;
 
-    operator String()  { return m_strValue; }
+    operator String() const { return m_strValue; }
     operator String*() { return &m_strValue; }
 };
 

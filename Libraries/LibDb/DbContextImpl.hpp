@@ -3,30 +3,68 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: DbContextImpl.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-05-16 11:45:00 (Tue, 16 May 2016)
  *
  ******************************************************************************/
 
-#ifndef DBCONTEXTIMPL_HPP_
-#define DBCONTEXTIMPL_HPP_
+#ifndef DB_CONTEXT_IMPL_HPP_
+#define DB_CONTEXT_IMPL_HPP_
 
 #include <iostream>
 #include <type_traits>
-#include "DbPtr.hpp"
-#include "Query.hpp"
-#include "DbAction.hpp"
-#include "ConfigImpl.hpp"
-#include "DbPtrImpl.hpp"
-#include "DbContext.hpp"
+
+#include "Libraries/typedefs.h"
+#include "Libraries/LibDb/DbPtr.hpp"
+#include "Libraries/LibDb/Query.hpp"
+#include "Libraries/LibDb/DbAction.hpp"
+#include "Libraries/LibDb/ConfigImpl.hpp"
+#include "Libraries/LibDb/DbPtrImpl.hpp"
+#include "Libraries/LibDb/DbContext.hpp"
+
 
 /**
- * @func
+ * @func   MapTable<C>::MapTable
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbContext::MapTable<C>::MapTable(
+    String strTableName
+) : IMapTable(strTableName) {
+}
+
+/**
+ * @func   MapTable<C>::~MapTable
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbContext::MapTable<C>::~MapTable() {
+    try {
+//        LOG_DEBUG("delete core");
+        for (typename Registry_t::iterator it =  Registry.begin();
+                it != Registry.end(); ++it) {
+            delete it->second;
+            it->second = NULL;
+        }
+//        LOG_DEBUG("delete core done");
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
+}
+
+/**
+ * @func   MapTable<C>::InitMapTable
  * @brief  None
  * @param  None
  * @retval None
@@ -46,7 +84,7 @@ DbContext::MapTable<C>::InitMapTable(
 }
 
 /**
- * @func
+ * @func   DropTable
  * @brief  None
  * @param  None
  * @retval None
@@ -63,15 +101,18 @@ DbContext::MapTable<C>::DropTable(
 }
 
 /**
- * @func
+ * @func   PrimaryKeys
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline String
-DbContext::MapTable<C>::PrimaryKeys() const {
-    if (InsteadIdName != String()) { return InsteadIdName; }
+DbContext::MapTable<C>::PrimaryKeys(
+) const {
+    if (InsteadIdName != String()) {
+        return InsteadIdName;
+    }
 
     bool_t boFirstColumn = TRUE;
     String strPrimaryKeys;
@@ -90,7 +131,7 @@ DbContext::MapTable<C>::PrimaryKeys() const {
 }
 
 /**
- * @func
+ * @func   Add
  * @brief  None
  * @param  None
  * @retval None
@@ -100,12 +141,12 @@ inline DbPtr<C>
 DbContext::Add(
     C* pObject
 ) {
-    DbPtr<C> dbPtr(pObject);
+    DbPtr<C> dbPtr(pObject, this);
     return Add(dbPtr);
 }
 
 /**
- * @func
+ * @func   Add
  * @brief  None
  * @param  None
  * @retval None
@@ -115,21 +156,23 @@ inline DbPtr<C>
 DbContext::Add(
     DbPtr<C>& dbPtr
 ) {
-    DbPtrCore<C>* pDbPtrCore = dbPtr.Object();
+    if (dbPtr.Obj() != NULL) {
+        if (dbPtr.Obj()->GetDbContext() == NULL) {
+            dbPtr.Obj()->SetDbContext(this);
+        }
 
-    pDbPtrCore->SetDbContext(this);
-
-    if (GetFlushMode() == MODE_AUTO) {
-        FlushObject(pDbPtrCore);
-    } else {
-        m_vecObjecToAdd.push_back(pDbPtrCore);
+        if (m_flushMode == MODE_AUTO) {
+            FlushObject(dbPtr.Obj());
+        } else {
+            m_vecObjectToAdd.push_back(dbPtr.Obj());
+        }
     }
 
     return dbPtr;
 }
 
 /**
- * @func
+ * @func   Save
  * @brief  None
  * @param  None
  * @retval None
@@ -139,15 +182,27 @@ inline void_t
 DbContext::Save(
     DbPtrCore<C>& dbPtr
 ) {
-    MapTable<C>* pMapping = GetMapping<C>();
-    DbSaveObject<C> dbAction(dbPtr, *pMapping);
+    try {
+        MapTable<C>* pMapping = GetMapping<C>();
+        DbSaveObject<C> dbAction(dbPtr, *pMapping);
 
-    dbAction.Config(*dbPtr.Object());
-    pMapping->Registry[dbPtr.GetId()] = &dbPtr;
+        dbAction.Config(*dbPtr.Obj());
+
+        if (pMapping != NULL) {
+            typename MapTable<C>::Registry_t::iterator it =
+            pMapping->Registry.find(dbPtr.GetId());
+            if (it == pMapping->Registry.end()) { // If new
+                dbPtr.Triggered();
+            }
+            pMapping->Registry[dbPtr.GetId()] = &dbPtr; // update/add
+        }
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
 }
 
 /**
- * @func
+ * @func   Delete
  * @brief  None
  * @param  None
  * @retval None
@@ -157,19 +212,26 @@ inline void_t
 DbContext::Delete(
     DbPtrCore<C>& dbPtr
 ) {
-    MapTable<C>* pMapping = GetMapping<C>();
-    SqlStatement_p pStatement = GetStatement<C>(DbContext::DELETE);
-    pStatement->reset();
-
-    pStatement->bind(0, dbPtr.GetId());
-    int_t iResult = pStatement->execute();
-    if ((iResult == SQLITE_DONE) || (iResult == SQLITE_OK)) {
-        pMapping->Registry.erase(dbPtr.GetId());
+    try {
+        MapTable<C>* pMapping = GetMapping<C>();
+        if (pMapping != NULL) {
+            SmartPtr<SqlStatement> pStatement =
+            GetStatement<C>(DbContext::DELETE);
+            pStatement->reset();
+            pStatement->bind(0, dbPtr.GetId());
+            int_t iRet = pStatement->execute();
+            UNUSED(iRet);
+//            if ((iRet == SQLITE_DONE) || (iRet == SQLITE_OK)) {
+//                pMapping->Registry.erase(dbPtr.GetId());
+//            }
+        }
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
     }
 }
 
 /**
- * @func
+ * @func   Load
  * @brief  None
  * @param  None
  * @retval None
@@ -177,20 +239,17 @@ DbContext::Delete(
 template<class C>
 inline void_t
 DbContext::Load(
-    DbPtrCore<C>& dbPtrCore,
-    SqlStatement_p pSqlStatement,
-    int_t iColumn
+    DbPtrCore<C>&           dbPtrCore,
+    SmartPtr<SqlStatement>  pSqlStatement,
+    int_t                   iColumn
 ) {
     MapTable<C>* pMapping = GetMapping<C>();
     DbLoadObject<C> dbAction(dbPtrCore, *pMapping, pSqlStatement);
-
-    C* obj = new C();
-    dbAction.Config(*obj);
-    dbPtrCore.SetObject(obj);
+    dbAction.Config(*dbPtrCore.Obj());
 }
 
 /**
- * @func
+ * @func   Load
  * @brief  None
  * @param  None
  * @retval None
@@ -198,75 +257,22 @@ DbContext::Load(
 template<class C>
 inline DbPtr<C>
 DbContext::Load(
-    SqlStatement_p pSqlStatement,
-    int_t iColumn
+    SmartPtr<SqlStatement>  pSqlStatement,
+    int_t                   iColumn
 ) {
-    DbPtrCore<C>* pdbPtrCore = LoadId<C>(pSqlStatement, iColumn);
+    DbPtrCore<C>* pPtrCore = LoadId<C>(pSqlStatement, iColumn);
 
-    if (pdbPtrCore != NULL) {
-        pdbPtrCore->SetTransaction(DbPtrBase::saved_in_transaction);
-        return DbPtr<C>(pdbPtrCore);
+    if (pPtrCore != NULL) {
+        pPtrCore->SetTransaction(DbPtrBase::saved_in_transaction);
+        return DbPtr<C>(pPtrCore);
     } else {
+        LOG_DEBUG("can't load");
         return DbPtr<C>();
     }
 }
 
 /**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-template<class C>
-inline DbPtr<C>
-DbContext::Load(
-    const typename ConfigTable<C>::IdType& id
-) {
-    MapTable<C>* pMapping = GetMapping<C>();
-    typename MapTable<C>::Registry_t::iterator it = pMapping->Registry.find(id);
-
-    if (it == pMapping->Registry.end()) {
-        SqlStatement_p pSqlStatement = GetStatement<C>(SELECTBYID);
-        pSqlStatement->bind(0, id);
-        DbPtr<C> dbPtr = Load<C>(pSqlStatement, 0);
-        return dbPtr;
-    } else {
-        return DbPtr<C>(it->second);
-    }
-}
-
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-template<class C>
-void_t
-DbContext::Refresh(
-    const typename ConfigTable<C>::IdType& id
-) {
-    MapTable<C>* pMapping = GetMapping<C>();
-    DbPtrCore<C>* pdbPtrCore;
-    typename MapTable<C>::Registry_t::iterator it = pMapping->Registry.find(id);
-
-    if (it == pMapping->Registry.end()) {
-        pdbPtrCore = new DbPtrCore<C>(NULL, this);
-        pMapping->Registry[id] = pdbPtrCore;
-    } else {
-        pdbPtrCore = it->second;
-    }
-
-    SqlStatement_p pSqlStatement = GetStatement<C>(SELECTBYID);
-    pSqlStatement->bind(0, id);
-    DbLoadObject<C> dbAction(*pdbPtrCore, *pMapping, pSqlStatement);
-
-    dbAction.Config(*pdbPtrCore->Object());
-}
-
-/**
- * @func
+ * @func   LoadId
  * @brief  None
  * @param  None
  * @retval None
@@ -274,26 +280,100 @@ DbContext::Refresh(
 template<class C>
 inline DbPtrCore<C>*
 DbContext::LoadId(
-    SqlStatement_p pSqlStatement,
-    int_t iColumn
+    const typename ConfigTable<C>::IdType& Id
+) {
+    try {
+        MapTable<C>* pMapping = GetMapping<C>();
+        if (pMapping != NULL) {
+            typename MapTable<C>::Registry_t::iterator it =
+            pMapping->Registry.find(Id);
+
+            if (it == pMapping->Registry.end()) { // If new
+                SmartPtr<SqlStatement> pSqlStatement =
+                GetStatement<C>(SELECTBYID);
+                pSqlStatement->bind(0, Id);
+                return Load<C>(pSqlStatement, 0).Obj();
+            } else { // If existed
+                DbPtrCore<C>* pPtrCore = it->second;
+                return pPtrCore;
+            }
+        } else {
+            throw ExceptionNullPtr("mapping");
+        }
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+        throw Exception(ex.what());
+    }
+}
+
+/**
+ * @func   LoadId
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline DbPtrCore<C>*
+DbContext::LoadId(
+    SmartPtr<SqlStatement>  pSqlStatement,
+    int_t                   iColumn
 ) {
     MapTable<C>*  pMapping = GetMapping<C>();
-    DbPtrCore<C>* pdbPtrCore = new DbPtrCore<C>(NULL, this);
-    Load(*pdbPtrCore, pSqlStatement, iColumn); // Chu y
+    DbPtrCore<C>* pPtrCore = new DbPtrCore<C>(new C(), this);
+
+    Load(*pPtrCore, pSqlStatement, iColumn);
 
     typename MapTable<C>::Registry_t::iterator it =
-    pMapping->Registry.find(pdbPtrCore->GetId());
+    pMapping->Registry.find(pPtrCore->GetId());
 
-    if (it == pMapping->Registry.end()) {
-        pMapping->Registry[pdbPtrCore->GetId()] = pdbPtrCore;
-        return pdbPtrCore;
-    } else {
-        delete pdbPtrCore;
+    if (it == pMapping->Registry.end()) { // If new
+        pMapping->Registry[pPtrCore->GetId()] = pPtrCore;
+        return pPtrCore;
+    } else { // If existed
+        delete pPtrCore;
         return it->second;
     }
 }
+
 /**
- * @func
+ * @func   Refresh
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline void_t
+DbContext::Refresh(
+    const typename ConfigTable<C>::IdType& id
+) {
+    try {
+        MapTable<C>* pMapping = GetMapping<C>();
+        if (pMapping != NULL) {
+            DbPtrCore<C>* pPtrCore = NULL;
+            typename MapTable<C>::Registry_t::iterator it =
+            pMapping->Registry.find(id);
+
+            if (it == pMapping->Registry.end()) { // If new
+                pPtrCore = new DbPtrCore<C>(new C(), this);
+                pMapping->Registry[id] = pPtrCore;
+                pPtrCore->Triggered();
+            } else { // If existed
+                pPtrCore = it->second;
+            }
+
+            SmartPtr<SqlStatement> pSqlStatement = GetStatement<C>(SELECTBYID);
+            pSqlStatement->bind(0, id);
+
+            DbLoadObject<C> dbAction(*pPtrCore, *pMapping, pSqlStatement);
+            dbAction.Config(*pPtrCore->Obj());
+        }
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
+}
+
+/**
+ * @func   Find
  * @brief  None
  * @param  None
  * @retval None
@@ -307,7 +387,7 @@ DbContext::Find(
 }
 
 /**
- * @func
+ * @func   Command
  * @brief  None
  * @param  None
  * @retval None
@@ -320,4 +400,4 @@ DbContext::Command(
     return Query<R> (this, strSql);
 }
 
-#endif /* !DBCONTEXTIMPL_HPP_ */
+#endif /* !DB_CONTEXT_IMPL_HPP_ */

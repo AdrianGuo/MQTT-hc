@@ -3,38 +3,34 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: SqlValueImpl.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-17 01:45:00 (Mon, 17 Oct 2016)
  *
  ******************************************************************************/
 
-#ifndef SQLVALUEIMPL_HPP_
-#define SQLVALUEIMPL_HPP_
+#ifndef SQL_VALUE_IMPL_HPP_
+#define SQL_VALUE_IMPL_HPP_
 
-#include "typedefs.h"
-#include "SqlStatement.hpp"
-#include "SqlValue.hpp"
-#include "DbContext.hpp"
-#include "DbContextImpl.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/LibDb/SqlStatement.hpp"
+#include "Libraries/LibDb/SqlValue.hpp"
+#include "Libraries/LibDb/DbContext.hpp"
+#include "Libraries/LibDb/DbContextImpl.hpp"
 
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
 template<typename C>
 struct SqlValue<DbPtr<C>> {
-    static DbPtr<C> Load(DbContext_p pDbContext, SqlStatement_p pSqlStatement, int_t& iColumn);
+    static DbPtr<C> Load(DbContext_p            pDbContext,
+                         SmartPtr<SqlStatement> pSqlStatement,
+                         int_t&                 iColumn);
 };
 
 /**
- * @func
+ * @func   Load
  * @brief  None
  * @param  None
  * @retval None
@@ -42,9 +38,9 @@ struct SqlValue<DbPtr<C>> {
 template<typename C>
 inline DbPtr<C>
 SqlValue<DbPtr<C>>::Load(
-    DbContext_p pDbContext,
-    SqlStatement_p pSqlStatement,
-    int_t& iColumn
+    DbContext_p             pDbContext,
+    SmartPtr<SqlStatement>  pSqlStatement,
+    int_t&                  iColumn
 ) {
     return pDbContext->Load<C>(pSqlStatement, iColumn);
 }
@@ -57,7 +53,8 @@ SqlValue<DbPtr<C>>::Load(
  */
 template<>
 struct SqlValue<int_t> {
-    static int_t Load(DbContext_p pDbContext, SqlStatement_p pSqlStatement, int_t& iColumn);
+    static int_t
+    Load(DbContext_p pDbContext, SmartPtr<SqlStatement> pSqlStatement, int_t& iColumn);
 };
 
 /**
@@ -68,9 +65,9 @@ struct SqlValue<int_t> {
  */
 inline int_t
 SqlValue<int_t>::Load(
-    DbContext_p pDbContext,
-    SqlStatement_p pSqlStatement,
-    int_t& iColumn
+    DbContext_p             pDbContext,
+    SmartPtr<SqlStatement>  pSqlStatement,
+    int_t&                  iColumn
 ) {
     int_t iValue = 0;
     pSqlStatement->reset();
@@ -79,4 +76,4 @@ SqlValue<int_t>::Load(
     return iValue;
 }
 
-#endif /* LIBRARIES_LIBDB_SQLVALUEIMPL_HPP_ */
+#endif /* SQL_VALUE_IMPL_HPP_ */

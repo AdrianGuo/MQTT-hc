@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: SetInfo.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-28 08:45:00 (Fri, 28 Oct 2016)
  *
@@ -16,21 +16,22 @@
 #ifndef SETINFO_HPP_
 #define SETINFO_HPP_
 
-#include "typedefs.h"
-#include "String.hpp"
+#include "Libraries/typedefs.h"
 
 struct SetInfo {
     String TableName;
     String ForeignKeyName;
     String JoinName;
-    SetInfo(const String strTableName = String(),
+
+    SetInfo(const String strTableName      = String(),
             const String strForeignKeyName = String(),
-            const String strJoinName = String()
-    ) {
-        TableName = strTableName;
-        ForeignKeyName = strForeignKeyName;
-        JoinName = strJoinName;
+            const String strJoinName       = String()
+    ) : TableName      (     strTableName),
+        ForeignKeyName (strForeignKeyName),
+        JoinName       (      strJoinName) {
     }
+
+    ~SetInfo() {}
 };
 
 typedef struct SetInfo  SetInfo_t;

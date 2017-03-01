@@ -3,18 +3,20 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: Sqlite3Statement.cpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-05-16 11:45:00 (Tue, 16 May 2016)
  *
  ******************************************************************************/
-#include <string.h>
-#include "LogPlus.hpp"
-#include "Sqlite3Statement.hpp"
+
+#include "Libraries/typedefs.h"
+#include "Libraries/LogPlus.hpp"
+#include "Libraries/LibDb/sqlite3.h"
+#include "Libraries/LibDb/Sqlite3Statement.hpp"
 
 /**
  * @func   Sqlite3Statement
@@ -23,18 +25,24 @@
  * @retval None
  */
 Sqlite3Statement::Sqlite3Statement(
-    Database_p pDatabase,
-    const String& strSql
+    Database_p      pDatabase,
+    const String&   strSql
 ) : m_pDatabase (pDatabase),
-    m_strSql (strSql) {
+    m_strSql    (strSql) {
     int_t rc = sqlite3_prepare_v2(m_pDatabase->Connection(), m_strSql.c_str(),
-            static_cast<int> (m_strSql.length() + 1), &m_pStmt, 0);
+               static_cast<int> (m_strSql.length() + 1), &m_pStmt, 0);
 
-    if (rc != SQLITE_OK) { LOG_ERROR("database error %d", rc); }
+    if (rc != SQLITE_OK) {
+        #ifdef DEBUG_LIBDB
+        LOG_ERROR("failed to prepare sql <<%s>>:<<%s>>",
+        m_strSql.c_str(), sqlite3_errmsg(m_pDatabase->Connection()));
+        #endif /* DEBUG_LIBDB */
+        UNUSED(rc);
+    }
 }
 
 /**
- * @func
+ * @func   ~Sqlite3Statement
  * @brief  None
  * @param  None
  * @retval None
@@ -44,7 +52,7 @@ Sqlite3Statement::~Sqlite3Statement() {
 }
 
 /**
- * @func
+ * @func   bind
  * @brief  None
  * @param  None
  * @retval None
@@ -58,7 +66,7 @@ Sqlite3Statement::bind(
 }
 
 /**
- * @func
+ * @func   bind
  * @brief  None
  * @param  None
  * @retval None
@@ -72,7 +80,7 @@ Sqlite3Statement::bind(
 }
 
 /**
- * @func
+ * @func   bind
  * @brief  None
  * @param  None
  * @retval None
@@ -86,7 +94,7 @@ Sqlite3Statement::bind(
 }
 
 /**
- * @func
+ * @func   bind
  * @brief  None
  * @param  None
  * @retval None
@@ -100,7 +108,7 @@ Sqlite3Statement::bind(
 }
 
 /**
- * @func
+ * @func   bind
  * @brief  None
  * @param  None
  * @retval None
@@ -114,7 +122,7 @@ Sqlite3Statement::bind(
 }
 
 /**
- * @func
+ * @func   bind
  * @brief  None
  * @param  None
  * @retval None
@@ -380,7 +388,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -400,7 +408,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -422,7 +430,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -442,7 +450,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -460,7 +468,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -478,7 +486,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -496,7 +504,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -510,7 +518,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
@@ -524,7 +532,7 @@ Sqlite3Statement::get(
 }
 
 /**
- * @func
+ * @func   insertId
  * @brief  None
  * @param  None
  * @retval None
@@ -535,7 +543,7 @@ Sqlite3Statement::insertId() {
 }
 
 /**
- * @func
+ * @func   reset
  * @brief  None
  * @param  None
  * @retval None
@@ -543,7 +551,12 @@ Sqlite3Statement::insertId() {
 void_t
 Sqlite3Statement::reset() {
     if (m_pStmt != NULL) {
-        sqlite3_reset(m_pStmt);
+        int_t rc = sqlite3_reset(m_pStmt);
+
+        #ifdef DEBUG_LIBDB
+        LOG_DEBUG("reset rc [%d]", rc);
+        #endif /* DEBUG_LIBDB */
+        UNUSED(rc);
     }
 }
 
@@ -556,12 +569,17 @@ Sqlite3Statement::reset() {
 void_t
 Sqlite3Statement::ubind() {
     if (m_pStmt != NULL) {
-        sqlite3_clear_bindings(m_pStmt);
+        int_t rc = sqlite3_clear_bindings(m_pStmt);
+
+        #ifdef DEBUG_LIBDB
+        LOG_DEBUG("ubind rc [%d]", rc);
+        #endif /* DEBUG_LIBDB */
+        UNUSED(rc);
     }
 }
 
 /**
- * @func
+ * @func   init
  * @brief  None
  * @param  None
  * @retval None
@@ -583,7 +601,7 @@ Sqlite3Statement::count() {
 }
 
 /**
- * @func
+ * @func   execute
  * @brief  None
  * @param  None
  * @retval None
@@ -591,5 +609,20 @@ Sqlite3Statement::count() {
 int_t
 Sqlite3Statement::execute() {
     int_t rc = sqlite3_step(m_pStmt);
+    if (rc != SQLITE_DONE) {
+
+    }
     return rc;
+}
+
+/**
+ * @func   sql
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+String
+Sqlite3Statement::sql(
+) const {
+    return m_strSql;
 }

@@ -13,7 +13,8 @@
  *
  ******************************************************************************/
 
-#include "ValueStrDb.hpp"
+#include "Libraries/LogPlus.hpp"
+#include "Libraries/LibDb/ValueStrDb.hpp"
 
 /**
  * @func
@@ -24,8 +25,8 @@
 ValueStrDb::ValueStrDb(
     String strValue,
     String strColumnName
-) : ValueDb (strColumnName, Value::Type_t::type_string),
-    m_strValue (strValue) {
+) : ValueDb     (strColumnName, Value::Type_t::type_string, __FUNCTION__),
+    m_strValue  (strValue) {
 }
 
 /**
@@ -34,7 +35,21 @@ ValueStrDb::ValueStrDb(
  * @param  None
  * @retval None
  */
-ValueStrDb::~ValueStrDb() {}
+ValueStrDb::ValueStrDb(
+    const ValueStrDb& copied
+) : ValueDb     (copied),
+    m_strValue  (copied.m_strValue) {
+
+}
+
+/**
+ * @func
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueStrDb::~ValueStrDb() {
+}
 
 /**
  * @func
@@ -58,6 +73,7 @@ ValueStrDb::SetValue(
     String strValue
 ) {
     m_strValue = strValue;
+    SetChange();
 }
 
 /**
@@ -68,16 +84,11 @@ ValueStrDb::SetValue(
  */
 ValueStrDb&
 ValueStrDb::operator= (
-    const ValueStrDb& rhs
+    const ValueStrDb& copied
 ) {
-    m_strValue = rhs.GetValue();
-    SetColumnName(rhs.GetColumnName());
-    SetForeignKeyName(rhs.GetForeignKeyName());
-    SetForeignKeyTable(rhs.GetForeignKeyTable());
-    SetFlag(rhs.GetFlag());
-
+    ValueStrDb temp(copied);
+    Swap(temp);
     SetChange();
-
     return *this;
 }
 
@@ -93,7 +104,6 @@ ValueStrDb::operator= (
 ) {
     m_strValue = strValue;
     SetChange();
-
     return *this;
 }
 
@@ -109,7 +119,6 @@ ValueStrDb::operator= (
 ) {
     m_strValue = rhs;
     SetChange();
-
     return *this;
 
 }
@@ -124,7 +133,7 @@ bool_t
 ValueStrDb::operator== (
     const ValueStrDb& rhs
 ) const {
-    return (m_strValue == rhs.GetValue()) &&
+    return (m_strValue == rhs.m_strValue) &&
            (GetColumnName() == rhs.GetColumnName()) &&
            (GetForeignKeyName() == rhs.GetForeignKeyName()) &&
            (GetForeignKeyTable() == rhs.GetForeignKeyTable()) &&
@@ -154,7 +163,7 @@ bool_t
 ValueStrDb::operator!= (
     const ValueStrDb& rhs
 ) const {
-    return m_strValue != rhs.GetValue();
+    return m_strValue != rhs.m_strValue;
 }
 
 /**
@@ -180,7 +189,7 @@ bool_t
 ValueStrDb::operator>  (
     const ValueStrDb& rhs
 ) const {
-    return m_strValue > rhs.GetValue();
+    return m_strValue > rhs.m_strValue;
 }
 
 /**
@@ -206,7 +215,7 @@ bool_t
 ValueStrDb::operator>= (
     const ValueStrDb& rhs
 ) const {
-    return m_strValue >= rhs.GetValue();
+    return m_strValue >= rhs.m_strValue;
 }
 
 /**
@@ -232,7 +241,7 @@ bool_t
 ValueStrDb::operator<  (
     const ValueStrDb& rhs
 ) const {
-    return m_strValue < rhs.GetValue();
+    return m_strValue < rhs.m_strValue;
 }
 
 /**
@@ -258,7 +267,7 @@ bool_t
 ValueStrDb::operator<= (
     const ValueStrDb& rhs
 ) const {
-    return m_strValue <= rhs.GetValue();
+    return m_strValue <= rhs.m_strValue;
 }
 
 /**
@@ -272,4 +281,29 @@ ValueStrDb::operator<= (
     const String strValue
 ) const {
     return m_strValue <= strValue;
+}
+
+/**
+ * @func   Swap
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueStrDb::Swap(
+    ValueStrDb& other
+) {
+    ValueDb::Swap(other);
+    std::swap(m_strValue, other.m_strValue);
+}
+
+/**
+ * @func   SetValueDefault
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueStrDb::SetValueDefault() {
+    m_strValue = String();
 }

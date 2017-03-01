@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: ValueDb.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-09 11:45:00 (Sun, 09 Oct 2016)
  *
@@ -16,20 +16,22 @@
 #ifndef VALUE_DB_HPP_
 #define VALUE_DB_HPP_
 
-#include "typedefs.h"
-#include "String.hpp"
-#include "Value.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/LogPlus.hpp"
+#include "Libraries/LibDb/ValueDbCore.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */
 /******************************************************************************/
-class ValueDb : public Value {
+class ValueDb : public ValueDbCore {
 protected:
+    u32_t  m_dwFlags;
     String m_strColumnName;
     String m_strSqlType;
     String m_strForeignKeyTable;
     String m_strForeignKeyName;
-    u32_t  m_dwFlags;
+
+    void_t Swap(ValueDb& other);
 public:
     enum {
         IsNull      = 0x0000,
@@ -47,100 +49,66 @@ public:
         OnUpdateSetNull = 0x0800
     } Constraint;
 
-    ValueDb(const String strColumnName = "",
+    ValueDb(const String strColumnName = String(),
             Value::Type_t valueType = Value::Type_t::type_none,
-            const String strForeignKeyTable = "",
-            const String strForiegnKeyName = "",
+            const_char_p pName = "ValueDb",
+            const String strForeignKeyTable = String(),
+            const String strForiegnKeyName  = String(),
             u32_t dwFlags = BindNull);
 
-    virtual ~ValueDb() {}
+    ValueDb(const ValueDb& copied);
 
-    void_t SetColumnName(const String strColumn) {
-        m_strColumnName = strColumn;
-    }
-
-    void_t SetForeignKeyTable(const String strForeignKeyTable) {
-        m_strForeignKeyTable = strForeignKeyTable;
-    }
-
-    void_t SetForeignKeyName(const String strForeignKeyNam) {
-        m_strForeignKeyName = strForeignKeyNam;
-    }
-
+    virtual ~ValueDb();
     virtual void_t SetValueDefault() {}
 
-    void_t SetFlag(u32_t dwFlags) { m_dwFlags |= dwFlags; }
+    ValueDb& operator= (const ValueDb& copied);
 
-    String GetColumnName() const { return m_strColumnName; }
-    String GetForeignKeyTable() const { return m_strForeignKeyTable; }
-    String GetForeignKeyName() const { return m_strForeignKeyName; }
+    void_t SetFlag(u32_t dwFlags);
+    void_t SetSqlType(String strSqlType);
+    void_t SetColumnName(const String strColumn);
+    void_t SetForeignKeyTable(const String strForeignKeyTable);
+    void_t SetForeignKeyName(const String strForeignKeyNam);
 
-    u32_t  GetFlag() const { return m_dwFlags; }
-    void_t SetSqlType(String strSqlType) { m_strSqlType = strSqlType; }
-    String GetSqlType() const { return m_strSqlType; }
+    u32_t  GetFlag()            const;
+    String GetSqlType()         const;
+    String GetColumnName()      const;
+    String GetForeignKeyName () const;
+    String GetForeignKeyTable() const;
 
-    void_t SetNotNull() { m_dwFlags |= NotNull; }
-    void_t SetInsteadId() { m_dwFlags |= InsteadId; }
-    void_t SetNaturalId() { m_dwFlags |= NaturalId; }
-    void_t SetForeignKey() { m_dwFlags |= ForeignKey; }
-    void_t SetBindNull() { m_dwFlags |= BindNull; }
+    void_t SetNotNull   ();
+    void_t SetInsteadId ();
+    void_t SetNaturalId ();
+    void_t SetForeignKey();
+    void_t SetBindNull  ();
 
-    void_t ResetNotNull() { m_dwFlags &= ~NotNull; }
-    void_t ResetInsteadId() { m_dwFlags &= ~InsteadId; }
-    void_t ResetNaturalId() { m_dwFlags &= ~NaturalId; }
-    void_t ResetForeignKey() { m_dwFlags &= ~ForeignKey; }
-    void_t ResetBindNull() { m_dwFlags &= ~BindNull; }
+    void_t ResetNotNull   ();
+    void_t ResetInsteadId ();
+    void_t ResetNaturalId ();
+    void_t ResetForeignKey();
+    void_t ResetBindNull  ();
 
-    bool_t IsNotNull() const { return (m_dwFlags & NotNull) != 0; }
-    bool_t IsInsteadId() const { return (m_dwFlags & InsteadId) != 0; }
-    bool_t IsNaturalId() const { return (m_dwFlags & NaturalId) != 0; }
-    bool_t IsIdField() const { return (m_dwFlags & (InsteadId | NaturalId)) != 0; }
-    bool_t IsForeignkey() const { return (m_dwFlags & ForeignKey) != 0; }
-    bool_t IsBindNull() const { return (m_dwFlags & BindNull) != 0; }
+    bool_t IsNotNull()    const;
+    bool_t IsInsteadId()  const;
+    bool_t IsNaturalId()  const;
+    bool_t IsIdField()    const;
+    bool_t IsForeignkey() const;
+    bool_t IsBindNull()   const;
 
-    void_t SetOnDeleteCascade() { m_dwFlags |= OnDeleteCascade; }
-    void_t SetOnDeleteSetNull() { m_dwFlags |= OnDeleteSetNull; }
-    void_t SetOnUpdateCascade() { m_dwFlags |= OnUpdateCascade; }
-    void_t SetOnUpdateSetNull() { m_dwFlags |= OnUpdateSetNull; }
+    void_t SetOnDeleteCascade();
+    void_t SetOnDeleteSetNull();
+    void_t SetOnUpdateCascade();
+    void_t SetOnUpdateSetNull();
 
-    void_t ResetOnDeleteCascade() { m_dwFlags &= ~OnDeleteCascade; }
-    void_t ResetOnDeleteSetNull() { m_dwFlags &= ~OnDeleteSetNull; }
-    void_t ResetOnUpdateCascade() { m_dwFlags &= ~OnUpdateCascade; }
-    void_t ResetOnUpdateSetNull() { m_dwFlags &= ~OnUpdateSetNull; }
+    void_t ResetOnDeleteCascade();
+    void_t ResetOnDeleteSetNull();
+    void_t ResetOnUpdateCascade();
+    void_t ResetOnUpdateSetNull();
 
-    bool_t IsOnDeleteCascade() const { return (m_dwFlags & OnDeleteCascade) != 0; }
-    bool_t IsOnDeleteSetNull() const { return (m_dwFlags & OnDeleteSetNull) != 0; }
-    bool_t IsOnUpdateCascade() const { return (m_dwFlags & OnUpdateCascade) != 0; }
-    bool_t IsOnUpdateSetNull() const { return (m_dwFlags & OnUpdateSetNull) != 0; }
+    bool_t IsOnDeleteCascade() const;
+    bool_t IsOnDeleteSetNull() const;
+    bool_t IsOnUpdateCascade() const;
+    bool_t IsOnUpdateSetNull() const;
 };
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-inline
-ValueDb::ValueDb(
-    const String strColumnName,
-    Value::Type_t valueType,
-    const String strForeignKeyTable,
-    const String strForeignKeyName,
-    u32_t dwFlags
-) : Value (valueType),
-    m_strColumnName (strColumnName),
-    m_strForeignKeyTable (strForeignKeyTable),
-    m_strForeignKeyName (strForeignKeyName),
-    m_dwFlags (dwFlags) {
-
-    if (valueType == Value::Type_t::type_interger) {
-        m_strSqlType = "INTEGER";
-    } else if (valueType == Value::Type_t::type_string) {
-        m_strSqlType = "TEXT";
-    } else if (valueType == Value::Type_t::type_decimal) {
-        m_strSqlType = "REAL";
-    }
-}
 
 typedef ValueDb  ValueDb_t;
 typedef ValueDb* ValueDb_p;

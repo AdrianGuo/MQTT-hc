@@ -33,11 +33,11 @@
 /******************************************************************************/
 /*                     PRIVATE TYPES and DEFINITIONS                          */
 /******************************************************************************/
-#define BAUD96                              96
-#define BAUD192                             192
-#define BAUD384                             384
-#define BAUD576                             576
-#define BAUD1152                            1152
+//#define BAUD96                              96
+//#define BAUD192                             192
+//#define BAUD384                             384
+//#define BAUD576                             576
+//#define BAUD1152                            1152
 
 typedef Functor2_t(u8_p, u32_t)             SerialFunctor_t;
 typedef SerialFunctor_t*                    SerialFunctor_p;

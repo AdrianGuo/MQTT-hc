@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: Query.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-12 00:50:00 (Wen, 12 Oct 2016)
  *
@@ -16,42 +16,17 @@
 #ifndef QUERY_HPP_
 #define QUERY_HPP_
 
-#include "typedefs.h"
-#include "Vector.hpp"
-#include "String.hpp"
-#include "SqlStatement.hpp"
-#include "DbContext.hpp"
+#include "Libraries/typedefs.h"
+// 17.02.2017 TrungTQ Add
+#include "Libraries/Exception.hpp"
+#include "Libraries/SmartPtr.hpp"
+// 17.02.2017 TrungTQ End
+#include "Libraries/LibDb/SqlStatement.hpp"
+#include "Libraries/LibDb/DbContext.hpp"
 
 /******************************************************************************/
 /*                                   STRUCT                                   */
 /******************************************************************************/
-struct Param {
-    virtual ~Param() {}
-    virtual void_t BindValue(
-        SqlStatement_p pSqlStatement,
-        int_t iCloumn) = 0;
-};
-
-typedef struct Param  Param_t;
-typedef struct Param* Param_p;
-
-template<typename V>
-struct VParam : public Param {
-    VParam(V value) : m_value(value) {}
-    virtual ~VParam() {}
-    V GetValue() { return m_value; }
-    void_t SetValue(V value) { m_value = value; }
-    virtual void_t BindValue(
-        SqlStatement_p pSqlStatement,
-        int_t iCloumn
-    ) {
-        pSqlStatement->bind(iCloumn++, m_value);
-    }
-
-private:
-    V m_value;
-};
-
 /**
  * @func   CreateSelectColumns
  * @brief  None
@@ -141,27 +116,32 @@ template<class C> class Collection;
 template<class R>
 class Query {
 private:
-    Vector<Param_p> m_vParams;
-    DbContext_p     m_pDbContext;
-    String          m_strSql;
-    String          m_strTable;
-    String          m_strWhere;
-    bool_t          m_boCompleteQuery;
+    DbContext_p             m_pDbContext;
+    String                  m_strSql;
+    String                  m_strTable;
+    String                  m_strWhere;
+    int_t                   m_iColumn;
+    bool_t                  m_boCompleteQuery;
+    SmartPtr<SqlStatement>  m_pSqlStatement;
+    SmartPtr<SqlStatement>  m_pSqlCountStatement;
 
-    SqlStatement_p SetStatement() const;
-    SqlStatement_p SetCountStatement() const;
+    SqlStatement_p SetStatement();
+    SqlStatement_p SetCountStatement();
+
+    void_t Reset();
+
     R SingleResults(const Collection<R>& results) const;
 
 public:
     Query(DbContext_p pDbContext, const String& strSql);
     Query(DbContext_p pDbContext, const String& strTable, const String& strWhere);
-    virtual ~Query() {}
+    virtual ~Query();
 
     Query<R>& Where(const String& strWhere);
     template<typename V> Query<R>& Bind(const V& value);
 
-    R resultValue() const;
-    Collection<R> resultList() const;
+    R ResultValue() const;
+    Collection<R> ResultList() const;
 
     // Conversion Operator
     operator R() const;
@@ -178,11 +158,16 @@ template<class R>
 inline Query<R>::Query(
     DbContext_p pDbContext,
     const String& strSql
-) : m_pDbContext (pDbContext),
-    m_strSql (strSql),
-    m_boCompleteQuery (TRUE) {
+) : m_pDbContext        (pDbContext),
+    m_strSql            (strSql),
+    m_iColumn           (0),
+    m_boCompleteQuery   (TRUE) {
     size_t posFrom = m_strSql.find("FROM");
-    m_strTable = m_strSql.substr(posFrom + String("FROM").length() + 1, m_strSql.length());
+    m_strTable =
+    m_strSql.substr(posFrom + String("FROM").length() + 1, m_strSql.length());
+
+    m_pSqlStatement      = SetStatement();
+    m_pSqlCountStatement = SetCountStatement();
 }
 
 /**
@@ -193,14 +178,47 @@ inline Query<R>::Query(
  */
 template<class R>
 inline Query<R>::Query(
-    DbContext_p pDbContext,
+    DbContext_p   pDbContext,
     const String& strTable,
     const String& strWhere
-) : m_pDbContext (pDbContext),
-    m_strTable (strTable),
-    m_strWhere (strWhere),
+) : m_pDbContext      (pDbContext),
+    m_strTable        (strTable  ),
+    m_strWhere        (strWhere  ),
+    m_iColumn         (0),
     m_boCompleteQuery (FALSE) {
     m_strSql = "FROM \"" + strTable + "\" " + strWhere;
+
+    m_pSqlStatement      = SetStatement();
+    m_pSqlCountStatement = SetCountStatement();
+}
+
+/**
+ * @func   ~Query
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class R>
+inline Query<R>::~Query() {
+
+}
+
+/**
+ * @func   Reset
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class R>
+inline void_t
+Query<R>::Reset() {
+    try {
+        LOG_DEBUG("query reset");
+        m_pSqlStatement->reset();
+        m_pSqlCountStatement->reset();
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
 }
 
 /**
@@ -211,15 +229,22 @@ inline Query<R>::Query(
  */
 template<class R>
 inline SqlStatement_p
-Query<R>::SetStatement() const {
-    Vector<ValueDb> columns;
-    m_pDbContext->GetColumns(m_strTable, columns);
+Query<R>::SetStatement(
+) {
+    if (m_pDbContext != NULL) {
 
-    String strQuery = m_boCompleteQuery ?
-            CreateCompleteQuerySelect(m_strSql, m_strWhere) :
-            CreateQuerySelect(m_strSql, m_strWhere, columns);
+        Vector<ValueDb> columns;
+        m_pDbContext->GetColumns(m_strTable, columns);
 
-    return m_pDbContext->GetStatement(strQuery);
+        String strQuery = m_boCompleteQuery ?
+        CreateCompleteQuerySelect(m_strSql, m_strWhere) :
+        CreateQuerySelect(m_strSql, m_strWhere, columns);
+
+        return m_pDbContext->GetStatement(strQuery);
+
+    } else {
+        return NULL;
+    }
 }
 
 /**
@@ -230,10 +255,14 @@ Query<R>::SetStatement() const {
  */
 template<class R>
 inline SqlStatement_p
-Query<R>::SetCountStatement() const {
-    String strQuery = CreateCountQuerySelect(m_strTable, m_strWhere);
-
-    return m_pDbContext->GetStatement(strQuery);
+Query<R>::SetCountStatement(
+) {
+    if (m_pDbContext != NULL) {
+        String strQuery = CreateCountQuerySelect(m_strTable, m_strWhere);
+        return m_pDbContext->GetStatement(strQuery);
+    } else {
+        return NULL;
+    }
 }
 
 /**
@@ -247,14 +276,23 @@ inline Query<R>&
 Query<R>::Where(
     const String& strWhere
 ) {
-    if (!strWhere.empty()) {
-        if (!m_strWhere.empty()) {
-            m_strWhere += " AND ";
+    try {
+        if (!strWhere.empty()) {
+            if (!m_strWhere.empty()) {
+                m_strWhere += " AND ";
+            }
+
+            m_strWhere += strWhere;
         }
 
-        m_strWhere += strWhere;
+        m_pSqlStatement      = SetStatement();
+        m_pSqlCountStatement = SetCountStatement();
+        return *this;
+
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+        throw Exception(ex.what());
     }
-    return *this;
 }
 
 /**
@@ -269,9 +307,16 @@ inline Query<R>&
 Query<R>::Bind(
     const V& value
 ) {
-    m_vParams.push_back(new VParam<V> (value));
+    try {
+        m_pSqlStatement->bind(m_iColumn, value);
+        m_pSqlCountStatement->bind(m_iColumn, value);
+        m_iColumn++;
 
-    return *this;
+        return *this;
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+        throw Exception(ex.what());
+    }
 }
 
 /**
@@ -286,9 +331,13 @@ Query<R>::SingleResults(
     const Collection<R>& results
 ) const {
     typename Collection<R>::const_iterator it = results.begin();
-    R result = *it;
 
-    return result;
+    if (it == results.end()) {
+        return R();
+    } else {
+        R result = *it;
+        return result;
+    }
 }
 
 /** 
@@ -299,8 +348,9 @@ Query<R>::SingleResults(
  */
 template<class R>
 inline R
-Query<R>::resultValue() const {
-    return SingleResults(resultList());
+Query<R>::ResultValue(
+) const {
+    return SingleResults(ResultList());
 }
 
 /**
@@ -311,16 +361,13 @@ Query<R>::resultValue() const {
  */
 template<class R>
 inline Collection<R>
-Query<R>::resultList() const {
-    SqlStatement_p pSqlStatement = SetStatement();
-    SqlStatement_p pSqlCountStatement = SetCountStatement();
-
-    for (u32_t i = 0; i < m_vParams.size(); i++) {
-        m_vParams[i]->BindValue(pSqlStatement, i);
-        m_vParams[i]->BindValue(pSqlCountStatement, i);
+Query<R>::ResultList(
+) const {
+    try {
+        return Collection<R>(m_pDbContext, m_pSqlStatement, m_pSqlCountStatement);
+    } catch (std::exception &ex) {
+        throw Exception(ex.what());
     }
-
-    return Collection<R>(m_pDbContext, pSqlStatement, pSqlCountStatement);
 }
 
 /**
@@ -330,8 +377,9 @@ Query<R>::resultList() const {
  * @retval None
  */
 template<class R>
-inline Query<R>::operator R() const {
-    return resultValue();
+inline Query<R>::operator R(
+) const {
+    return ResultValue();
 }
 
 /**
@@ -342,8 +390,9 @@ inline Query<R>::operator R() const {
  */
 template<class R>
 inline
-Query<R>::operator Collection<R>() const {
-    return resultList();
+Query<R>::operator Collection<R>(
+) const {
+    return ResultList();
 }
 
 #endif /* !QUERY_HPP_ */

@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: DbPtrImpl.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trunstkn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-11-03 16:15:00 (Wen, 03 Oct 2016)
  *
@@ -16,10 +16,15 @@
 #ifndef DBPTRIMPL_HPP_
 #define DBPTRIMPL_HPP_
 
-#include "DbPtr.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/Exception.hpp"
+#include "Libraries/LibDb/DbPtr.hpp"
 
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
 /**
- * @func
+ * @func   DbPtrBase
  * @brief  None
  * @param  None
  * @retval None
@@ -27,13 +32,74 @@
 inline
 DbPtrBase::DbPtrBase(
     DbContext* pDbContext
-) {
-    m_pDbContext = pDbContext;
-    m_dwState = new_obj | need_saved_obj;
+) : m_pDbContext  (pDbContext),
+    m_boTriggered (TRUE),
+    m_dwState     (new_obj | need_saved_obj) {
 }
 
 /**
- * @func
+ * @func   ~DbPtrBase
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline
+DbPtrBase::~DbPtrBase() {
+
+}
+
+/**
+ * @func   Triggered
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline void_t
+DbPtrBase::Triggered(
+    bool_t boTriggered
+) {
+    m_boTriggered = boTriggered;
+}
+
+/**
+ * @func   IsTriggered
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+DbPtrBase::IsTriggered(
+) const {
+    return m_boTriggered;
+}
+
+/**
+ * @func   SetDbContext
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline void_t
+DbPtrBase::SetDbContext(
+    DbContext* pDbContext
+) {
+    m_pDbContext = pDbContext;
+}
+
+/**
+ * @func   GetDbContext
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline DbContext_p
+DbPtrBase::GetDbContext(
+) const {
+    return m_pDbContext;
+}
+
+/**
+ * @func   Remove
  * @brief  None
  * @param  None
  * @retval None
@@ -54,7 +120,31 @@ DbPtrBase::Remove() {
 }
 
 /**
- * @func
+ * @func   IsDeleted
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+DbPtrBase::IsDeleted(
+) const {
+    return (m_dwState & (need_deleted_obj | deleted_in_transaction)) != 0;
+}
+
+/**
+ * @func   IsRefreshed
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline bool_t
+DbPtrBase::IsRefreshed(
+) const {
+    return (m_dwState & (refreshed | saved_in_transaction)) != 0;
+}
+
+/**
+ * @func   SetTransaction
  * @brief  None
  * @param  None
  * @retval None
@@ -67,8 +157,12 @@ DbPtrBase::SetTransaction(
     m_dwState |= stateFlag;
 }
 
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
+
 /**
- * @func
+ * @func   DbPtrCore
  * @brief  None
  * @param  None
  * @retval None
@@ -76,15 +170,53 @@ DbPtrBase::SetTransaction(
 template<class C>
 inline
 DbPtrCore<C>::DbPtrCore(
-    C* pObject,
+    C*         pObj,
     DbContext* pDbContext
 ) : DbPtrBase (pDbContext),
-    m_pObject (pObject),
-    m_currId () {
+    m_pObj    (pObj) {
 }
 
 /**
- * @func
+ * @func   ~DbPtrCore
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbPtrCore<C>::~DbPtrCore() {
+    delete m_pObj;
+}
+
+/**
+ * @func   SetObject
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline void_t
+DbPtrCore<C>::SetObj(
+    C* pObject
+) {
+    m_pObj = pObject;
+}
+
+/**
+ * @func   Object
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline C*
+DbPtrCore<C>::Obj(
+) const {
+    return m_pObj;
+}
+
+/**
+ * @func   SetId
  * @brief  None
  * @param  None
  * @retval None
@@ -98,7 +230,7 @@ DbPtrCore<C>::SetId(
 }
 
 /**
- * @func
+ * @func   GetId
  * @brief  None
  * @param  None
  * @retval None
@@ -106,12 +238,13 @@ DbPtrCore<C>::SetId(
 template<class C>
 inline typename
 ConfigTable<C>::IdType
-DbPtrCore<C>::GetId() const {
+DbPtrCore<C>::GetId(
+) const {
     return m_currId;
 }
 
 /**
- * @func
+ * @func   UpdateChange
  * @brief  None
  * @param  None
  * @retval None
@@ -119,24 +252,29 @@ DbPtrCore<C>::GetId() const {
 template<class C>
 inline void_t
 DbPtrCore<C>::UpdateChange() {
-    if ((m_dwState & need_saved_obj) != 0) {
-//        m_dwState &= ~need_saved_obj;
-        m_dwState |= saving_obj;
-        GetDbContext()->Save(*this);
-        m_dwState &= ~saving_obj;
-        m_dwState |= saved_in_transaction;
-    } else if ((m_dwState & need_deleted_obj) != 0) {
-        m_dwState &= ~need_deleted_obj;
-        GetDbContext()->Delete(*this);
-        m_dwState &= ~saving_obj;
-        m_dwState |= deleted_in_transaction;
-    } else if ((m_dwState & saving_obj) != 0) {
+    DbContext_p pDbContext = GetDbContext();
 
+    if (pDbContext != NULL) {
+        if ((m_dwState & need_saved_obj) != 0) {
+            m_dwState |= saving_obj;
+            pDbContext->Save<C>(*this);
+            m_dwState &= ~saving_obj;
+            m_dwState |= saved_in_transaction;
+        } else if ((m_dwState & need_deleted_obj) != 0) {
+            m_dwState &= ~need_deleted_obj;
+            pDbContext->Delete<C>(*this);
+            m_dwState &= ~saving_obj;
+            m_dwState |= deleted_in_transaction;
+        } else if ((m_dwState & saving_obj) != 0) {
+
+        }
+    } else {
+        LOG_ERROR("dbcontext null");
     }
 }
 
 /**
- * @func
+ * @func   BindId
  * @brief  None
  * @param  None
  * @retval None
@@ -144,14 +282,18 @@ DbPtrCore<C>::UpdateChange() {
 template<class C>
 inline void_t
 DbPtrCore<C>::BindId(
-    SqlStatement_p pSqlStatement,
+    SmartPtr<SqlStatement> pSqlStatement,
     int_t iColumn
 ) {
     pSqlStatement->bind(iColumn, m_currId);
 }
 
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
+
 /**
- * @func
+ * @func   DbPtr
  * @brief  None
  * @param  None
  * @retval None
@@ -159,25 +301,80 @@ DbPtrCore<C>::BindId(
 template<class C>
 inline
 DbPtr<C>::DbPtr(
-    C* pObject
-) {
-    m_pPtrCore = new DbPtrCore<C> (pObject);
+) : m_pCoreObj (NULL){
 }
 
 /**
- * @func
+ * @func   DbPtr
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline
-DbPtr<C>::DbPtr(DbPtrCore<C>* pObject) {
-    m_pPtrCore = pObject;
+DbPtr<C>::DbPtr(
+    C* pObj,
+    DbContext* pDbContext
+) : m_pCoreObj (NULL) {
+    if (pObj != NULL) {
+        m_pCoreObj = new DbPtrCore<C> (const_cast<C*>(pObj), pDbContext);
+    }
 }
 
 /**
- * @func
+ * @func   DbPtr
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbPtr<C>::DbPtr(
+   DbPtrCore<C_t>* pCoreObj
+) : m_pCoreObj (pCoreObj) {
+}
+
+/**
+ * @func   DbPtr
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbPtr<C>::DbPtr(
+    const DbPtr<C>& copied
+) : m_pCoreObj (copied.m_pCoreObj) {
+}
+
+/**
+ * @func   ~DbPtr
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbPtr<C>::~DbPtr() {
+    Release();
+}
+
+/**
+ * @func   Release
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline void_t
+DbPtr<C>::Release() {
+    if ((m_pCoreObj != NULL) && !m_pCoreObj->IsTriggered()) {
+        delete m_pCoreObj;
+    }
+}
+
+/**
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -185,51 +382,132 @@ DbPtr<C>::DbPtr(DbPtrCore<C>* pObject) {
 template<class C>
 inline DbPtr<C>&
 DbPtr<C>::operator= (
-    const DbPtr<C>& other
+    DbPtrCore<C_t>* copied
 ) {
-    if (m_pPtrCore != other.Object()) {
-        m_pPtrCore = other.Object();
+    if (m_pCoreObj != copied) {
+        Release();
+        m_pCoreObj = copied;
     }
-
     return *this;
 }
 
 /**
- * @func
+ * @func   operator=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline DbPtr<C>&
+DbPtr<C>::operator= (
+    const DbPtr<C>& copied
+) {
+    if (m_pCoreObj != copied.m_pCoreObj) {
+        Release();
+        m_pCoreObj = copied.m_pCoreObj;
+    }
+    return *this;
+}
+
+/**
+ * @func   operator=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+template<class D>
+inline DbPtr<C>&
+DbPtr<C>::operator= (
+    const DbPtr<D>& copied
+) {
+    D* d = NULL;
+    C* c = d;
+    (void) c;
+
+    if (m_pCoreObj != copied.m_pCoreObj) {
+        Release();
+        m_pCoreObj = copied.m_pCoreObj;
+    }
+    return *this;
+}
+
+/**
+ * @func   Object
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline DbPtrCore<C>*
+DbPtr<C>::Obj(
+) const {
+    return m_pCoreObj;
+}
+
+/**
+ * @func   Modify
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline C*
+DbPtr<C>::Modify(
+) const {
+    if (m_pCoreObj != NULL) {
+        return m_pCoreObj->Obj();
+    } else {
+        throw Exception("null dereference");
+    }
+}
+
+/**
+ * @func   operator->
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline const C*
-DbPtr<C>::operator->() const {
-    const C* ptrC = m_pPtrCore->Object();
+DbPtr<C>::operator->(
+) const {
+    const C* ptrC = get();
+    if (ptrC == NULL) {
+        throw ExceptionNullPtr("null dereference");
+    }
     return ptrC;
 }
 
 /**
- * @func
+ * @func   operator*
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline const C&
-DbPtr<C>::operator*() const {
-    return *m_pPtrCore->Object();
+DbPtr<C>::operator*(
+) const {
+    if (m_pCoreObj != NULL) {
+        return *m_pCoreObj->Obj();
+    } else {
+        throw ExceptionNullPtr("null dereference");
+    }
 }
 
 /**
- * @func
+ * @func   get
  * @brief  None
  * @param  None
  * @retval None
  */
 template<class C>
 inline const C*
-DbPtr<C>::get() const {
-    if (Object()) {
-        return Object()->Object();
+DbPtr<C>::get(
+) const {
+    if (m_pCoreObj != NULL) {
+        return m_pCoreObj->Obj();
     } else {
         return NULL;
     }
@@ -242,42 +520,19 @@ DbPtr<C>::get() const {
  * @retval None
  */
 template<class C>
-inline bool_t
-DbPtr<C>::operator== (
-    const DbPtr<C>& other
-) const {
-    return m_pPtrCore == other.Object();
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-template<class C>
-inline bool_t
-DbPtr<C>::operator!= (
-    const DbPtr<C>& other
-) const {
-    return m_pPtrCore != other.Object();
-}
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-template<class C>
 inline typename
 ConfigTable<C>::IdType
-DbPtr<C>::Id() const {
-    return m_pPtrCore->GetId();
+DbPtr<C>::Id(
+) const {
+    if (m_pCoreObj != NULL) {
+        return m_pCoreObj->GetId();
+    } else {
+        throw ExceptionNullPtr("null dereference");
+    }
 }
 
 /**
- * @func
+ * @func   UpdateChange
  * @brief  None
  * @param  None
  * @retval None
@@ -285,11 +540,13 @@ DbPtr<C>::Id() const {
 template<class C>
 inline void_t
 DbPtr<C>::UpdateChange() {
-    m_pPtrCore->UpdateChange();
+    if (m_pCoreObj != NULL) {
+        m_pCoreObj->UpdateChange();
+    }
 }
 
 /**
- * @func
+ * @func   Remove
  * @brief  None
  * @param  None
  * @retval None
@@ -297,8 +554,51 @@ DbPtr<C>::UpdateChange() {
 template<class C>
 inline void_t
 DbPtr<C>::Remove() {
-    m_pPtrCore->Remove();
+    if (m_pCoreObj != NULL) {
+        m_pCoreObj->Remove();
+    }
 }
 
+/**
+ * @func   operator==
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline bool_t
+DbPtr<C>::operator== (
+    const DbPtr<C>& rhs
+) const {
+    return m_pCoreObj == rhs.m_pCoreObj;
+}
 
-#endif /* LIBRARIES_LIBDB_DBPTRIMPL_HPP_ */
+/**
+ * @func   operator!=
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline bool_t
+DbPtr<C>::operator!= (
+    const DbPtr<C>& rhs
+) const {
+    return m_pCoreObj != rhs.m_pCoreObj;
+}
+
+/**
+ * @func   operator<
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline bool_t
+DbPtr<C>::operator< (
+     const DbPtr<C>& rhs
+) const {
+    return m_pCoreObj < rhs.m_pCoreObj;
+}
+
+#endif /* DBPTRIMPL_HPP_ */

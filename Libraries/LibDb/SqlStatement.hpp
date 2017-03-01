@@ -3,11 +3,11 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:
+ * File Name: SqlStatement.hpp
  *
  * Author: TrungTQ
  *
- * Last Changed By:  TrungTQ
+ * Last Changed By:  TrungTQ (trungkstn@gmail.com)
  * Revision:         1.0
  * Last Changed:     Date: 2016-10-13 09:15:00 (Thu, 13 Oct 2016)
  *
@@ -16,15 +16,14 @@
 #ifndef SQLSTATEMENT_HPP_
 #define SQLSTATEMENT_HPP_
 
-#include "typedefs.h"
-#include "String.hpp"
-#include "ValueIntDb.hpp"
-#include "ValueStrDb.hpp"
+#include "Libraries/typedefs.h"
+#include "Libraries/LibDb/ValueIntDb.hpp"
+#include "Libraries/LibDb/ValueStrDb.hpp"
 
 class SqlStatement {
 public:
-    SqlStatement() {}
-    virtual ~SqlStatement() {}
+    SqlStatement();
+    virtual ~SqlStatement();
 
     virtual int_t bind(int_t column, i8_t  value) = 0;
     virtual int_t bind(int_t column, i16_t value) = 0;
@@ -70,9 +69,49 @@ public:
 
     virtual int_t count() = 0;
     virtual int_t execute() = 0;
+
+    virtual String sql() const = 0;
+
+    bool_t istriggered() const;
+    void_t triggered(bool_t boTriggered = TRUE);
+    void_t done();
 };
 
 typedef SqlStatement  SqlStatement_t;
 typedef SqlStatement* SqlStatement_p;
+
+/**
+ * @func   SqlStatement
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline
+SqlStatement::SqlStatement() {
+
+}
+
+/**
+ * @func   ~SqlStatement
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline
+SqlStatement::~SqlStatement() {
+
+}
+
+/**
+ * @func   done
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+inline void_t
+SqlStatement::done() {
+    reset();
+    ubind();
+}
 
 #endif /* SQLSTATEMENT_HPP_ */
