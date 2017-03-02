@@ -388,7 +388,7 @@ IO::ButtonEvents(
 			/*
 			 * Allow to join network.
 			 */
-			LOG_DEBUG("Allow to join network!");
+		    LOG_WARN("Allow to join network!");
 			m_LED.Set(LED::Color::Off);
 			Inform(IO::Event::Allowed);
 //			ZbSocketCmd::GetInstance()->SendDevAdd(0);
@@ -397,7 +397,7 @@ IO::ButtonEvents(
 			/*
 			 * Disallow to join network.
 			 */
-			LOG_DEBUG("Disallow to join network!");
+		    LOG_WARN("Disallow to join network!");
 			m_LED.Set(LED::Color::Off);
 			Indicate(m_ioBakState);
 //			ZbSocketCmd::GetInstance()->SendDevAdd(1);

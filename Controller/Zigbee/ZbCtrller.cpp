@@ -31,6 +31,7 @@ ZbCtrller::ZbCtrller(
 
     m_evWaitMsgSignal.Reset();
 
+    m_pCtrllerFunctor = NULL;
     m_ZbCtrllerFunctor = makeFunctor(
             (ZbCtrllerFunctor_p) NULL, *this, &ZbCtrller::PushJsonCommand);
 
@@ -52,6 +53,10 @@ ZbCtrller::~ZbCtrller() {
     if (m_pZbCtrllerLocker != NULL) {
         delete m_pZbCtrllerLocker;
         m_pZbCtrllerLocker = NULL;
+    }
+    if (m_pCtrllerFunctor != NULL) {
+        delete m_pCtrllerFunctor;
+        m_pCtrllerFunctor = NULL;
     }
     delete m_pZbDriver;
     delete m_pZbCtrllerThread;

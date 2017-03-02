@@ -119,11 +119,13 @@ Phone::DoWorkFunc(
         if (!m_quePhoneWork.empty()) {
             UpdateTtyDev();
             pPhoneWork = m_quePhoneWork.front();
+            m_pLocker->UnLock();
             if (pPhoneWork->GetType() == PhoneWork::Type::Sms) {
                 SendSms(pPhoneWork->GetPhoneNumber(), pPhoneWork->GetText());
             } else {
                 MakeCall(pPhoneWork->GetPhoneNumber());
             }
+            m_pLocker->UnLock();
             m_quePhoneWork.pop();
             if (pPhoneWork != NULL) {
                 delete(pPhoneWork);

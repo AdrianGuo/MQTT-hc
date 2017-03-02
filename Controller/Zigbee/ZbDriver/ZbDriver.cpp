@@ -137,7 +137,6 @@ ZbDriver::ProcSerRecvMsg(
     String strCommand = pJsonCommand->GetFullCommand();
     MapProcFunctor::const_iterator it = m_mapProcFunctor.find(strCommand);
     if (it != m_mapProcFunctor.end()) {
-        LOG_DEBUG("%s - %s ", __FUNCTION__, strCommand.c_str());
         m_mapProcFunctor[strCommand](pJsonCommand);
     }
 }
@@ -280,7 +279,6 @@ ZbDriver::ProcCmdAdd(
 	if (!jsonDevAdd->ParseJsonCommand(pJsonCommand)) return;
 
 	i8_t act = jsonDevAdd->Act();
-	LOG_DEBUG("%s - act %d ", __FUNCTION__, act);
     if(act == 0) {
     	Notify(Allowed);
         m_pZbBasicCmd->JoinNwkAllow((u8_t) 0XFF);
