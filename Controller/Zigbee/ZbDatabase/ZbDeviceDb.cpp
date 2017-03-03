@@ -216,7 +216,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
  * LUMI_DEVICE_TEMPERATURE, LUMI_DEVICE_HUMIDITY, LUMI_DEVICE_ILLUMINANCE
  */
         case LUMI_DEVICE_PIR:
-            break;
+//            break;
 
         case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_POWER:

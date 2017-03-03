@@ -216,10 +216,10 @@ ForwardSetValueToIr (
         if(isIrcmd) {
             Json::Value jsonRetVal;
             jsonRetVal["act"] = std::to_string(byAct);
-            if(ircmd.Modify() != NULL) {
+            if(ircmd.get() != NULL) {
                 jsonRetVal["state"] = std::to_string(0);
                 jsonRetVal["irid"] = jsonVal["irid"].asString();
-                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
+//                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
 
                 if (byAct == 3) ircmd.Modify()->Endpoint = 1;
                 else if (byAct == 4) ircmd.Modify()->Endpoint = 0;
@@ -228,19 +228,19 @@ ForwardSetValueToIr (
             } else {
                 jsonRetVal["state"] = std::to_string(3);
                 jsonRetVal["irid"] = jsonVal["irid"].asString();
-                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
+//                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
             }
         }
     } else if (byAct == 5) { //Set
         if(isIrcmd) {
-            if((ircmd.Modify() != NULL) && ((ircmd->Endpoint.GetValue() == 1))) { //(ircmd->Endpoint.GetValue() == 1): Enabled command
+            if((ircmd.get() != NULL) && ((ircmd->Endpoint.GetValue() == 1))) { //(ircmd->Endpoint.GetValue() == 1): Enabled command
                 ZbZclCmd::GetInstance()->SetIR(device, IrCommand::IRCMD_Active, atoi(jsonVal["irid"].asCString()));
             } else {
                 Json::Value jsonRetVal;
                 jsonRetVal["act"] = std::to_string(byAct);
                 jsonRetVal["state"] = std::to_string(3);
                 jsonRetVal["irid"] = jsonVal["irid"].asString();
-                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
+//                ZbSocketCmd::GetInstance()->SendZbStt(device, jsonRetVal);
             }
         }
     }

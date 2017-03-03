@@ -70,7 +70,7 @@ ForwardDimmerStateToOutside(
         val["state"] = std::string("on");
     }
 
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
 /**
@@ -103,7 +103,7 @@ ForwardCurtainStateToOutside(
             val["state"] = std::string("on");
         }
     }
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
 /**
@@ -124,7 +124,7 @@ ForwardFanStateToOutside(
     } else {
         val["state"] = std::string("off");
     }
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
 /**
@@ -170,7 +170,7 @@ ForwardRGBStateToOutside(
         val["state"] = std::string("off");
     }
 //    val["time"] = std::to_string(device->Action[DI_RGB_RemainingTime].DP_AttributeData);
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
 /**
@@ -195,8 +195,8 @@ ForwardDaikinStateToOutside(
             device->Action[it->first].DP_IsResponsed = FALSE;
         }
     }
-    if (val.size() != 0)
-        ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
+//    if (val.size() != 0)
+//        ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
 }
 
 /**
@@ -264,7 +264,7 @@ ForwardIrState(
             if(device->State == 0x06) {
                 Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
                         Bind(device->Action[DI_State].DP_ReserveData).Bind(device->Network.GetValue());
-                if(ircmd.Modify() != NULL) {
+                if(ircmd.get() != NULL) {
                     ircmd.Remove();
                     ZbDriver::s_pZbModel->UpdateChanges();
                 }
@@ -284,7 +284,7 @@ ForwardIrState(
         default:
             break;
     }
-    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), jsonRetVal);
+//    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), jsonRetVal);
 }
 
 /**

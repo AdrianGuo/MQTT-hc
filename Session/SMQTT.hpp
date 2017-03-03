@@ -19,7 +19,7 @@ class SMQTT {
 private:
 	String m_strHWID;
 	String m_strTenant;
-	String m_strPhoneNo;
+	String m_strPhoneWork;
 	String m_strDev;
 	String m_strCmdTopic;
 	String m_strSysTopic;

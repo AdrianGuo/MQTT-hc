@@ -30,8 +30,8 @@
 #include "ZbDriver.hpp"
 #include "SMQTT.hpp"
 
-#define REQUEST_INTERVAL   (5*60+30)
-#define AFFIRM_INTERVAL        (10)
+#define REQUEST_INTERVAL_INPUT      (5)
+#define REQUEST_INTERVAL            (6*60)
 
 ZbDriver* ZbDriver::s_pInstance = NULL;
 ZbModelDb_p ZbDriver::s_pZbModel = NULL;
@@ -60,8 +60,7 @@ ZbDriver::ZbDriver(
     m_pTimer = RTimer::getTimerInstance();
     m_RequestFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbDriver::HandleRequest);
     m_iRequest = -1;
-//    m_AffirmFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &ZbDriver::HandleAffirm);
-//    m_iAffirm = -1;
+    m_idwCheckTime = 0;
 
     m_pJsonRecvSession = JsonRecvZigbeeSession::CreateSession();
     m_pJsonRecvSession->MapJsonMessage<JsonDevAdd>(JsonDevAdd::GetStrCmd());
@@ -298,7 +297,7 @@ void_t
 ZbDriver::ProcCmdReset(
     JsonCommand_p pJsonCommand
 ) {
-    ZbSocketCmd::GetInstance()->SendResetRes(0);
+//    ZbSocketCmd::GetInstance()->SendResetRes(0);
     DeviceLogic_t mapDeviceNwk = ZbZdoCmd::GetInstance()->GetDeviceLogic();
     if(mapDeviceNwk.size() > 0) {
         for(DeviceLogic_t::iterator it = mapDeviceNwk.begin(); it != mapDeviceNwk.end(); it++) {
@@ -518,7 +517,7 @@ ZbDriver::Init(
         }
     }
     //Start keepalive timer
-    m_iRequest = m_pTimer->StartTimer(RTimer::Repeat::OneTime, REQUEST_INTERVAL, &m_RequestFunctor, NULL);
+    m_iRequest = m_pTimer->StartTimer(RTimer::Repeat::Forever, REQUEST_INTERVAL_INPUT, &m_RequestFunctor, NULL);
 }
 
 /**
@@ -532,48 +531,37 @@ ZbDriver::HandleRequest(
    void_p pbyBuffer
 ) {
     LOG_DEBUG("Affirm alive state of devices!");
+    m_idwCheckTime += REQUEST_INTERVAL_INPUT;
+    if (m_idwCheckTime > REQUEST_INTERVAL)
+        m_idwCheckTime = 0;
+
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-    for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-        Device_t tmp = (*it);
+    Devices_t::const_iterator it;
+    for(it = devices.begin(); it != devices.end(); it++) {
+        const Device_t& tmp = (*it);
         if(tmp.Modify()->RealType > 0) {
-            if(tmp.Modify()->IsAlive == FALSE) {
-                SMQTT::s_pInstance->Publish(tmp.Modify()->Name.c_str(), -1);
- //             SMQTT::s_pInstance->PushNotification();
-            } else {
-                tmp.Modify()->IsAlive = FALSE;
+            if ((tmp.Modify()->RealType == LUMI_DEVICE_INPUT) || (m_idwCheckTime ==  0)) {
+                if(tmp.Modify()->IsAlive == FALSE) {
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name.c_str(), -1);
+                    LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
+                } else {
+                    tmp.Modify()->IsAlive = FALSE;
+                }
             }
         }
     }
 //   LOG_DEBUG("Check alive state of devices!");
-    LOG_DEBUG("Send global ZCL request to check alive!");
-   m_pZbZclGlobalCmd->Broadcast();
-//   m_iAffirm = m_pTimer->StartTimer(RTimer::Repeat::OneTime, AFFIRM_INTERVAL, &m_AffirmFunctor, NULL);
+    if (m_idwCheckTime == 0) {
+        m_pZbZclGlobalCmd->Broadcast();
+    } else {
+        for(it = devices.begin(); it != devices.end(); it++) {
+            try {
+                const Device_t& tmp = (*it);
+                if (tmp.Modify()->RealType == LUMI_DEVICE_INPUT) {
+                    m_pZbZclGlobalCmd->ReadAttributeRequest(tmp, DI_ZCLVersion);
+                }
+            }
+            catch (...) { LOG_WARN("Exception occurred"); }
+        }
+    }
 }
-
-
-/**
- * @func
- * @brief  None
- * @param  None
- * @retval None
- */
-//void_t
-//ZbDriver::HandleAffirm(
-//   void_p pbyBuffer
-//) {
-//   LOG_DEBUG("Affirm alive state of devices!");
-//   Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-//   for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-//       Device_t tmp = (*it);
-//       if(tmp.Modify()->RealType > 0) {
-//           if(tmp.Modify()->IsAlive == FALSE) {
-//               SMQTT::s_pInstance->Publish(tmp.Modify()->Name.c_str(), -1);
-////             SMQTT::s_pInstance->PushNotification();
-//           } else {
-//               tmp.Modify()->IsAlive = FALSE;
-//           }
-//       }
-//   }
-//   m_iRequest = m_pTimer->StartTimer(RTimer::Repeat::OneTime, REQUEST_INTERVAL, &m_RequestFunctor, NULL);
-//}
-

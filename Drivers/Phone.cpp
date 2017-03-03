@@ -13,6 +13,7 @@
 #include "Phone.hpp"
 
 #define DO_WORK_INTERVAL    (2)
+const String DEFAULT_SMS    = "Canh bao Data center";
 
 Phone* Phone::s_pInstance = NULL;
 
@@ -98,12 +99,37 @@ Phone::MakeCall(
 
 bool_t
 Phone::AddWork(
-    PhoneWork::Type eType,
-    String strPhoneNumber,
-    String strText
+    String strWork
 ) {
+    PhoneWork::Type eType;
+    String strPhoneNumber, strText;
+    size_t index, index2;
+    PhoneWork_p pPhonework;
+
+    // If not have phone number -> wrong command
+    index = strWork.find("_");
+    if ((index == String::npos) || (index == strWork.length() - 1 ))
+        return FALSE;
+
+    if (strWork.find("Sms") == 0) {
+        eType = PhoneWork::Type::Sms;
+        index2 = strWork.find("_", index + 1);
+        if (index2 != String::npos) {
+            strPhoneNumber = strWork.substr(index + 1, index2 - index - 1);
+            strText = (index2 < strWork.length() - 1) ? strWork.substr(index2 + 1) : DEFAULT_SMS;
+        } else {
+            strPhoneNumber = strWork.substr(index + 1);
+            strText = DEFAULT_SMS;
+        }
+    } else if (strWork.find("Call") == 0) {
+        eType = PhoneWork::Type::Call;
+        strPhoneNumber = strWork.substr(index + 1);
+    } else {
+        return FALSE;
+    }
+
     m_pLocker->Lock();
-    PhoneWork_p pPhonework = new PhoneWork(eType, strPhoneNumber, strText);
+    pPhonework = new PhoneWork(eType, strPhoneNumber, strText);
     m_quePhoneWork.push(pPhonework);
     m_pLocker->UnLock();
     return TRUE;

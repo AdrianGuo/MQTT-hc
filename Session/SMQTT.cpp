@@ -35,7 +35,7 @@ SMQTT::SMQTT(
 	String strDev
 ) {
 	m_strTenant = strTenant;
-	m_strPhoneNo = strPhoneNo;
+	m_strPhoneWork = strPhoneNo;
 	m_strHWID = strHWID;
 	m_strDev = strDev;
 	m_strOutboundTopic = m_strTenant + "/input/protobuf";
@@ -451,7 +451,7 @@ SMQTT::SerialPrintlnCommand(
 	LOG_DEBUG("Handling SerialPrintln command...");
 	LOG_INFO("Message's content: %s", serialPrintln.message);
 	if(String(serialPrintln.message) != "")
-		m_strPhoneNo = String(serialPrintln.message);
+		m_strPhoneWork = String(serialPrintln.message);
 	PushNotification();
 }
 
@@ -500,8 +500,8 @@ void_p
 SMQTT::NotifyFunc(
 	void_p byBuffer
 ) {
-    LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, m_strPhoneNo.c_str());
-	Phone::getInstant()->AddWork(PhoneWork::Type::Call, m_strPhoneNo);
+    LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, m_strPhoneWork.c_str());
+	Phone::getInstant()->AddWork(m_strPhoneWork);
 
     m_pNotificationThread->Stop();
     return NULL;

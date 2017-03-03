@@ -62,7 +62,7 @@ public:
     static Phone* getInstant();
     virtual ~Phone();
 
-    bool_t AddWork(PhoneWork::Type, String, String strText = "");
+    bool_t AddWork(String);
 };
 
 typedef Phone   Phone_t;

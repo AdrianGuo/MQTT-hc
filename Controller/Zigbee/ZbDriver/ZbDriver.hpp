@@ -52,11 +52,9 @@ private:
     RTimer_p m_pTimer;
     int_t m_iRequest;
     TimerFunctor_t m_RequestFunctor;
-//    int_t m_iAffirm;
-//    TimerFunctor_t m_AffirmFunctor;
 
     void_t HandleRequest(void_p);
-//    void_t HandleAffirm(void_p);
+    int_t m_idwCheckTime;
 
 public:
     virtual ~ZbDriver();

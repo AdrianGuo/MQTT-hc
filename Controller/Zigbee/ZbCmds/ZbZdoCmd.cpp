@@ -195,7 +195,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
      Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=?").Bind(MAC);
      Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND MAC=?").Bind(wNwk).Bind(MAC);
      if(devices.size() > 0) {
-         if(device.Modify() != NULL) {
+         if(device.get() != NULL) {
              //request state
              return;
          }
@@ -220,7 +220,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
              }
          }
          ZbDriver::s_pZbModel->UpdateChanges();
-         ZbSocketCmd::GetInstance()->SendLstDel(devices);
+//         ZbSocketCmd::GetInstance()->SendLstDel(devices);
 
          for(Map<u8_t, u16_t>::const_iterator it3 = s_mapEPInfo[wNwk].mapType.begin();
                  it3 != s_mapEPInfo[wNwk].mapType.end(); it3++) {
@@ -228,7 +228,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
              if(ZbDeviceDb::IsInterested(it3->second)) {
                  if(mapCheck.find(it3->second) == mapCheck.end()) {
                      Devices_t devices2 = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(it3->second);
-                     ZbSocketCmd::GetInstance()->SendLstAdd(devices2);
+//                     ZbSocketCmd::GetInstance()->SendLstAdd(devices2);
                      mapCheck[it3->second] = TRUE;
                  }
              }
@@ -237,7 +237,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
      } else {
     	 s_mapEPInfo[wNwk].MAC = MAC;
          BackupDev_t BuDev = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(MAC);
-         if(BuDev.Modify() != NULL) {
+         if(BuDev.get() != NULL) {
              if(RestoreBuDevice(wNwk, BuDev)) return;
          }
 
@@ -338,7 +338,7 @@ ZbZdoCmd::ActiveEndpointResponse(
         } else {
             for (u32_t j = 0; j < s_mapEPInfo[wNwk].vEPList.size(); j++) {
                 Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=? AND Endpoint=?").Bind(s_mapEPInfo[wNwk].MAC).Bind(s_mapEPInfo[wNwk].vEPList[j]);
-                if(device.Modify() != NULL) {
+                if(device.get() != NULL) {
                     device.Modify()->DeviceID       = wNwk; //*1000 + byEndpointList[j];
                     device.Modify()->Network        = wNwk;
                     device.Modify()->MAC            = s_mapEPInfo[wNwk].MAC;
@@ -522,7 +522,7 @@ ZbZdoCmd::LeaveRequest(
 
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     if(devices.size() > 0) {
-        ZbSocketCmd::GetInstance()->SendLstDel(devices);
+//        ZbSocketCmd::GetInstance()->SendLstDel(devices);
         for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
             (*it).Remove();
         }
@@ -554,7 +554,7 @@ ZbZdoCmd::LeaveResponse(
         }
         Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
         if(devices.size() > 0) {
-            ZbSocketCmd::GetInstance()->SendLstDel(devices);
+//            ZbSocketCmd::GetInstance()->SendLstDel(devices);
             for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                 (*it).Remove();
             }
@@ -685,7 +685,7 @@ ZbZdoCmd::RestoreBuDevice(
 
     LOG_INFO("Device %s at %04X has joined.", BuDev.Modify()->Model.GetValue().c_str(), wNwk);
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+//    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
     return TRUE;
 }
 

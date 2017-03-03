@@ -273,7 +273,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
                                 RequestDevicesState(tempDevice);
                         }
                     }
-                    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+//                    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
                 }
                 delete[] vpData[i];
             }
@@ -488,7 +488,7 @@ ZbZclGlobalCmd::SaveDevicesInfo(
 ) {
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Model!=?").Bind(wNwk).Bind(String(""));
     BackupDev_t tmpBu = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(ZbZdoCmd::s_mapEPInfo[wNwk].MAC);
-    if(ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE || device.get() == NULL || tmpBu.Modify() != NULL) return;
+    if(ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE || device.get() == NULL || tmpBu.get() != NULL) return;
     BackupDev_t BuDev = ZbDriver::s_pZbModel->Add(new BackupInfoDb());
     BuDev.Modify()->MAC = ZbZdoCmd::s_mapEPInfo[wNwk].MAC;
     BuDev.Modify()->Model = device->Model;
@@ -569,7 +569,7 @@ ZbZclGlobalCmd::ProcessException(
     	strManufactuter = "Lumi R&D";
     }
     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-    if(device.Modify() != NULL) return;
+    if(device.get() != NULL) return;
 
     if(prefixModel == "LM-DOOR" || prefixModel == "LM-PIR") {
         Device_t first = ZbDriver::s_pZbModel->Add(new ZbDeviceDb());
@@ -747,7 +747,7 @@ ZbZclGlobalCmd::ProcessException(
     ZbDriver::s_pZbModel->UpdateChanges();
     ZbDriver::GetInstance()->Init(false);
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
+//    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
     SaveDevicesInfo(wNwk);
 }
 
