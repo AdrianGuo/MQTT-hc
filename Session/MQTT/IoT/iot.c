@@ -1,96 +1,71 @@
 #include "iot.h"
 #include "iot.pb.h"
-#include "double_conversion.h"
-
 #include "../Protobuf/pb_encode.h"
+#include "double_conversion.h"
 
 // Signals end of stream.
 uint8_t zero = 0;
 
-unsigned int sw_register(char* hardwareId, char* specificationToken, uint8_t* buffer, size_t length, char* originator) {
+unsigned int iot_register(char* hardwareId, char* specificationToken, uint8_t* buffer, size_t length, char* originator) {
 	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
 
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_REGISTRATION;
+	IotEvent_Header header = { };
+	header.command = IotEvent_Command_SEND_REGISTRATION;
 	if (originator != NULL) {
 		header.has_originator = true;
 		strcpy(header.originator, originator);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
 
-	IoT_RegisterDevice registerDevice = { };
+	IotEvent_RegisterDevice registerDevice = { };
 	strcpy(registerDevice.hardwareId, hardwareId);
 	strcpy(registerDevice.specificationToken, specificationToken);
-	if (!pb_encode_delimited(&stream, IoT_RegisterDevice_fields, &registerDevice)) {
+	if (!pb_encode_delimited(&stream, IotEvent_RegisterDevice_fields, &registerDevice)) {
 		return 0;
 	}
 
 	return stream.bytes_written;
 }
 
-unsigned int sw_register2(char* hardwareId, char* specificationToken, char* siteToken, uint8_t* buffer, size_t length, char* originator) {
+unsigned int iot_acknowledge(char* hardwareId, char* message, uint8_t* buffer, size_t length, char* originator) {
 	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
 
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_REGISTRATION;
+	IotEvent_Header header = { };
+	header.command = IotEvent_Command_SEND_ACKNOWLEDGEMENT;
 	if (originator != NULL) {
 		header.has_originator = true;
 		strcpy(header.originator, originator);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
 
-	IoT_RegisterDevice registerDevice = { };
-	registerDevice.has_siteToken = true;
-	strcpy(registerDevice.hardwareId, hardwareId);
-	strcpy(registerDevice.specificationToken, specificationToken);
-	strcpy(registerDevice.siteToken, siteToken);
-	if (!pb_encode_delimited(&stream, IoT_RegisterDevice_fields, &registerDevice)) {
-		return 0;
-	}
-
-	return stream.bytes_written;
-}
-
-unsigned int sw_acknowledge(char* hardwareId, char* message, uint8_t* buffer, size_t length, char* originator) {
-	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
-
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_ACKNOWLEDGEMENT;
-	if (originator != NULL) {
-		header.has_originator = true;
-		strcpy(header.originator, originator);
-	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
-		return 0;
-	}
-
-	IoT_Acknowledge ack = { };
+	IotEvent_Acknowledge ack = { };
 	strcpy(ack.hardwareId, hardwareId);
 	if (message != NULL) {
 		ack.has_message = true;
 		strcpy(ack.message, message);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Acknowledge_fields, &ack)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Acknowledge_fields, &ack)) {
 		return 0;
 	}
 
 	return stream.bytes_written;
 }
 
-unsigned int sw_measurement(const char* hardwareId, const char* name, float value, int64_t eventDate, uint8_t* buffer, size_t length, char* originator) {
+unsigned int iot_measurement(char* hardwareId, char* name, float value, int64_t eventDate,
+		uint8_t* buffer, size_t length, char* originator, bool updateState) {
 	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
 
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_DEVICE_MEASUREMENTS;
+	IotEvent_Header header = { };
+	header.command = IotEvent_Command_SEND_DEVICE_MEASUREMENTS;
 	if (originator != NULL) {
 		header.has_originator = true;
 		strcpy(header.originator, originator);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
 
@@ -99,9 +74,11 @@ unsigned int sw_measurement(const char* hardwareId, const char* name, float valu
 
 	Model_Measurement measurement = { };
 	strcpy(measurement.measurementId, name);
-	measurement.measurementValue = float_to_double(value);
+	measurement.measurementValue = (value);
 	measurements.measurement[0] = measurement;
 	measurements.measurement_count = 1;
+	measurements.has_updateState = true;
+	measurements.updateState = updateState;
 
 	if (eventDate != NULL) {
 		measurements.has_eventDate = true;
@@ -114,33 +91,37 @@ unsigned int sw_measurement(const char* hardwareId, const char* name, float valu
 	return stream.bytes_written;
 }
 
-unsigned int sw_measurement2(char* hardwareId, char* name1, float value1, char* name2, float value2, int64_t eventDate,
-		uint8_t* buffer, size_t length, char* originator) {
+unsigned int iot_measurement2(char* hardwareId, uint8_t count, Data* data, int64_t eventDate,
+		uint8_t* buffer, size_t length, char* originator, bool updateState) {
 	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
 
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_DEVICE_MEASUREMENTS;
+	IotEvent_Header header = { };
+	header.command = IotEvent_Command_SEND_DEVICE_MEASUREMENTS;
 	if (originator != NULL) {
 		header.has_originator = true;
 		strcpy(header.originator, originator);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
 
 	Model_DeviceMeasurements measurements = { };
 	strcpy(measurements.hardwareId, hardwareId);
-
-	Model_Measurement measurement1 = { };
-	strcpy(measurement1.measurementId, name1);
-	measurement1.measurementValue = float_to_double(value1);
-	measurements.measurement[0] = measurement1;
 	
-	Model_Measurement measurement2 = { };
-	strcpy(measurement2.measurementId, name2);
-	measurement2.measurementValue = float_to_double(value2);
-	measurements.measurement[1] = measurement2;
-	measurements.measurement_count = 2;
+	int i;
+	for(i=0;i<count;i++) {
+		
+//		printf("data->name: %s\n", data->name);
+//		printf("data->value: %f\n", data->value);
+		Model_Measurement measurement = { };
+		strcpy(measurement.measurementId, data->name);
+		measurement.measurementValue = (data->value);
+		measurements.measurement[i] = measurement;
+		data++;
+	}
+	measurements.measurement_count = count;
+	measurements.has_updateState = true;
+	measurements.updateState = updateState;
 
 	if (eventDate != NULL) {
 		measurements.has_eventDate = true;
@@ -153,62 +134,17 @@ unsigned int sw_measurement2(char* hardwareId, char* name1, float value1, char* 
 	return stream.bytes_written;
 }
 
-unsigned int sw_measurement3(char* hardwareId, char* name1, float value1, char* name2, float value2, char* name3, float value3, int64_t eventDate,
-		uint8_t* buffer, size_t length, char* originator) {
+unsigned int iot_location(char* hardwareId, float lat, float lon, float ele, int64_t eventDate,
+		uint8_t* buffer, size_t length, char* originator, bool updateState) {
 	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
 
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_DEVICE_MEASUREMENTS;
+	IotEvent_Header header = { };
+	header.command = IotEvent_Command_SEND_DEVICE_LOCATION;
 	if (originator != NULL) {
 		header.has_originator = true;
 		strcpy(header.originator, originator);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
-		return 0;
-	}
-
-	Model_DeviceMeasurements measurements = { };
-	strcpy(measurements.hardwareId, hardwareId);
-
-	Model_Measurement measurement1 = { };
-	strcpy(measurement1.measurementId, name1);
-	measurement1.measurementValue = float_to_double(value1);
-	measurements.measurement[0] = measurement1;
-	
-	Model_Measurement measurement2 = { };
-	strcpy(measurement2.measurementId, name2);
-	measurement2.measurementValue = float_to_double(value2);
-	measurements.measurement[1] = measurement2;
-	
-	Model_Measurement measurement3 = { };
-	strcpy(measurement3.measurementId, name3);
-	measurement3.measurementValue = float_to_double(value3);
-	measurements.measurement[2] = measurement3;
-	
-	measurements.measurement_count = 3;
-
-	if (eventDate != NULL) {
-		measurements.has_eventDate = true;
-		measurements.eventDate = eventDate;
-	}
-	if (!pb_encode_delimited(&stream, Model_DeviceMeasurements_fields, &measurements)) {
-		return 0;
-	}
-
-	return stream.bytes_written;
-}
-
-unsigned int sw_location(char* hardwareId, float lat, float lon, float ele, int64_t eventDate,
-		uint8_t* buffer, size_t length, char* originator) {
-	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
-
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_DEVICE_LOCATION;
-	if (originator != NULL) {
-		header.has_originator = true;
-		strcpy(header.originator, originator);
-	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
 
@@ -218,6 +154,8 @@ unsigned int sw_location(char* hardwareId, float lat, float lon, float ele, int6
 	location.longitude = float_to_double(lon);
 	location.elevation = float_to_double(ele);
 	location.has_elevation = true;
+	location.has_updateState = true;
+	location.updateState = updateState;
 
 	if (eventDate != NULL) {
 		location.has_eventDate = true;
@@ -230,17 +168,17 @@ unsigned int sw_location(char* hardwareId, float lat, float lon, float ele, int6
 	return stream.bytes_written;
 }
 
-unsigned int sw_alert(char* hardwareId, char* alertType, char* alertMessage, int64_t eventDate,
-		uint8_t* buffer, size_t length, char* originator) {
+unsigned int iot_alert(char* hardwareId, char* alertType, char* alertMessage, int64_t eventDate,
+		uint8_t* buffer, size_t length, char* originator, bool updateState) {
 	pb_ostream_t stream = pb_ostream_from_buffer(buffer, length);
 
-	IoT_Header header = { };
-	header.command = IoT_Command_SEND_DEVICE_ALERT;
+	IotEvent_Header header = { };
+	header.command = IotEvent_Command_SEND_DEVICE_ALERT;
 	if (originator != NULL) {
 		header.has_originator = true;
 		strcpy(header.originator, originator);
 	}
-	if (!pb_encode_delimited(&stream, IoT_Header_fields, &header)) {
+	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
 
@@ -248,6 +186,8 @@ unsigned int sw_alert(char* hardwareId, char* alertType, char* alertMessage, int
 	strcpy(alert.hardwareId, hardwareId);
 	strcpy(alert.alertType, alertType);
 	strcpy(alert.alertMessage, alertMessage);
+	alert.has_updateState = true;
+	alert.updateState = updateState;
 	if (eventDate != NULL) {
 		alert.has_eventDate = true;
 		alert.eventDate = eventDate;

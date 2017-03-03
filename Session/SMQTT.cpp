@@ -14,7 +14,7 @@
 
 #include "SMQTT.hpp"
 
-#define BUFFER_SOCKET_SIZE	(200)
+#define BUFFER_SOCKET_SIZE	(2000)
 #define KEEPALIVE_INTERVAL	(10)
 
 SMQTT* SMQTT::s_pInstance = NULL;
@@ -227,7 +227,7 @@ SMQTT::Publish(
 	int_t idwValue,
 	bool_t IsBackup
 ) {
-	if(IsBackup == TRUE) {
+	if (IsBackup == TRUE) {
 		m_pLock->Lock();
 		m_mapBackupValue[pCDevName] = idwValue;
 		m_pLock->UnLock();
@@ -236,10 +236,26 @@ SMQTT::Publish(
 		LOG_WARN("Disconnected!");
 		return;
 	}
+	char_t pCoutboundTopicString[100];
+	strcpy(pCoutboundTopicString, m_strOutboundTopic.c_str());
+    char_t pCHWID[100];
+    strcpy(pCHWID, m_strHWID.c_str());
+    char_t pCname[100];
+    strcpy(pCname, pCDevName);
+
 	MQTTString outboundTopicString = MQTTString_initializer;
-	outboundTopicString.cstring = m_strOutboundTopic.c_str();
+	outboundTopicString.cstring = pCoutboundTopicString;
 	u8_t payload[BUFFER_SOCKET_SIZE];
-	u32_t idwPayloadLen = sw_measurement(m_strHWID.c_str(), pCDevName, idwValue, NULL, (u8_p) payload, sizeof(payload), NULL);
+
+	//Import data
+	int_t idwNumValue = m_mapBackupValue.size(), i = 0;
+	Data data[idwNumValue];
+    for(Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++, i++) {
+        strcpy(data[i].name,(*it).first);
+        data[i].value = (*it).second;
+    }
+
+	u32_t idwPayloadLen	= iot_measurement2(pCHWID, idwNumValue, data, NULL, (u8_p) payload, sizeof(payload), NULL, TRUE);
 	if (idwPayloadLen) {
 		m_pLock->Lock();
 		int_t idwRet = MQTTSerialize_publish(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, 0, 0, 0, outboundTopicString, payload, idwPayloadLen);
@@ -249,6 +265,12 @@ SMQTT::Publish(
 		LOG_INFO("Publish in queue!");
 	} else
 		LOG_WARN("sw_measurement error!");
+
+    //delete device that not reply - publish -1 one time
+    if (idwValue == -1) {
+        Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.find(pCDevName);
+        m_mapBackupValue.erase(it->first);
+    }
 }
 
 /**
@@ -263,10 +285,13 @@ SMQTT::Subscribe() {
 		LOG_WARN("Disconnected!");
 		return;
 	}
+    char_t pCcmdTopicString[100];
+    strcpy(pCcmdTopicString, m_strCmdTopic.c_str());
+
 	MQTTString cmdTopicString = MQTTString_initializer;
 	int_t msgid = 1;
 	int_t req_qos = 0;
-	cmdTopicString.cstring = m_strCmdTopic.c_str();
+	cmdTopicString.cstring = pCcmdTopicString;
 	m_pLock->Lock();
 	int_t idwLen = MQTTSerialize_subscribe(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, msgid, 1, &cmdTopicString, &req_qos);
 	int_t idwRet = m_spTransport->DiSend(m_pbyBuffer, idwLen);
@@ -284,8 +309,10 @@ SMQTT::Subscribe() {
 		m_pLock->UnLock();
 		LOG_WARN("Subscribe failed!");
 	}
+    char_t pCsysTopicString[100];
+    strcpy(pCsysTopicString, m_strSysTopic.c_str());
 	MQTTString sysTopicString = MQTTString_initializer;
-	sysTopicString.cstring = m_strSysTopic.c_str();
+	sysTopicString.cstring = pCsysTopicString;
 	m_pLock->Lock();
 	idwLen = MQTTSerialize_subscribe(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, msgid, 1, &sysTopicString, &req_qos);
 	idwRet = m_spTransport->DiSend(m_pbyBuffer, idwLen);
@@ -476,10 +503,12 @@ SMQTT::AckKnowLedgeCommand(
     char_t pCCommand[100];
     strcpy(pCCommand, command.c_str());
 
+    char_t pCoutboundTopicString[100];
+    strcpy(pCoutboundTopicString, m_strOutboundTopic.c_str());
     MQTTString outboundTopicString = MQTTString_initializer;
-    outboundTopicString.cstring = m_strOutboundTopic.c_str();
+    outboundTopicString.cstring = pCoutboundTopicString;
 
-    u32_t idwPayloadLen = sw_acknowledge(pCHWID, pCCommand, payload, sizeof(payload), originator);
+    u32_t idwPayloadLen = iot_acknowledge(pCHWID, pCCommand, payload, sizeof(payload), originator);
     if (idwPayloadLen) {
         int_t idwRet = MQTTSerialize_publish(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, 0, 0, 0, outboundTopicString, payload, idwPayloadLen);
         m_spTransport->PushBuffer(m_pbyBuffer, idwRet);
@@ -542,7 +571,7 @@ SMQTT::HandleKeepAlive(
 			LOG_INFO("Connected!");
 			for(Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++) {
 			    Publish(it->first, it->second, FALSE);
-			    m_mapBackupValue.erase(it->first);
+			    break;
 			}
 		}
 	} else {

@@ -215,15 +215,15 @@ ZbDeviceDb::ReceiveInforFromDevice(
  * LUMI_DEVICE_DOOR, LUMI_DEVICE_PIR, LUMI_DEVICE_POWER
  * LUMI_DEVICE_TEMPERATURE, LUMI_DEVICE_HUMIDITY, LUMI_DEVICE_ILLUMINANCE
  */
-        case LUMI_DEVICE_PIR:
-//            break;
+        case LUMI_DEVICE_ILLUMINANCE:
+            break;
 
         case LUMI_DEVICE_DOOR:
         case LUMI_DEVICE_POWER:
 
         case LUMI_DEVICE_TEMPERATURE:
         case LUMI_DEVICE_HUMIDITY:
-        case LUMI_DEVICE_ILLUMINANCE: {
+        case LUMI_DEVICE_PIR: {
             for(u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
