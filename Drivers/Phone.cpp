@@ -77,7 +77,30 @@ Phone::SendSms(
 ) {
     LOG_INFO(" %s: \"%s\", \"%s\"", __FUNCTION__, strPhoneNumber.c_str(), strText.c_str());
 
-    sleep(1);
+    String strDev;
+    for(Vector<String>::iterator it = m_vecLstDev.begin(); it != m_vecLstDev.end(); ++it) {
+        strDev = *it;
+        String strATCmd = R"(echo -e "ATZ\r" > )" + strDev;
+        LOG_INFO("Send AT command: %s", strATCmd.c_str());
+        system(strATCmd.c_str());
+        sleep(1);
+
+        strATCmd = R"(echo -e "AT+CMGF=1\r" > )" + strDev;
+        LOG_INFO("Send AT command: %s", strATCmd.c_str());
+        system(strATCmd.c_str());
+        sleep(1);
+
+        strATCmd = R"(echo -e "AT+CMGS=\")" + strPhoneNumber + R"(\"" > )" + strDev;
+        LOG_INFO("Send AT command: %s", strATCmd.c_str());
+        system(strATCmd.c_str());
+        sleep(1);
+
+        strATCmd = R"(echo -e ")" + strText + R"(\x1A" > )" + strDev;
+        LOG_INFO("Send AT command: %s", strATCmd.c_str());
+        system(strATCmd.c_str());
+        sleep(1);
+    }
+
     return TRUE;
 }
 
@@ -88,9 +111,14 @@ Phone::MakeCall(
     String strDev;
     for(Vector<String>::iterator it = m_vecLstDev.begin(); it != m_vecLstDev.end(); ++it) {
         strDev = *it;
-        String strATCall = R"(echo -e "ATD)" + strPhoneNumber + R"(;" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCall.c_str());
-        system(strATCall.c_str());
+        String strATCmd = R"(echo -e "ATZ;" > )" + strDev;
+        LOG_INFO("Send AT command: %s", strATCmd.c_str());
+        system(strATCmd.c_str());
+        sleep(1);
+
+        strATCmd = R"(echo -e "ATD)" + strPhoneNumber + R"(;" > )" + strDev;
+        LOG_INFO("Send AT command: %s", strATCmd.c_str());
+        system(strATCmd.c_str());
     }
 
     sleep(30);

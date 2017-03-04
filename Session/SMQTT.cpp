@@ -411,28 +411,21 @@ SMQTT::HandleSpecificCommand(
 	Custom__Header header;
 	pb_istream_t stream = pb_istream_from_buffer(pbyBuffer, idwLen);
 	if (pb_decode_delimited(&stream, Custom__Header_fields, &header)) {
-		LOG_DEBUG("Decoded header for custom command.");
-		if (header.command == Custom_Command_PING) {
-			LOG_INFO("Handling ping command...");
-			Custom_ping ping;
-			if (pb_decode_delimited(&stream, Custom_ping_fields, &ping)) {
-				PingCommand(ping, header.originator);
-			}
-		} else if (header.command == Custom_Command_TESTEVENTS) {
-			LOG_INFO("Handling testEvents command...");
-			Custom_testEvents testEvents;
-			if (pb_decode_delimited(&stream, Custom_testEvents_fields,
-					&testEvents)) {
-				TestEventsCommand(testEvents, header.originator);
-			}
-		} else if (header.command == Custom_Command_SERIALPRINTLN) {
-			LOG_INFO("Handling serialPrintln command...");
-			Custom_serialPrintln serialPrintln;
-			if (pb_decode_delimited(&stream, Custom_serialPrintln_fields,
-					&serialPrintln)) {
-				SerialPrintlnCommand(serialPrintln, header.originator);
-			}
-		}
+	    printf("Decoded header for custom command.\r\n");
+	    if (header.command == Custom_Command_CALL) {
+	      printf("Handling call command...\r\n");
+	      Custom_Call call;
+	      if (pb_decode_delimited(&stream, Custom_Call_fields, &call)) {
+	        //handlePing(ping, header.originator);
+	        CallCommand(call, header.originator);
+	      }
+	    } else if (header.command == Custom_Command_SMS) {
+	      printf("Handling Sms command...\r\n");
+	      Custom_Sms sms;
+	      if (pb_decode_delimited(&stream, Custom_Sms_fields, &sms)) {
+	        SmsCommand(sms, header.originator);
+	      }
+	    }
 		//reply ack to server
 		AckKnowLedgeCommand(std::string("Call function received"), header.originator);
 	}
@@ -445,11 +438,15 @@ SMQTT::HandleSpecificCommand(
  * @retval None
  */
 void_t
-SMQTT::PingCommand(
-	Custom_ping ping,
+SMQTT::CallCommand(
+	Custom_Call call,
 	char_p originator
 ) {
-	LOG_DEBUG("Handling Ping command...");
+	LOG_DEBUG("Handling Call command...");
+	LOG_INFO("Message's content: %s", call.phone_number);
+//    if(String(serialPrintln.message) != "")
+	m_strPhoneWork = String("Call_") + String(call.phone_number);
+    PushNotification();
 }
 
 /**
@@ -459,29 +456,14 @@ SMQTT::PingCommand(
  * @retval None
  */
 void_t
-SMQTT::TestEventsCommand(
-	Custom_testEvents testEvents,
+SMQTT::SmsCommand(
+	Custom_Sms sms,
 	char_p originator
 ) {
-	LOG_DEBUG("Handling TestEvents command...");
-}
-
-/**
- * @func   SerialPrintlnCommand
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-SMQTT::SerialPrintlnCommand(
-	Custom_serialPrintln serialPrintln,
-	char_p originator
-) {
-	LOG_DEBUG("Handling SerialPrintln command...");
-	LOG_INFO("Message's content: %s", serialPrintln.message);
-	if(String(serialPrintln.message) != "")
-		m_strPhoneWork = String(serialPrintln.message);
-	PushNotification();
+	LOG_DEBUG("Handling Sms command...");
+	LOG_INFO("Message's content: %s - %s", sms.phone_number, sms.message);
+    m_strPhoneWork = String("Sms_") + String(sms.phone_number) + String("_") + String(sms.message);
+    PushNotification();
 }
 
 /**

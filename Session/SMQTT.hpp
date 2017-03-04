@@ -49,9 +49,8 @@ private:
     static int_t GetMQTTPacket(u8_p, int_t);
 	void_t RecvData();
 	void_t HandleSpecificCommand(u8_p, int_t);
-	void_t PingCommand(Custom_ping, char_p);
-	void_t TestEventsCommand(Custom_testEvents, char_p);
-	void_t SerialPrintlnCommand(Custom_serialPrintln, char_p);
+	void_t CallCommand(Custom_Call, char_p);
+	void_t SmsCommand(Custom_Sms, char_p);
     void_p NotifyFunc(void_p);
     void_t HandleKeepAlive(void_p);
     void_t AckKnowLedgeCommand(String, char_p);
