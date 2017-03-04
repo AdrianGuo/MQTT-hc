@@ -551,7 +551,7 @@ ZbDriver::HandleRequest(
         }
     }
 //   LOG_DEBUG("Check alive state of devices!");
-    if (m_idwCheckTime % 60 == 0) {
+    if (m_idwCheckTime % 30 == 0) {
         m_pZbZclGlobalCmd->Broadcast();
     } else {
         for(it = devices.begin(); it != devices.end(); it++) {

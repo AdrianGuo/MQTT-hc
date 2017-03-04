@@ -250,10 +250,12 @@ SMQTT::Publish(
 	//Import data
 	int_t idwNumValue = m_mapBackupValue.size(), i = 0;
 	Data data[idwNumValue];
+	m_pLock->Lock();
     for(Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++, i++) {
         strcpy(data[i].name,(*it).first);
         data[i].value = (*it).second;
     }
+    m_pLock->UnLock();
 
 	u32_t idwPayloadLen	= iot_measurement2(pCHWID, idwNumValue, data, NULL, (u8_p) payload, sizeof(payload), NULL, TRUE);
 	if (idwPayloadLen) {
@@ -568,6 +570,7 @@ SMQTT::HandleKeepAlive(
 			return;
 		} else {
 		    Start();
+		    Subscribe();
 			LOG_INFO("Connected!");
 			for(Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++) {
 			    Publish(it->first, it->second, FALSE);

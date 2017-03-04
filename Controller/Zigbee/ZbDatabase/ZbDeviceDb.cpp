@@ -338,19 +338,19 @@ ZbDeviceDb::EnvAttached() {
     if (Type == ZCL_HA_DEVICEID_TEMPERATURE_SENSOR) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_TEMPERATURE_MEASUREMENT,    ATTRID_MS_TEMPERATURE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_TEMPERATURE;
-        Name = "Temperature_" + MAC.GetValue();
+        Name = "T" + MAC.GetValue().substr(0, 4);
     } else if (Type == ZCL_HA_DEVICEID_THERMOSTAT) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_RELATIVE_HUMIDITY,          ATTRID_MS_RELATIVE_HUMIDITY_MEASURED_VALUE);
         RealType = LUMI_DEVICE_HUMIDITY;
-        Name = "Humidity_" + MAC.GetValue();
+        Name = "H" + MAC.GetValue().substr(0, 4);
     } else if (Type == ZCL_HA_DEVICEID_LIGHT_SENSOR) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_MS_ILLUMINANCE_MEASUREMENT,    ATTRID_MS_ILLUMINANCE_MEASURED_VALUE);
         RealType = LUMI_DEVICE_ILLUMINANCE;
-        Name = "Light_" + MAC.GetValue();
+        Name = "L" + MAC.GetValue().substr(0, 4);
     } else if (Type == ZCL_LUMI_DEVICEID_POWER) {
         SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_GEN_POWER_CFG,                 ATTRID_POWER_CFG_BATTERY_PERCENTAGE);
         RealType = LUMI_DEVICE_POWER;
-        Name = "Pin_" + MAC.GetValue();
+        Name = "P" + MAC.GetValue().substr(0, 4);
     }
 }
 
@@ -381,25 +381,25 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_SWITCH;
-        Name = "Switch_" + MAC.GetValue();
+        Name = "S" + MAC.GetValue().substr(0, 4);
     } else if (prefixModel == String("LM-DZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_DIMMER;
-        Name = "Dimmer_" + MAC.GetValue();
+        Name = "d" + MAC.GetValue().substr(0, 4);
     } else if (prefixModel == String("LM-FZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_FAN;
-        Name = "Fan_" + MAC.GetValue();
+        Name = "F" + MAC.GetValue().substr(0, 4);
     } else if (prefixModel == String("LM-BZ")) {
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_LEVEL_CONTROL,   ATTRID_LEVEL_CURRENT_LEVEL);
         SyncDeviceAction(DI_OnOff,       ZCL_CLUSTER_ID_GEN_ON_OFF,          ATTRID_ON_OFF);
 
         RealType = LUMI_DEVICE_CURTAIN;
-        Name = "Curtain_" + MAC.GetValue();
+        Name = "C" + MAC.GetValue().substr(0, 4);
     } else if (prefixModel == String("LM-IR")) {
         SyncDeviceAction(DI_State,         ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRSTATE);
         SyncDeviceAction(DI_IR_Data,       ZCL_CLUSTER_ID_LUMI_IR,           ATTRID_LUMI_IRCMD);
@@ -408,12 +408,12 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_State,       ZCL_CLUSTER_ID_GEN_BINARY_INPUT,    ATTRID_BINARY_INPUT_PRESENT_VALUE);
 
         RealType = LUMI_DEVICE_INPUT;
-        Name = "Input_" + MAC.GetValue();
+        Name = "I" + MAC.GetValue().substr(0, 4);
     }   else if (prefixModel == String("LM-PIR")) {
         if (Type == ZCL_HA_DEVICEID_IAS_ZONE) {
             SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_SS_IAS_ZONE,         ATTRID_SS_IAS_ZONE_STATUS);
             RealType = LUMI_DEVICE_PIR;
-            Name = "Pir_" + MAC.GetValue();
+            Name = "M" + MAC.GetValue().substr(0, 4);
         } else {
             EnvAttached();
         }
@@ -421,7 +421,7 @@ ZbDeviceDb::GenerateDeviceInfo(
         if (Type == ZCL_HA_DEVICEID_DOOR_LOCK) {
             SyncDeviceAction(DI_State,   ZCL_CLUSTER_ID_CLOSURES_DOOR_CONFIG, ATTRID_CLOSURES_DOOR_STATE);
             RealType = LUMI_DEVICE_DOOR;
-            Name = "Door_" + MAC.GetValue();
+            Name = "D" + MAC.GetValue().substr(0, 4);
         } else {
             EnvAttached();
         }
@@ -434,11 +434,11 @@ ZbDeviceDb::GenerateDeviceInfo(
         SyncDeviceAction(DI_RGB_Green,                       ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_G_INTENSITY);
         SyncDeviceAction(DI_RGB_Blue,                        ZCL_CLUSTER_ID_LIGHTING_COLOR_CONTROL,  ATTRID_LIGHTING_COLOR_CONTROL_COLOR_POINT_B_INTENSITY);
         RealType = LUMI_DEVICE_RGB;
-        Name = "RGB_" + MAC.GetValue();
+        Name = "R" + MAC.GetValue().substr(0, 4);
     } else if(prefixModel == String("LM-INPUT")) {
         SyncDeviceAction(DI_State,                           ZCL_CLUSTER_ID_GEN_BINARY_INPUT,        ATTRID_BINARY_INPUT_PRESENT_VALUE);
         RealType = LUMI_DEVICE_INPUT;
-        Name = "INPUT_" + MAC.GetValue();
+        Name = "I" + MAC.GetValue().substr(0, 4);
     } else if (prefixModel == String("LM-DKZ")) {
         SyncDeviceAction(DI_State,                           ZCL_CLUSTER_ID_GEN_ON_OFF,              ATTRID_ON_OFF);
         SyncDeviceAction(DI_Daikin_Local_Temperature,        ZCL_CLUSTER_ID_HAVC_THERMOSTAT,         ATTRID_HVAC_THERMOSTAT_LOCAL_TEMPERATURE);
@@ -467,10 +467,10 @@ ZbDeviceDb::GenerateDeviceInfo(
         Action[DI_Daikin_Fan_Direction].DP_DIStringName           = std::string("fandirect");
 
         RealType = LUMI_DEVICE_DAIKIN;
-        Name = "Daikin_" + MAC.GetValue();
+        Name = "a" + MAC.GetValue().substr(0, 4);
     } else {
         RealType = UNKNOWN_DEVICE;
-        Name = "Unknown_" + MAC.GetValue();
+        Name = "U" + MAC.GetValue().substr(0, 4);
         if(RealType == OTHER_BRAND_DEVICE) { OtherBrandsDevice(); }
     }
 
