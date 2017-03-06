@@ -282,7 +282,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     	    //Check device's connection
     	    for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
     	        if (vResponseDP[i].DP_AttributeID == ATTRID_BASIC_ZCL_VERSION) {
-    	            for (Devices_t::const_iterator it = devices.begin();
+    	            for (Devices_t::iterator it = devices.begin();
     	                    it != devices.end(); it++) {
     	                    (*it).Modify()->IsAlive = TRUE;
     	            }

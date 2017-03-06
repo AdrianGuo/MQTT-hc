@@ -544,15 +544,15 @@ void_t
 ZbDriver::HandleRequest(
    void_p pbyBuffer
 ) {
-    LOG_DEBUG("Affirm alive state of devices!");
     m_idwCheckTime += REQUEST_INTERVAL_INPUT;
-    if (m_idwCheckTime > REQUEST_INTERVAL)
+    if (m_idwCheckTime >= REQUEST_INTERVAL)
         m_idwCheckTime = 0;
+    LOG_DEBUG("Affirm alive state of devices: %d !", m_idwCheckTime);
 
     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-    Devices_t::const_iterator it;
+    Devices_t::iterator it;
     for(it = devices.begin(); it != devices.end(); it++) {
-        const Device_t& tmp = (*it);
+        Device_t& tmp = (*it);
         if(tmp.Modify()->RealType > 0) {
             if (tmp.Modify()->RealType == LUMI_DEVICE_INPUT) {
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE) && (tmp.Modify()->Endpoint.GetValue() == 1)) {
@@ -561,7 +561,7 @@ ZbDriver::HandleRequest(
                     tmp.Modify()->PreAlive = FALSE;
                 } else if ((tmp.Modify()->IsAlive == TRUE) && (tmp.Modify()->PreAlive != TRUE) && (tmp.Modify()->Endpoint.GetValue() == 1)){
                     SMQTT::s_pInstance->Publish(tmp.Modify()->Name, 1);
-                    LOG_WARN("device %s  reply", tmp.Modify()->Name.c_str());
+                    LOG_INFO("device %s  reply", tmp.Modify()->Name.c_str());
                     tmp.Modify()->PreAlive = TRUE;
                 }
                 tmp.Modify()->IsAlive = FALSE;
@@ -570,8 +570,9 @@ ZbDriver::HandleRequest(
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE)) {
                     SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
                     LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
+                    tmp.Modify()->PreAlive = FALSE;
                 } else if ((tmp.Modify()->IsAlive == TRUE) && (tmp.Modify()->PreAlive != TRUE)) {
-                    LOG_WARN("device %s  reply", tmp.Modify()->Name.c_str());
+                    LOG_INFO("device %s  reply", tmp.Modify()->Name.c_str());
                     tmp.Modify()->PreAlive = TRUE;
                 }
                 tmp.Modify()->IsAlive = FALSE;
