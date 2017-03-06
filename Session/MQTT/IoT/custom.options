@@ -1,0 +1,11 @@
+# Max lengths for Call.
+Custom.Call.phone_number 								max_size:20
+
+# Max lengths for SMS.
+Custom.SMS.phone_number 								max_size:20
+Custom.SMS.message 										max_size:250
+
+# Max lengths for header.
+Custom._Header.originator 							max_size:30
+Custom._Header.nestedPath 							max_size:50
+Custom._Header.nestedSpec 							max_size:40

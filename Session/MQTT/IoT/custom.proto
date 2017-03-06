@@ -1,0 +1,25 @@
+option optimize_for = LITE_RUNTIME;
+
+// Google Protocol Buffer for 'Send measurement'.
+// Generated on 2017.03.03 18:08:43 ICT
+message Custom {
+
+	enum Command {CALL = 1; SMS = 2; }
+
+	message _Header {
+		required Command command = 1;
+		optional string originator = 2;
+		optional string nestedPath = 3;
+		optional string nestedSpec = 4;
+	}
+
+	message Call {
+		required string phone_number = 1;
+	}
+
+	message Sms {
+		required string phone_number = 1;
+		required string message = 2;
+	}
+
+}

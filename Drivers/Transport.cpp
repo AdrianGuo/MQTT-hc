@@ -515,9 +515,9 @@ Transport::DiGet(
     u8_p pbyBuffer,
     u32_t idwLen
 ) {
-//    m_pTransportLocker->Lock();
-//    int idwRet = recv(m_idwSockfd, pbyBuffer, idwLen, 0);
-//    m_pTransportLocker->UnLock();
-//    return idwRet;
-    return GetBuffer(pbyBuffer, idwLen);
+    m_pTransportLocker->Lock();
+    int idwRet = recv(m_idwSockfd, pbyBuffer, idwLen, 0);
+    m_pTransportLocker->UnLock();
+    return idwRet;
+//    return GetBuffer(pbyBuffer, idwLen);
 }

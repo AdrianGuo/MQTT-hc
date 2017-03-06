@@ -148,7 +148,7 @@ typedef struct _IotEvent_RegisterDevice {
 } IotEvent_RegisterDevice;
 
 typedef struct _Model_Measurement {
-    char measurementId[6];
+    char measurementId[30];
     double measurementValue;
 /* @@protoc_insertion_point(struct:Model_Measurement) */
 } Model_Measurement;

@@ -40,9 +40,6 @@ typedef SMQTTFunctor_t*                     SMQTTFunctor_p;
 
 class Transport {
 private:
-    int_t m_idwSockfd;
-    int_t m_idwPort;
-
     sockaddr_t m_SockAddr;
     sockaddr_in6 m_SockAddr6;
     sa_family_t m_family;
@@ -74,6 +71,9 @@ private:
     Transport(const_char_p, int_t);
     static Transport* s_pInstance;
 public:
+    int_t m_idwSockfd;
+    int_t m_idwPort;
+
     static Transport* getInstant(const_char_p, int_t);
     virtual ~Transport();
 

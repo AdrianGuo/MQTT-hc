@@ -8,6 +8,10 @@
 #ifndef SESSION_SMQTT_HPP_
 #define SESSION_SMQTT_HPP_
 
+extern "C" {
+#include "libemqtt.h"
+}
+
 #include "Phone.hpp"
 #include "Transport.hpp"
 #include "RTimer.hpp"
@@ -28,6 +32,8 @@ private:
 
     static Transport_p m_spTransport;
 
+    mqtt_broker_handle_t m_MqttBroker;
+
     Map<String, int_t> m_mapBackupValue;
 
     SMQTTFunctor_t m_SMQTTSendFunctor;
@@ -46,8 +52,10 @@ private:
 	SMQTT(const_char_p, int_t, String, String, String, String);
 	void_t SMQTTSendFunctor();
 
-    static int_t GetMQTTPacket(u8_p, int_t);
+    static int_t GetMQTTPacket(u8_p, int_t, bool_t boDirect = FALSE);
+    static int_t SendMQTTPacket(void_p, void_p, u32_t);
 	void_t RecvData();
+	void_t HandleSystemCommand(u8_p, int_t);
 	void_t HandleSpecificCommand(u8_p, int_t);
 	void_t CallCommand(Custom_Call, char_p);
 	void_t SmsCommand(Custom_Sms, char_p);
@@ -61,14 +69,14 @@ public:
     static SMQTT* s_pInstance;
     static SMQTT* GetInstance(const_char_p, int_t, String, String, String, String);
 
-	bool_t Establish();
 	bool_t Connect();
     bool_t Start();
     bool_t Close();
+    bool_t Establish();
+    bool_t Subscribe();
 
     bool_t IsEstablished();
     void_t Publish(String strDevName, int_t idwValue, bool_t IsBackup = TRUE);
-    void_t Subscribe();
     bool_t IsSubscribed();
 
     void_t PushNotification();

@@ -7,17 +7,16 @@
 
 #include <unistd.h>
 #include "LogPlus.hpp"
-#include "MQTTPacket.h"
+extern "C" {
 #include "iot.h"
+#include "iot.pb.h"
 #include "custom.pb.h"
 #include "pb_decode.h"
-
-#include "ZbDriver.hpp"
-
+}
 #include "SMQTT.hpp"
 
 #define BUFFER_SOCKET_SIZE	(2000)
-#define KEEPALIVE_INTERVAL	(10)
+#define KEEPALIVE_INTERVAL	(30)
 
 SMQTT* SMQTT::s_pInstance = NULL;
 Transport_p SMQTT::m_spTransport = NULL;
@@ -119,6 +118,9 @@ SMQTT::Start() {
  */
 bool_t
 SMQTT::Connect() {
+    mqtt_init(&m_MqttBroker, "avengalvon");
+    mqtt_init_auth(&m_MqttBroker, "", "");
+
     m_spTransport->Connect();
 
     if(m_iKeepAlive == -1) {
@@ -128,7 +130,12 @@ SMQTT::Connect() {
     	m_spTransport->Close();
     	return FALSE;
     }
-    m_spTransport->SetNonBlocking();
+
+    // MQTT stuffs
+    mqtt_set_alive(&m_MqttBroker, KEEPALIVE_INTERVAL);
+    m_MqttBroker.socket_info = (void*)&m_spTransport->m_idwSockfd;
+    m_MqttBroker.send = SMQTT::SendMQTTPacket;
+
     if(Establish() == TRUE)
     	Subscribe();
     return (m_boIsEstablished && m_boIsSubscribed);
@@ -142,16 +149,9 @@ SMQTT::Connect() {
  */
 bool_t
 SMQTT::Close() {
+    mqtt_disconnect(&m_MqttBroker);
+
 	if(m_spTransport->IsConnected() == TRUE) {
-		m_pLock->Lock();
-		int_t idwLen = MQTTSerialize_disconnect(m_pbyBuffer, BUFFER_SOCKET_SIZE);
-		int_t idwRet = m_spTransport->DiSend(m_pbyBuffer, idwLen);
-		memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
-		m_pLock->UnLock();
-		if (idwRet == idwLen)
-			LOG_INFO("Successfully disconnected!");
-		else
-			LOG_WARN("Disconnect failed!");
 	    return m_spTransport->Close();
 	}
 	return TRUE;
@@ -176,34 +176,43 @@ SMQTT::SMQTTSendFunctor() {
  */
 bool_t
 SMQTT::Establish() {
-	MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
-	data.clientID.cstring = "me";
-	data.keepAliveInterval = 20;
-	data.cleansession = 1;
-	data.username.cstring = "";
-	data.password.cstring = "";
-	data.MQTTVersion = 4;
+    int_t idwRet;
 
-	bool_t boRet = FALSE;
-	m_pLock->Lock();
-	int_t idwLen = MQTTSerialize_connect(m_pbyBuffer, BUFFER_SOCKET_SIZE, &data);
-	int_t idwRet = m_spTransport->DiSend(m_pbyBuffer, idwLen);
-	memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
-	m_pLock->UnLock();
-	if (idwRet == idwLen) {
-		boRet = TRUE;
-		m_pLock->Lock();
-		m_boIsEstablished = TRUE;
-		m_pLock->UnLock();
-		LOG_INFO("MQTT Established!");
-	}
-	else {
-		m_pLock->Lock();
-		m_boIsEstablished = FALSE;
-		m_pLock->UnLock();
-		LOG_WARN("MQTT Unestablished!");
-	}
-    return boRet;
+    mqtt_connect(&m_MqttBroker);
+
+    idwRet = GetMQTTPacket(m_pbyBuffer, BUFFER_SOCKET_SIZE, TRUE);
+    if(idwRet < 0)
+    {
+        m_pLock->Lock();
+        m_boIsEstablished = FALSE;
+        m_pLock->UnLock();
+        LOG_WARN("Error(%d) on read packet!", idwRet);
+        return FALSE;
+    }
+
+    if (MQTTParseMessageType(m_pbyBuffer) != MQTT_MSG_CONNACK)
+    {
+        m_pLock->Lock();
+        m_boIsEstablished = FALSE;
+        m_pLock->UnLock();
+        LOG_WARN("CONNACK expected!");
+        return FALSE;
+    }
+
+    if (m_pbyBuffer[3] != 0x00)
+    {
+        m_pLock->Lock();
+        m_boIsEstablished = FALSE;
+        m_pLock->UnLock();
+        LOG_WARN("CONNACK falied!");
+        return FALSE;
+    }
+
+    LOG_INFO("Successfully cmdtopic established!");
+    m_pLock->Lock();
+    m_boIsEstablished = TRUE;
+    m_pLock->UnLock();
+    return TRUE;
 }
 
 /**
@@ -229,7 +238,6 @@ SMQTT::Publish(
 	int_t idwValue,
 	bool_t IsBackup
 ) {
-
     LOG_INFO("%s: %s - %d - %d", __FUNCTION__, strDevName.c_str(), idwValue, IsBackup);
 
 //	if (IsBackup == TRUE) {
@@ -241,37 +249,22 @@ SMQTT::Publish(
 		LOG_WARN("Disconnected!");
 		return;
 	}
-	char_t pCoutboundTopicString[100];
-	strcpy(pCoutboundTopicString, m_strOutboundTopic.c_str());
+
     char_t pCHWID[100];
     strcpy(pCHWID, m_strHWID.c_str());
-    char_t pCname[100];
-    strcpy(pCname, strDevName.c_str());
 
-	MQTTString outboundTopicString = MQTTString_initializer;
-	outboundTopicString.cstring = pCoutboundTopicString;
-	u8_t payload[BUFFER_SOCKET_SIZE];
-
-	//Import data
-	int_t idwNumValue = m_mapBackupValue.size(), i = 0;
-	Data data[idwNumValue];
-	m_pLock->Lock();
+    //Import data
+    int_t idwNumValue = m_mapBackupValue.size(), i = 0;
+    Data data[idwNumValue];
+    m_pLock->Lock();
     for(Map<String, int_t>::iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++, i++) {
         strcpy(data[i].name, it->first.c_str());
         data[i].value = (*it).second;
     }
     m_pLock->UnLock();
 
-	u32_t idwPayloadLen	= iot_measurement2(pCHWID, idwNumValue, data, NULL, (u8_p) payload, sizeof(payload), NULL, TRUE);
-	if (idwPayloadLen) {
-		m_pLock->Lock();
-		int_t idwRet = MQTTSerialize_publish(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, 0, 0, 0, outboundTopicString, payload, idwPayloadLen);
-		m_spTransport->PushBuffer(m_pbyBuffer, idwRet);
-		memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
-		m_pLock->UnLock();
-//		LOG_INFO("Publish in queue!");
-	} else
-		LOG_WARN("sw_measurement error!");
+	u32_t idwPayloadLen = iot_measurement2(pCHWID, idwNumValue, data, NULL, (u8_p) m_pbyBuffer, BUFFER_SOCKET_SIZE, NULL, TRUE);
+	mqtt_publish(&m_MqttBroker, m_strOutboundTopic.c_str(), (const char*)m_pbyBuffer, idwPayloadLen, 0);
 
     //delete device that not reply - publish -1 one time
     if (idwValue == -1) {
@@ -287,57 +280,54 @@ SMQTT::Publish(
  * @param  None
  * @retval None
  */
-void_t
+bool_t
 SMQTT::Subscribe() {
+    u16_t idwMsgId, idwRecvMsgId;
+    int_t idwRet;
+    char_t pCcmdTopicString[100];
+
 	if (IsEstablished() == FALSE) {
 		LOG_WARN("Disconnected!");
-		return;
+		return FALSE;
 	}
-    char_t pCcmdTopicString[100];
-    strcpy(pCcmdTopicString, m_strCmdTopic.c_str());
 
-	MQTTString cmdTopicString = MQTTString_initializer;
-	int_t msgid = 1;
-	int_t req_qos = 0;
-	cmdTopicString.cstring = pCcmdTopicString;
-	m_pLock->Lock();
-	int_t idwLen = MQTTSerialize_subscribe(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, msgid, 1, &cmdTopicString, &req_qos);
-	int_t idwRet = m_spTransport->DiSend(m_pbyBuffer, idwLen);
-	memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
-	m_pLock->UnLock();
-	if (idwRet == idwLen) {
-		m_pLock->Lock();
-		m_boIsSubscribed = TRUE;
-		m_pLock->UnLock();
-		LOG_INFO("Successfully cmdtopic subscribed!");
-	}
-	else {
-		m_pLock->Lock();
-		m_boIsSubscribed = FALSE;
-		m_pLock->UnLock();
-		LOG_WARN("Subscribe failed!");
-	}
-    char_t pCsysTopicString[100];
-    strcpy(pCsysTopicString, m_strSysTopic.c_str());
-	MQTTString sysTopicString = MQTTString_initializer;
-	sysTopicString.cstring = pCsysTopicString;
-	m_pLock->Lock();
-	idwLen = MQTTSerialize_subscribe(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, msgid, 1, &sysTopicString, &req_qos);
-	idwRet = m_spTransport->DiSend(m_pbyBuffer, idwLen);
-	memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
-	m_pLock->UnLock();
-	if (idwRet == idwLen) {
-		m_pLock->Lock();
-		m_boIsSubscribed = TRUE;
-		m_pLock->UnLock();
-		LOG_INFO("Successfully systopic subscribed!");
-	}
-	else {
-		m_pLock->Lock();
-		m_boIsSubscribed = FALSE;
-		m_pLock->UnLock();
-		LOG_WARN("Subscribe failed!");
-	}
+    strcpy(pCcmdTopicString, m_strCmdTopic.c_str());
+	mqtt_subscribe(&m_MqttBroker, m_strCmdTopic.c_str(), &idwMsgId);
+
+	idwRet = GetMQTTPacket(m_pbyBuffer, BUFFER_SOCKET_SIZE, TRUE);
+    if(idwRet < 0)
+    {
+        m_pLock->Lock();
+        m_boIsSubscribed = FALSE;
+        m_pLock->UnLock();
+        LOG_WARN("Error(%d) on read packet!", idwRet);
+        return FALSE;
+    }
+
+    if(MQTTParseMessageType(m_pbyBuffer) != MQTT_MSG_SUBACK)
+    {
+        m_pLock->Lock();
+        m_boIsSubscribed = FALSE;
+        m_pLock->UnLock();
+        LOG_WARN("SUBACK expected!");
+        return FALSE;
+    }
+
+    idwRecvMsgId = mqtt_parse_msg_id(m_pbyBuffer);
+    if(idwMsgId != idwRecvMsgId)
+    {
+        m_pLock->Lock();
+        m_boIsSubscribed = FALSE;
+        m_pLock->UnLock();
+        LOG_WARN("%d message id was expected, but %d message id was found!\n", idwMsgId, idwRecvMsgId);
+        return FALSE;
+    }
+
+    LOG_INFO("Successfully cmdtopic subscribed!");
+    m_pLock->Lock();
+    m_boIsSubscribed = TRUE;
+    m_pLock->UnLock();
+    return TRUE;
 }
 
 /**
@@ -362,29 +352,29 @@ SMQTT::RecvData(
 ) {
     int_t idwRet;
 	m_pLock->Lock();
-	idwRet = MQTTPacket_read(m_pbyBuffer, BUFFER_SOCKET_SIZE, SMQTT::GetMQTTPacket);
-	if (idwRet == PUBLISH)
-	{
-		u8_t dup;
-		int_t qos;
-		u8_t retained;
-		u16_t msgid;
-		int_t payloadlen_in;
-		u8_p payload_in;
-		int_t rc;
-		MQTTString receivedTopic;
 
-		rc = MQTTDeserialize_publish(&dup, &qos, &retained, &msgid, &receivedTopic,
-				&payload_in, &payloadlen_in, m_pbyBuffer, BUFFER_SOCKET_SIZE);
-		if(rc == 1) {
-			LOG_INFO("Message arrived.");
-			HandleSpecificCommand(payload_in, payloadlen_in);
-		}
-//		delete payload_in;
+	idwRet = GetMQTTPacket(m_pbyBuffer, BUFFER_SOCKET_SIZE);
+	if (idwRet == -1) {
+	    LOG_WARN("Error(%d) on read packet!", idwRet);
+	    return;
+	} else if (idwRet > 1) {
+        if(MQTTParseMessageType(m_pbyBuffer) == MQTT_MSG_PUBLISH)
+        {
+            uint8_t topic[255], msg[1000];
+            uint16_t len;
+            len = mqtt_parse_pub_topic(m_pbyBuffer, topic);
+            topic[len] = '\0'; // for printf
+            len = mqtt_parse_publish_msg(m_pbyBuffer, msg);
+            msg[len] = '\0'; // for printf
+            //printf("%s %s\n", topic, msg);
+            if (strcmp((const char*)(topic), m_strSysTopic.c_str()) == 0) {
+                HandleSystemCommand(msg, len);
+            } else if (strcmp((const char*)(topic), m_strCmdTopic.c_str()) == 0) {
+                HandleSpecificCommand(msg, len);
+            }
+        }
 	}
-	else {
-	    LOG_INFO("MQTTPacket_read idwRet = %d", idwRet);
-	}
+
 	memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
 	m_pLock->UnLock();
 }
@@ -396,15 +386,118 @@ SMQTT::RecvData(
  * @retval None
  */
 int_t
-SMQTT::GetMQTTPacket(
-	u8_p pbyBuffer,
-	int_t idwLen
+SMQTT::SendMQTTPacket(
+    void_p socket_info,
+    void_p pbyBuffer,
+    u32_t idwLen
 ) {
-    return m_spTransport->GetBuffer(pbyBuffer, (u32_t) idwLen);
+    return m_spTransport->DiSend((u8_p)pbyBuffer, idwLen);
 }
 
 /**
  * @func   SClientSendFunctor
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+int_t
+SMQTT::GetMQTTPacket(
+	u8_p pbyBuffer,
+	int_t idwLen,
+	bool_t boDirect
+) {
+    if (boDirect) {
+        int_t idwTimeout = 1;
+        if(idwTimeout > 0)
+        {
+            fd_set readfds;
+            struct timeval tmv;
+
+            // Initialize the file descriptor set
+            FD_ZERO (&readfds);
+            FD_SET (m_spTransport->m_idwSockfd, &readfds);
+
+            // Initialize the timeout data structure
+            tmv.tv_sec = idwTimeout;
+            tmv.tv_usec = 0;
+
+            // select returns 0 if timeout, 1 if input available, -1 if error
+            if(select(1, &readfds, NULL, NULL, &tmv))
+                return -2;
+        }
+    }
+
+    int idwTotalBytes = 0, idwBytesRcvd, idwPacketLength;
+    memset(pbyBuffer, 0, BUFFER_SOCKET_SIZE);
+
+    while (idwTotalBytes < 2) // Reading fixed header
+    {
+        if (!boDirect) {
+            if ((idwBytesRcvd = m_spTransport->GetBuffer(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
+                return -1;
+        } else {
+            if ((idwBytesRcvd = m_spTransport->DiGet(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
+                return -1;
+        }
+        idwTotalBytes += idwBytesRcvd; // Keep tally of total bytes
+    }
+
+    idwPacketLength = pbyBuffer[1] + 2; // Remaining length + fixed header length
+
+    while (idwTotalBytes < idwPacketLength) // Reading the packet
+    {
+        if (!boDirect) {
+            if ((idwBytesRcvd = m_spTransport->GetBuffer(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
+                return -1;
+        } else {
+            if ((idwBytesRcvd = m_spTransport->DiGet(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
+                return -1;
+        }
+
+        idwTotalBytes += idwBytesRcvd; // Keep tally of total bytes
+    }
+
+    return idwPacketLength;
+}
+
+/**
+ * @func   HandleSystemCommand
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+SMQTT::HandleSystemCommand(
+    u8_p pbyBuffer,
+    int_t idwLen
+) {
+    Device_Header header;
+    pb_istream_t stream = pb_istream_from_buffer(pbyBuffer, idwLen);
+
+    // Read header to find what type of command follows.
+    if (pb_decode_delimited(&stream, Device_Header_fields, &header)) {
+        // Handle a registration acknowledgement.
+        if (header.command == Device_Command_ACK_REGISTRATION) {
+            Device_RegistrationAck ack;
+            if (pb_decode_delimited(&stream, Device_RegistrationAck_fields, &ack)) {
+                if (ack.state == Device_RegistrationAckState_NEW_REGISTRATION) {
+                    printf("Registered new device.");
+                    //registered = true;
+                } else if (ack.state == Device_RegistrationAckState_ALREADY_REGISTERED) {
+                    printf("Device was already registered.");
+                    //registered = true;
+                } else if (ack.state == Device_RegistrationAckState_REGISTRATION_ERROR) {
+                    printf("Error registering device.");
+                }
+            }
+        }
+    } else {
+        printf("Unable to decode system command.");
+    }
+}
+
+/**
+ * @func   HandleSpecificCommand
  * @brief  None
  * @param  None
  * @retval None
@@ -418,22 +511,22 @@ SMQTT::HandleSpecificCommand(
 	pb_istream_t stream = pb_istream_from_buffer(pbyBuffer, idwLen);
 	if (pb_decode_delimited(&stream, Custom__Header_fields, &header)) {
 	    if (header.command == Custom_Command_CALL) {
-	      Custom_Call call;
-	      if (pb_decode_delimited(&stream, Custom_Call_fields, &call)) {
-	        //handlePing(ping, header.originator);
-	        CallCommand(call, header.originator);
+	        Custom_Call call;
+	        if (pb_decode_delimited(&stream, Custom_Call_fields, &call)) {
+	            //handlePing(ping, header.originator);
+	            CallCommand(call, header.originator);
 
-	        //reply ack to server
-	        AckKnowLedgeCommand(std::string("Call function received"), header.originator);
-	      }
+	            //reply ack to server
+	            AckKnowLedgeCommand(std::string("Call function received"), header.originator);
+	        }
 	    } else if (header.command == Custom_Command_SMS) {
-	      Custom_Sms sms;
-	      if (pb_decode_delimited(&stream, Custom_Sms_fields, &sms)) {
-	        SmsCommand(sms, header.originator);
+	        Custom_Sms sms;
+	        if (pb_decode_delimited(&stream, Custom_Sms_fields, &sms)) {
+	            SmsCommand(sms, header.originator);
 
-	        //reply ack to server
-	        AckKnowLedgeCommand(std::string("Sms function received"), header.originator);
-	      }
+	            //reply ack to server
+	            AckKnowLedgeCommand(std::string("Sms function received"), header.originator);
+	        }
 	    }
 	}
 }
@@ -450,7 +543,6 @@ SMQTT::CallCommand(
 	char_p originator
 ) {
 	LOG_INFO("Message's content: %s", call.phone_number);
-//    if(String(serialPrintln.message) != "")
 	m_strPhoneWork = String("Call_") + String(call.phone_number);
     PushNotification();
 }
@@ -479,33 +571,18 @@ SMQTT::SmsCommand(
  */
 void_t
 SMQTT::AckKnowLedgeCommand(
-    String command,
+    String strCommand,
     char_p originator
 ) {
     if (originator != NULL)
-        LOG_DEBUG("Ack KnowLedge Command");
-//    else
-//        LOG_DEBUG("Keep alive command");
-    u8_t payload[BUFFER_SOCKET_SIZE];
+        LOG_DEBUG("Ack KnowLedge Command - %s", strCommand.c_str());
     char_t pCHWID[100];
     strcpy(pCHWID, m_strHWID.c_str());
     char_t pCCommand[100];
-    strcpy(pCCommand, command.c_str());
+    strcpy(pCCommand, strCommand.c_str());
 
-    char_t pCoutboundTopicString[100];
-    strcpy(pCoutboundTopicString, m_strOutboundTopic.c_str());
-    MQTTString outboundTopicString = MQTTString_initializer;
-    outboundTopicString.cstring = pCoutboundTopicString;
-
-    u32_t idwPayloadLen = iot_acknowledge(pCHWID, pCCommand, payload, sizeof(payload), originator);
-    if (idwPayloadLen) {
-        int_t idwRet = MQTTSerialize_publish(m_pbyBuffer, BUFFER_SOCKET_SIZE, 0, 0, 0, 0, outboundTopicString, payload, idwPayloadLen);
-        m_spTransport->PushBuffer(m_pbyBuffer, idwRet);
-        memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
-//        LOG_INFO("Publish in queue!");
-    } else {
-        LOG_WARN("sw_measurement error!");
-    }
+    int_t idwLength = iot_acknowledge(pCHWID, pCCommand, m_pbyBuffer, BUFFER_SOCKET_SIZE, originator);
+    mqtt_publish(&m_MqttBroker, m_strOutboundTopic.c_str(), (const char*)m_pbyBuffer, idwLength, 0);
 }
 
 /**
@@ -551,7 +628,7 @@ SMQTT::HandleKeepAlive(
 	void_p pbyBuffer
 ) {
 //    LOG_INFO("Handling KeepAlive...");
-	if(m_spTransport->IsConnected() == FALSE) {
+	if ((m_spTransport->IsConnected() == FALSE) || !m_boIsEstablished || !m_boIsSubscribed) {
 		LOG_INFO("Trying to reconnect !!!");
 		Close();
 		if(Connect() == FALSE) {
@@ -570,12 +647,9 @@ SMQTT::HandleKeepAlive(
                     Publish(strName, idwValue);
                 }
 			}
-//			for(Map<String, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++) {
-//			    Publish(it->first, it->second, FALSE);
-//			    break;
-//			}
 		}
 	} else {
-	    AckKnowLedgeCommand(std::string("Keep alive"), NULL);
+//	    AckKnowLedgeCommand(std::string("Keep alive"), NULL);
+	    mqtt_ping(&m_MqttBroker);
 	}
 }

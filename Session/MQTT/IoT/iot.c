@@ -74,7 +74,7 @@ unsigned int iot_measurement(char* hardwareId, char* name, float value, int64_t 
 
 	Model_Measurement measurement = { };
 	strcpy(measurement.measurementId, name);
-	measurement.measurementValue = (value);
+	measurement.measurementValue = float_to_double(value);
 	measurements.measurement[0] = measurement;
 	measurements.measurement_count = 1;
 	measurements.has_updateState = true;
@@ -104,18 +104,13 @@ unsigned int iot_measurement2(char* hardwareId, uint8_t count, Data* data, int64
 	if (!pb_encode_delimited(&stream, IotEvent_Header_fields, &header)) {
 		return 0;
 	}
-
 	Model_DeviceMeasurements measurements = { };
 	strcpy(measurements.hardwareId, hardwareId);
-	
 	int i;
 	for(i=0;i<count;i++) {
-		
-//		printf("data->name: %s\n", data->name);
-//		printf("data->value: %f\n", data->value);
 		Model_Measurement measurement = { };
 		strcpy(measurement.measurementId, data->name);
-		measurement.measurementValue = (data->value);
+		measurement.measurementValue = data->value;
 		measurements.measurement[i] = measurement;
 		data++;
 	}
