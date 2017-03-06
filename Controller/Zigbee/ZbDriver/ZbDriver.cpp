@@ -567,12 +567,14 @@ ZbDriver::HandleRequest(
                 tmp.Modify()->IsAlive = FALSE;
             } else if (m_idwCheckTime ==  0) {
                 //other device
-                if (tmp.Modify()->IsAlive == FALSE) {
+                if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE)) {
                     SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
                     LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
-                } else {
-                    tmp.Modify()->IsAlive = FALSE;
+                } else if ((tmp.Modify()->IsAlive == TRUE) && (tmp.Modify()->PreAlive != TRUE)) {
+                    LOG_WARN("device %s  reply", tmp.Modify()->Name.c_str());
+                    tmp.Modify()->PreAlive = TRUE;
                 }
+                tmp.Modify()->IsAlive = FALSE;
             }
         }
     }
