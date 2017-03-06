@@ -18,6 +18,8 @@
 #include <IO.hpp>
 #include <ZbZdoCmd.hpp>
 
+#include <SMQTT.hpp>
+
 #define DEVICE_ANNOUNCE_TIME    (2)
 #define ACTIVE_ENDPOINT_TIME    (10)
 #define MAX_REQUEST_NO          (5)
@@ -556,6 +558,11 @@ ZbZdoCmd::LeaveResponse(
         if(devices.size() > 0) {
 //            ZbSocketCmd::GetInstance()->SendLstDel(devices);
             for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                const Device_t& tmp = (*it);
+                if ((tmp.Modify()->Name.find("Unknown") == String::npos) && (tmp.Modify()->Name[0] != 'L')) {
+                    LOG_INFO("device %s  remove", tmp.Modify()->Name.c_str());
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
+                }
                 (*it).Remove();
             }
             ZbDriver::s_pZbModel->UpdateChanges();

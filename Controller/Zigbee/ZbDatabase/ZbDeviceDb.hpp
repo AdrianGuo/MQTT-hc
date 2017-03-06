@@ -53,6 +53,7 @@ public:
     int_t&          State;
     Queue<u32_t>    OwnersReq;
     bool_t          IsAlive;
+    bool_t          PreAlive;
 
     void_t ReceiveInforFromDevice(DeviceProperties, Vector<u8_p>);
     void_t GenerateDeviceInfo();

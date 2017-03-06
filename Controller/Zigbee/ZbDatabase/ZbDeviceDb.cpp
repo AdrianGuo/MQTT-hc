@@ -40,6 +40,7 @@ ZbDeviceDb::ZbDeviceDb() :
     RealType    =   0;
     Name        = "Unknown";
     IsAlive     = TRUE;
+    PreAlive    = 2;    //Init value by 2 -> not TRUE not FALSE -> when first time hc turn on -> INPUT device will Publish real state
     m_pLocker   =   new Locker();
 
     SyncDeviceAction(DI_Model,           ZCL_CLUSTER_ID_GEN_BASIC, ATTRID_BASIC_MODEL_ID);
@@ -143,7 +144,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
                 } else {
                     Backup(vDP[i].DP_DIName);
                     AttributeData(vDP[i].DP_DIName) = *vpData[i];
-                    ForwardStateToOutside(this);
+//                    ForwardStateToOutside(this);
                 }
             }
         }

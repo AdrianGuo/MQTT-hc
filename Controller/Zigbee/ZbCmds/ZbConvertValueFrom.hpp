@@ -41,7 +41,7 @@ ForwardStateToOutside(
 //        val["state"] = std::string("on");
 //    }
 //    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
-    SMQTT::s_pInstance->Publish(device->Name.c_str(), device->Action[DI_State].DP_AttributeData);
+    SMQTT::s_pInstance->Publish(device->Name, device->Action[DI_State].DP_AttributeData);
 }
 
 /**

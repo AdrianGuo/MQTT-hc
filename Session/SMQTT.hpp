@@ -28,7 +28,7 @@ private:
 
     static Transport_p m_spTransport;
 
-    Map<const_char_p, int_t> m_mapBackupValue;
+    Map<String, int_t> m_mapBackupValue;
 
     SMQTTFunctor_t m_SMQTTSendFunctor;
 
@@ -67,7 +67,7 @@ public:
     bool_t Close();
 
     bool_t IsEstablished();
-    void_t Publish(const_char_p pCDevName, int_t idwValue, bool_t IsBackup = TRUE);
+    void_t Publish(String strDevName, int_t idwValue, bool_t IsBackup = TRUE);
     void_t Subscribe();
     bool_t IsSubscribed();
 

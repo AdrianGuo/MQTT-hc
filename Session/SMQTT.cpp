@@ -12,6 +12,8 @@
 #include "custom.pb.h"
 #include "pb_decode.h"
 
+#include "ZbDriver.hpp"
+
 #include "SMQTT.hpp"
 
 #define BUFFER_SOCKET_SIZE	(2000)
@@ -223,15 +225,18 @@ SMQTT::IsEstablished() {
  */
 void_t
 SMQTT::Publish(
-	const_char_p pCDevName,
+	String strDevName,
 	int_t idwValue,
 	bool_t IsBackup
 ) {
-	if (IsBackup == TRUE) {
+
+    LOG_INFO("%s: %s - %d - %d", __FUNCTION__, strDevName.c_str(), idwValue, IsBackup);
+
+//	if (IsBackup == TRUE) {
 		m_pLock->Lock();
-		m_mapBackupValue[pCDevName] = idwValue;
+		m_mapBackupValue[strDevName] = idwValue;
 		m_pLock->UnLock();
-	}
+//	}
 	if (IsEstablished() == FALSE) {
 		LOG_WARN("Disconnected!");
 		return;
@@ -241,7 +246,7 @@ SMQTT::Publish(
     char_t pCHWID[100];
     strcpy(pCHWID, m_strHWID.c_str());
     char_t pCname[100];
-    strcpy(pCname, pCDevName);
+    strcpy(pCname, strDevName.c_str());
 
 	MQTTString outboundTopicString = MQTTString_initializer;
 	outboundTopicString.cstring = pCoutboundTopicString;
@@ -251,8 +256,8 @@ SMQTT::Publish(
 	int_t idwNumValue = m_mapBackupValue.size(), i = 0;
 	Data data[idwNumValue];
 	m_pLock->Lock();
-    for(Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++, i++) {
-        strcpy(data[i].name,(*it).first);
+    for(Map<String, int_t>::iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++, i++) {
+        strcpy(data[i].name, it->first.c_str());
         data[i].value = (*it).second;
     }
     m_pLock->UnLock();
@@ -264,14 +269,15 @@ SMQTT::Publish(
 		m_spTransport->PushBuffer(m_pbyBuffer, idwRet);
 		memset(m_pbyBuffer, '\0', BUFFER_SOCKET_SIZE);
 		m_pLock->UnLock();
-		LOG_INFO("Publish in queue!");
+//		LOG_INFO("Publish in queue!");
 	} else
 		LOG_WARN("sw_measurement error!");
 
     //delete device that not reply - publish -1 one time
     if (idwValue == -1) {
-        Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.find(pCDevName);
-        m_mapBackupValue.erase(it->first);
+        Map<String, int_t>::iterator it = m_mapBackupValue.find(strDevName);
+        if (it != m_mapBackupValue.end())
+            m_mapBackupValue.erase(it->first);
     }
 }
 
@@ -411,23 +417,24 @@ SMQTT::HandleSpecificCommand(
 	Custom__Header header;
 	pb_istream_t stream = pb_istream_from_buffer(pbyBuffer, idwLen);
 	if (pb_decode_delimited(&stream, Custom__Header_fields, &header)) {
-	    printf("Decoded header for custom command.\r\n");
 	    if (header.command == Custom_Command_CALL) {
-	      printf("Handling call command...\r\n");
 	      Custom_Call call;
 	      if (pb_decode_delimited(&stream, Custom_Call_fields, &call)) {
 	        //handlePing(ping, header.originator);
 	        CallCommand(call, header.originator);
+
+	        //reply ack to server
+	        AckKnowLedgeCommand(std::string("Call function received"), header.originator);
 	      }
 	    } else if (header.command == Custom_Command_SMS) {
-	      printf("Handling Sms command...\r\n");
 	      Custom_Sms sms;
 	      if (pb_decode_delimited(&stream, Custom_Sms_fields, &sms)) {
 	        SmsCommand(sms, header.originator);
+
+	        //reply ack to server
+	        AckKnowLedgeCommand(std::string("Sms function received"), header.originator);
 	      }
 	    }
-		//reply ack to server
-		AckKnowLedgeCommand(std::string("Call function received"), header.originator);
 	}
 }
 
@@ -442,7 +449,6 @@ SMQTT::CallCommand(
 	Custom_Call call,
 	char_p originator
 ) {
-	LOG_DEBUG("Handling Call command...");
 	LOG_INFO("Message's content: %s", call.phone_number);
 //    if(String(serialPrintln.message) != "")
 	m_strPhoneWork = String("Call_") + String(call.phone_number);
@@ -460,7 +466,6 @@ SMQTT::SmsCommand(
 	Custom_Sms sms,
 	char_p originator
 ) {
-	LOG_DEBUG("Handling Sms command...");
 	LOG_INFO("Message's content: %s - %s", sms.phone_number, sms.message);
     m_strPhoneWork = String("Sms_") + String(sms.phone_number) + String("_") + String(sms.message);
     PushNotification();
@@ -528,8 +533,11 @@ SMQTT::NotifyFunc(
  */
 void_t
 SMQTT::PushNotification() {
-	if(m_pNotificationThread != NULL)
-		m_pNotificationThread->Start();
+//	if(m_pNotificationThread != NULL)
+//		m_pNotificationThread->Start();
+
+    LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, m_strPhoneWork.c_str());
+    Phone::getInstant()->AddWork(m_strPhoneWork);
 }
 
 /**
@@ -554,10 +562,18 @@ SMQTT::HandleKeepAlive(
 		    Start();
 		    Subscribe();
 			LOG_INFO("Connected!");
-			for(Map<const_char_p, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++) {
-			    Publish(it->first, it->second, FALSE);
-			    break;
+			if (m_mapBackupValue.size() > 0) {
+                Map<String, int_t>::const_iterator it = m_mapBackupValue.begin();
+                if (it != m_mapBackupValue.end()) {
+                    String strName = String(it->first);
+                    int_t idwValue = it->second;
+                    Publish(strName, idwValue);
+                }
 			}
+//			for(Map<String, int_t>::const_iterator it = m_mapBackupValue.begin(); it != m_mapBackupValue.end(); it++) {
+//			    Publish(it->first, it->second, FALSE);
+//			    break;
+//			}
 		}
 	} else {
 	    AckKnowLedgeCommand(std::string("Keep alive"), NULL);

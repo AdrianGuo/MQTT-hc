@@ -194,7 +194,7 @@ void_t
 IO::Indicate(
 	IOState_t ioState
 ) {
-	LOG_DEBUG("========== Event: %d, Prio: %d ==========", ioState.ioName, ioState.prioLevel);
+//	LOG_DEBUG("========== Event: %d, Prio: %d ==========", ioState.ioName, ioState.prioLevel);
 
 	if(ioState.boIsBAKed == TRUE) {
 		m_pLocker->Lock();
@@ -204,12 +204,12 @@ IO::Indicate(
 	}
 
 	if(ioState.prioLevel < m_prioCurLevel) {
-		LOG_DEBUG("========== Lower priority!!! ==========");
+//		LOG_DEBUG("========== Lower priority!!! ==========");
 		return;
 	} else {
 
 		if(m_iLEDTimerID != -1) {
-			LOG_DEBUG("========== CancelTimer ==========");
+//			LOG_DEBUG("========== CancelTimer ==========");
 			m_pRTimer->CancelTimer(m_iLEDTimerID);
 			m_pLocker->Lock();
 			m_iLEDTimerID = -1;
@@ -224,16 +224,16 @@ IO::Indicate(
 	}
 
 	if(m_ioCurState.ioAction == LED::Action::Latch) {
-		LOG_DEBUG("========== Start: Latch ==========");
+//		LOG_DEBUG("========== Start: Latch ==========");
 		m_LED.Set(m_ioCurState.ioColor);
 	} else if(m_ioCurState.ioAction == LED::Action::Hold) {
-		LOG_DEBUG("========== Start: Hold ==========");
+//		LOG_DEBUG("========== Start: Hold ==========");
 		m_LED.Set(m_ioCurState.ioColor);
 		if(ioState.ioTime > 0) {
 			m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::OneTime, m_ioCurState.ioTime, &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
 		}
 	} else if(m_ioCurState.ioAction == LED::Action::Blink) {
-		LOG_DEBUG("========== Start: Blink ==========");
+//		LOG_DEBUG("========== Start: Blink ==========");
 		m_idwBlinkedNo = 0;
 		m_iLEDTimerID = m_pRTimer->StartTimer(RTimer::Repeat::Forever, 0, &m_LEDTimerFunctor, &m_mapEvents[ioState.ioName].ioName);
 	}
@@ -253,13 +253,13 @@ IO::HandleLEDTimerWork(
 			m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 
 	if(m_ioCurState.ioAction == LED::Action::Hold) {
-		LOG_DEBUG("========== Handle: Hold ==========");
+//		LOG_DEBUG("========== Handle: Hold ==========");
 		if(m_iLEDTimerID == -1 ||
 				m_ioCurState.ioName != *((IO::Event*) pbyBuffer)) return;
 		m_prioCurLevel = PrioLevel::Low;
 		Indicate(m_ioBakState);
 	} else if (m_ioCurState.ioAction == LED::Action::Blink) {
-		LOG_DEBUG("========== Handle: Blink ==========");
+//		LOG_DEBUG("========== Handle: Blink ==========");
 		if(m_idwBlinkedNo < m_ioCurState.ioNo || m_ioCurState.ioNo == 0) {
 			if(m_ioCurState.ioNo == 0 && m_idwBlinkedNo == 0) {
 				m_pRTimer->ChangeTimeout(m_iLEDTimerID, m_ioCurState.ioDuty + 1);

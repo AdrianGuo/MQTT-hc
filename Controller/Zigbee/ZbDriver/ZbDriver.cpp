@@ -516,6 +516,20 @@ ZbDriver::Init(
 
         }
     }
+
+    //check status
+    Devices_t::const_iterator it;
+    for(it = devices.begin(); it != devices.end(); it++) {
+        try {
+            const Device_t& tmp = (*it);
+            if (tmp.Modify()->RealType == LUMI_DEVICE_INPUT) {
+                m_pZbZclGlobalCmd->ReadAttributeRequest(tmp, DI_ZCLVersion);
+            } else {
+                m_pZbZclGlobalCmd->ReadAttributeRequest(tmp, DI_State);
+            }
+        }
+        catch (...) { LOG_WARN("Exception occurred"); }
+    }
     //Start keepalive timer
     m_iRequest = m_pTimer->StartTimer(RTimer::Repeat::Forever, REQUEST_INTERVAL_INPUT, &m_RequestFunctor, NULL);
 }
@@ -540,9 +554,21 @@ ZbDriver::HandleRequest(
     for(it = devices.begin(); it != devices.end(); it++) {
         const Device_t& tmp = (*it);
         if(tmp.Modify()->RealType > 0) {
-            if ((tmp.Modify()->RealType == LUMI_DEVICE_INPUT) || (m_idwCheckTime ==  0)) {
-                if(tmp.Modify()->IsAlive == FALSE) {
-                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name.c_str(), -1);
+            if (tmp.Modify()->RealType == LUMI_DEVICE_INPUT) {
+                if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE) && (tmp.Modify()->Endpoint.GetValue() == 1)) {
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
+                    LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
+                    tmp.Modify()->PreAlive = FALSE;
+                } else if ((tmp.Modify()->IsAlive == TRUE) && (tmp.Modify()->PreAlive != TRUE) && (tmp.Modify()->Endpoint.GetValue() == 1)){
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, 1);
+                    LOG_WARN("device %s  reply", tmp.Modify()->Name.c_str());
+                    tmp.Modify()->PreAlive = TRUE;
+                }
+                tmp.Modify()->IsAlive = FALSE;
+            } else if (m_idwCheckTime ==  0) {
+                //other device
+                if (tmp.Modify()->IsAlive == FALSE) {
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
                     LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
                 } else {
                     tmp.Modify()->IsAlive = FALSE;
