@@ -41,8 +41,6 @@ typedef PhoneWork*  PhoneWork_p;
 
 class Phone {
 private:
-    Vector<String> m_vecLstDev;
-
     static Phone* s_pInstance;
     Phone();
 
@@ -51,8 +49,6 @@ private:
 
     bool_t SendSms(String, String);
     bool_t MakeCall(String);
-
-    void_t UpdateTtyDev();
 
     void_p DoWorkFunc(void_p);
     LThread_p m_pDoWorkThread;

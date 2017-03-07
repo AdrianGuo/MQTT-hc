@@ -75,31 +75,9 @@ Phone::SendSms(
     String strPhoneNumber,
     String strText
 ) {
-    LOG_INFO(" %s: \"%s\", \"%s\"", __FUNCTION__, strPhoneNumber.c_str(), strText.c_str());
-
-    String strDev;
-    for(Vector<String>::iterator it = m_vecLstDev.begin(); it != m_vecLstDev.end(); ++it) {
-        strDev = *it;
-        String strATCmd = R"(echo -e "ATZ\r" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCmd.c_str());
-        system(strATCmd.c_str());
-        sleep(1);
-
-        strATCmd = R"(echo -e "AT+CMGF=1\r" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCmd.c_str());
-        system(strATCmd.c_str());
-        sleep(1);
-
-        strATCmd = R"(echo -e "AT+CMGS=\")" + strPhoneNumber + R"(\"" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCmd.c_str());
-        system(strATCmd.c_str());
-        sleep(1);
-
-        strATCmd = R"(echo -e ")" + strText + R"(\x1A" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCmd.c_str());
-        system(strATCmd.c_str());
-        sleep(1);
-    }
+    String strGammuCmd = String("gammu sendsms TEXT ") + strPhoneNumber + String(" -text ") + strText;
+    LOG_INFO("Send gammu command: %s", strGammuCmd.c_str());
+    system(strGammuCmd.c_str());
 
     return TRUE;
 }
@@ -108,20 +86,16 @@ bool_t
 Phone::MakeCall(
     String strPhoneNumber
 ) {
-    String strDev;
-    for(Vector<String>::iterator it = m_vecLstDev.begin(); it != m_vecLstDev.end(); ++it) {
-        strDev = *it;
-        String strATCmd = R"(echo -e "ATZ;" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCmd.c_str());
-        system(strATCmd.c_str());
-        sleep(1);
-
-        strATCmd = R"(echo -e "ATD)" + strPhoneNumber + R"(;" > )" + strDev;
-        LOG_INFO("Send AT command: %s", strATCmd.c_str());
-        system(strATCmd.c_str());
-    }
-
+    String strGammuCmd = String("gammu dialvoice ") + strPhoneNumber;
+    LOG_INFO("Send gammu command: %s", strGammuCmd.c_str());
+    system(strGammuCmd.c_str());
     sleep(30);
+
+    //Cancel call
+    strGammuCmd = String("gammu cancelcall");
+    LOG_INFO("Send gammu command: %s", strGammuCmd.c_str());
+    system(strGammuCmd.c_str());
+
     return TRUE;
 }
 
@@ -171,7 +145,6 @@ Phone::DoWorkFunc(
         m_pLocker->Lock();
         PhoneWork_p pPhoneWork = NULL;
         if (!m_quePhoneWork.empty()) {
-            UpdateTtyDev();
             pPhoneWork = m_quePhoneWork.front();
             m_pLocker->UnLock();
             if (pPhoneWork->GetType() == PhoneWork::Type::Sms) {
@@ -194,22 +167,4 @@ Phone::DoWorkFunc(
     LOG_INFO("thread exit");
     pthread_exit(NULL);
     return NULL;
-}
-
-void_t
-Phone::UpdateTtyDev() {
-    DIR *dpdf;
-    struct dirent *epdf;
-
-    m_vecLstDev.erase(m_vecLstDev.begin(), m_vecLstDev.end());
-    dpdf = opendir("/dev");
-    if (dpdf != NULL){
-        while ((epdf = readdir(dpdf)) != NULL) {
-            if (std::string(epdf->d_name).find("ttyUSB") != std::string::npos) {
-//                LOG_DEBUG("Find ttyUSB : %s",epdf->d_name);
-                m_vecLstDev.push_back(std::string(std::string("/dev/") + epdf->d_name));
-            }
-        }
-        closedir(dpdf);
-    }
 }
