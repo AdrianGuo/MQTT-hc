@@ -277,14 +277,14 @@ ZbDriver::ProcCmdAdd(
 	JsonMessagePtr<JsonDevAdd> jsonDevAdd = m_pJsonRecvSession->GetJsonMapping<JsonDevAdd>();
 	if (!jsonDevAdd->ParseJsonCommand(pJsonCommand)) return;
 
-	i8_t act = jsonDevAdd->Act();
-    if(act == 0) {
-    	Notify(Allowed);
-        m_pZbBasicCmd->JoinNwkAllow((u8_t) 0XFF);
-    } else if(act == 1) {
-    	Notify(Backup);
-    	m_pZbBasicCmd->JoinNwkAllow((u8_t) 0X00);
-    }
+//	i8_t act = jsonDevAdd->Act();
+//    if(act == 0) {
+//    	Notify(Allowed);
+//        m_pZbBasicCmd->JoinNwkAllow((u8_t) 0XFF);
+//    } else if(act == 1) {
+//    	Notify(Backup);
+//    	m_pZbBasicCmd->JoinNwkAllow((u8_t) 0X00);
+//    }
 }
 
 /**

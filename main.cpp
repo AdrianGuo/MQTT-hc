@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     pZbController->Init();
 
     sleep(1);
-//    ZbBasicCmd::GetInstance()->JoinNwkAllow(0xFF);
+    ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t)0x00);
 
 //    pSMQTT->Publish("start", 123456);
 //    pSMQTT->Subscribe();

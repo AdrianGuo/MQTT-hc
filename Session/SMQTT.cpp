@@ -266,11 +266,13 @@ SMQTT::Publish(
 	u32_t idwPayloadLen = iot_measurement2(pCHWID, idwNumValue, data, NULL, (u8_p) m_pbyBuffer, BUFFER_SOCKET_SIZE, NULL, TRUE);
 	mqtt_publish(&m_MqttBroker, m_strOutboundTopic.c_str(), (const char*)m_pbyBuffer, idwPayloadLen, 0);
 
-    //delete device that not reply - publish -1 one time
-    if (idwValue == -1) {
+    //when device left network -> delete device from map
+    if (idwValue == -10) {
         Map<String, int_t>::iterator it = m_mapBackupValue.find(strDevName);
-        if (it != m_mapBackupValue.end())
+        if (it != m_mapBackupValue.end()) {
+            LOG_WARN("m_mapBackupValue remove %s", it->first.c_str());
             m_mapBackupValue.erase(it->first);
+        }
     }
 }
 

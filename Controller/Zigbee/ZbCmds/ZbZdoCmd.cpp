@@ -561,7 +561,7 @@ ZbZdoCmd::LeaveResponse(
                 const Device_t& tmp = (*it);
                 if ((tmp.Modify()->Name.find("Unknown") == String::npos) && (tmp.Modify()->Name[0] != 'L')) {
                     LOG_INFO("device %s  remove", tmp.Modify()->Name.c_str());
-                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -10);
                 }
                 (*it).Remove();
             }
