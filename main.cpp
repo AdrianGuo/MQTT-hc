@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
     LOG_DEBUG("start log");
 
-    if (argc < 7) {
+    if (argc < 6) {
         LOG_ERROR("Usage %s <<number>>", argv[0]);
         return (-1);
     }
@@ -48,11 +48,14 @@ int main(int argc, char* argv[]) {
     RTimer_p pTimer = RTimer::getTimerInstance();
 
     SMQTT_p pSMQTT = SMQTT::GetInstance(argv[1], atoi(argv[2]), String(argv[3]),
-            String(argv[4]), String(argv[5]), String(argv[6]));
-    pSMQTT->Connect();
-    pSMQTT->Start();
+            String(argv[4]), String(argv[5]));
+    if (pSMQTT->Connect()) {
+        pSMQTT->Start();
+    } else {
+        LOG_WARN("SMQTT connect failed");
+    }
 
-    ZbCtrller_p pZbController = new ZbCtrller(argv[7]);
+    ZbCtrller_p pZbController = new ZbCtrller(argv[6]);
 
     pZbController->Connect();
     pZbController->Start();
@@ -60,9 +63,6 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
     ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t)0x00);
-
-//    pSMQTT->Publish("start", 123456);
-//    pSMQTT->Subscribe();
 
     IO_Init();
 

@@ -31,17 +31,21 @@ SMQTT::SMQTT(
 	const_char_p pChostname,
 	int_t idwPort,
 	String strTenant,
-	String strPhoneNo,
-	String strHWID,
-	String strDev
+    String strHWID,
+	String strKeepAliveInterval
 ) {
 	m_strTenant = strTenant;
-	m_strPhoneWork = strPhoneNo;
 	m_strHWID = strHWID;
-	m_strDev = strDev;
 	m_strOutboundTopic = m_strTenant + "/input/protobuf";
 	m_strCmdTopic = m_strTenant + "/commands/" + m_strHWID;
 	m_strSysTopic = m_strTenant + "/system/" + m_strHWID;
+
+	try {
+	    m_idwKeepAliveInterval = std::stoi(strKeepAliveInterval);
+	}
+	catch (...) {
+	    m_idwKeepAliveInterval = KEEPALIVE_INTERVAL;
+	}
 
 	m_spTransport = Transport::getInstant(pChostname, idwPort);
 
@@ -52,10 +56,6 @@ SMQTT::SMQTT(
 	m_boIsSubscribed = FALSE;
 	m_pLock = new Locker();
 
-    m_pNotificationThread = new LThread();
-    m_NotificationFunctor = makeFunctor((threadFunctor_p) NULL, *this, &SMQTT::NotifyFunc);
-    m_pNotificationThread->RegThreadFunctor(&m_NotificationFunctor);
-
 	m_pTimer = RTimer::getTimerInstance();
 	m_KeepAliveFunctor = makeFunctor((TimerFunctor_p) NULL, *this, &SMQTT::HandleKeepAlive);
     m_iKeepAlive = -1;
@@ -64,6 +64,10 @@ SMQTT::SMQTT(
     SMQTTSendFunctor();
 
     Phone::getInstant();
+
+    mqtt_init(&m_MqttBroker, "avengalvon");
+    mqtt_init_auth(&m_MqttBroker, "", "");
+    m_MqttBroker.send = SMQTT::SendMQTTPacket;
 }
 
 /**
@@ -76,12 +80,11 @@ SMQTT* SMQTT::GetInstance(
 	const_char_p pChostname,
 	int_t idwPort,
 	String strTenant,
-	String strPhoneNo,
-	String strHWID,
-	String strDev
+    String strHWID,
+	String strKeepAliveInterval
 ) {
     if (s_pInstance == NULL) {
-        s_pInstance = new SMQTT(pChostname, idwPort, strTenant, strPhoneNo, strHWID, strDev);
+        s_pInstance = new SMQTT(pChostname, idwPort, strTenant, strHWID, strKeepAliveInterval);
     }
     return s_pInstance;
 }
@@ -94,7 +97,6 @@ SMQTT* SMQTT::GetInstance(
  */
 SMQTT::~SMQTT() {
 	delete m_pLock;
-	delete m_pNotificationThread;
 	delete m_spTransport;
 	delete m_pbyBuffer;
 }
@@ -118,13 +120,10 @@ SMQTT::Start() {
  */
 bool_t
 SMQTT::Connect() {
-    mqtt_init(&m_MqttBroker, "avengalvon");
-    mqtt_init_auth(&m_MqttBroker, "", "");
-
     m_spTransport->Connect();
 
     if(m_iKeepAlive == -1) {
-        m_iKeepAlive = m_pTimer->StartTimer(RTimer::Repeat::Forever, KEEPALIVE_INTERVAL, &m_KeepAliveFunctor, NULL);
+        m_iKeepAlive = m_pTimer->StartTimer(RTimer::Repeat::Forever, m_idwKeepAliveInterval, &m_KeepAliveFunctor, NULL);
     }
     if(m_spTransport->IsConnected() == FALSE) {
     	m_spTransport->Close();
@@ -132,9 +131,8 @@ SMQTT::Connect() {
     }
 
     // MQTT stuffs
-    mqtt_set_alive(&m_MqttBroker, KEEPALIVE_INTERVAL);
+    mqtt_set_alive(&m_MqttBroker, m_idwKeepAliveInterval);
     m_MqttBroker.socket_info = (void*)&m_spTransport->m_idwSockfd;
-    m_MqttBroker.send = SMQTT::SendMQTTPacket;
 
     if(Establish() == TRUE)
     	Subscribe();
@@ -382,7 +380,7 @@ SMQTT::RecvData(
 }
 
 /**
- * @func   SClientSendFunctor
+ * @func   SendMQTTPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -397,7 +395,7 @@ SMQTT::SendMQTTPacket(
 }
 
 /**
- * @func   SClientSendFunctor
+ * @func   GetMQTTPacket
  * @brief  None
  * @param  None
  * @retval None
@@ -534,7 +532,7 @@ SMQTT::HandleSpecificCommand(
 }
 
 /**
- * @func   PingCommand
+ * @func   CallCommand
  * @brief  None
  * @param  None
  * @retval None
@@ -545,12 +543,13 @@ SMQTT::CallCommand(
 	char_p originator
 ) {
 	LOG_INFO("Message's content: %s", call.phone_number);
-	m_strPhoneWork = String("Call_") + String(call.phone_number);
-    PushNotification();
+	String m_strPhoneWork = String("Call_") + String(call.phone_number);
+
+    Phone::getInstant()->AddWork(m_strPhoneWork);
 }
 
 /**
- * @func   TestEventsCommand
+ * @func   SmsCommand
  * @brief  None
  * @param  None
  * @retval None
@@ -561,8 +560,9 @@ SMQTT::SmsCommand(
 	char_p originator
 ) {
 	LOG_INFO("Message's content: %s - %s", sms.phone_number, sms.message);
-    m_strPhoneWork = String("Sms_") + String(sms.phone_number) + String("_") + String(sms.message);
-    PushNotification();
+    String m_strPhoneWork = String("Sms_") + String(sms.phone_number) + String("_") + String(sms.message);
+
+    Phone::getInstant()->AddWork(m_strPhoneWork);
 }
 
 /**
@@ -588,38 +588,6 @@ SMQTT::AckKnowLedgeCommand(
 }
 
 /**
- * @func   Notify
- * @brief  None
- * @param  None
- * @retval None
- */
-void_p
-SMQTT::NotifyFunc(
-	void_p byBuffer
-) {
-    LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, m_strPhoneWork.c_str());
-	Phone::getInstant()->AddWork(m_strPhoneWork);
-
-    m_pNotificationThread->Stop();
-    return NULL;
-}
-
-/**
- * @func   PushNotification
- * @brief  None
- * @param  None
- * @retval None
- */
-void_t
-SMQTT::PushNotification() {
-//	if(m_pNotificationThread != NULL)
-//		m_pNotificationThread->Start();
-
-    LOG_DEBUG(" %s: \"%s\"", __FUNCTION__, m_strPhoneWork.c_str());
-    Phone::getInstant()->AddWork(m_strPhoneWork);
-}
-
-/**
  * @func   HandleKeepAlive
  * @brief  None
  * @param  None
@@ -639,7 +607,6 @@ SMQTT::HandleKeepAlive(
 			return;
 		} else {
 		    Start();
-		    Subscribe();
 			LOG_INFO("Connected!");
 			if (m_mapBackupValue.size() > 0) {
                 Map<String, int_t>::const_iterator it = m_mapBackupValue.begin();

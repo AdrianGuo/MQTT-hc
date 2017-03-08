@@ -23,11 +23,10 @@ class SMQTT {
 private:
 	String m_strHWID;
 	String m_strTenant;
-	String m_strPhoneWork;
-	String m_strDev;
 	String m_strCmdTopic;
 	String m_strSysTopic;
 	String m_strOutboundTopic;
+	int_t m_idwKeepAliveInterval;
     u8_p m_pbyBuffer;
 
     static Transport_p m_spTransport;
@@ -42,14 +41,11 @@ private:
     bool_t m_boIsSubscribed;
     Locker_p m_pLock;
 
-    LThread_p m_pNotificationThread;
-    threadFunctor_t m_NotificationFunctor;
-
     RTimer_p m_pTimer;
     int_t m_iKeepAlive;
     TimerFunctor_t m_KeepAliveFunctor;
 
-	SMQTT(const_char_p, int_t, String, String, String, String);
+	SMQTT(const_char_p, int_t, String, String, String);
 	void_t SMQTTSendFunctor();
 
     static int_t GetMQTTPacket(u8_p, int_t, bool_t boDirect = FALSE);
@@ -59,7 +55,6 @@ private:
 	void_t HandleSpecificCommand(u8_p, int_t);
 	void_t CallCommand(Custom_Call, char_p);
 	void_t SmsCommand(Custom_Sms, char_p);
-    void_p NotifyFunc(void_p);
     void_t HandleKeepAlive(void_p);
     void_t AckKnowLedgeCommand(String, char_p);
 
@@ -67,7 +62,7 @@ public:
 	virtual ~SMQTT();
 
     static SMQTT* s_pInstance;
-    static SMQTT* GetInstance(const_char_p, int_t, String, String, String, String);
+    static SMQTT* GetInstance(const_char_p, int_t, String, String, String);
 
 	bool_t Connect();
     bool_t Start();
@@ -78,8 +73,6 @@ public:
     bool_t IsEstablished();
     void_t Publish(String strDevName, int_t idwValue, bool_t IsBackup = TRUE);
     bool_t IsSubscribed();
-
-    void_t PushNotification();
 };
 
 typedef SMQTT SMQTT_t;

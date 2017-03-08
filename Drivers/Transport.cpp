@@ -92,13 +92,18 @@ Transport::Transport(
     m_idwBufferWritePos = 0;
 
     m_pSMQTTRecvFunctor = NULL;
-    m_pTransportThread = new LThread();
-    m_TransportThreadFunctor = makeFunctor((threadFunctor_p)NULL, *this, &Transport::TransportThreadProc);
-    m_pTransportThread->RegThreadFunctor(&m_TransportThreadFunctor);
+    m_pSendSocketThread = new LThread();
+    m_SendSocketThreadFunctor = makeFunctor((threadFunctor_p)NULL, *this, &Transport::SendSocketThreadProc);
+    m_pSendSocketThread->RegThreadFunctor(&m_SendSocketThreadFunctor);
 
-    m_pTransportReadSocketThread = new LThread();
-    m_TransportReadSocketThreadFunctor = makeFunctor((threadFunctor_p)NULL, *this, &Transport::TransportReadSocketThreadProc);
-    m_pTransportReadSocketThread->RegThreadFunctor(&m_TransportReadSocketThreadFunctor);
+    m_pReadSocketThread = new LThread();
+    m_ReadSocketThreadFunctor = makeFunctor((threadFunctor_p)NULL, *this, &Transport::ReadSocketThreadProc);
+    m_pReadSocketThread->RegThreadFunctor(&m_ReadSocketThreadFunctor);
+
+    m_pProcessThread = new LThread();
+    m_ProcessThreadFunctor = makeFunctor((threadFunctor_p)NULL, *this, &Transport::ProcessProc);
+    m_pProcessThread->RegThreadFunctor(&m_ProcessThreadFunctor);
+
     m_pTransportLocker = new Locker();
 }
 
@@ -109,9 +114,9 @@ Transport::Transport(
  * @retval None
  */
 Transport::~Transport() {
-    if (m_pTransportThread != NULL) {
-        delete(m_pTransportThread);
-        m_pTransportThread = NULL;
+    if (m_pSendSocketThread != NULL) {
+        delete(m_pSendSocketThread);
+        m_pSendSocketThread = NULL;
     }
     if (m_pTransportLocker != NULL) {
         delete(m_pTransportLocker);
@@ -223,13 +228,13 @@ bool_t Transport::Start() {
     m_pTransportLocker->Lock();
     LOG_INFO("start thread Transport");
     if (!m_boIsStarted) {
-        if (m_pTransportThread->Start()) {
+        if (m_pSendSocketThread->Start()) {
             m_boIsStarted = TRUE;
             boRetVal = TRUE;
         } else {
             LOG_ERROR("thread Transport fail");
         }
-        if (m_pTransportReadSocketThread->Start()) {
+        if (m_pReadSocketThread->Start()) {
             m_boIsStarted = TRUE;
             boRetVal = TRUE;
         } else {
@@ -329,7 +334,7 @@ Transport::SetBlocking() {
  * @retval None
  */
 void_p
-Transport::TransportThreadProc(
+Transport::SendSocketThreadProc(
     void_p pBuffer
 ) {
     while (TRUE) {
@@ -365,9 +370,7 @@ Transport::TransportThreadProc(
     m_boIsClosing = FALSE;
     m_pTransportLocker->UnLock();
 
-    LOG_INFO("thread exit");
-    pthread_exit(NULL);
-
+    m_pSendSocketThread->Stop();
     return NULL;
 }
 
@@ -378,7 +381,7 @@ Transport::TransportThreadProc(
  * @retval None
  */
 void_p
-Transport::TransportReadSocketThreadProc(
+Transport::ReadSocketThreadProc(
     void_p pBuffer
 ) {
     int_t idwResult;
@@ -406,15 +409,31 @@ Transport::TransportReadSocketThreadProc(
         if (m_idwBufferWritePos != m_idwBufferReadPos) {
 //            LOG_DEBUG("m_idwBufferWritePos = %d", m_idwBufferWritePos);
 //            LOG_DEBUG("m_idwBufferReadPos = %d", m_idwBufferReadPos);
-            if (m_pSMQTTRecvFunctor != NULL) {
-                (*m_pSMQTTRecvFunctor)();
+            if (!m_boIsProcessing) {
+                m_boIsProcessing = TRUE;
+                m_pProcessThread->Start();
             }
         }
     }
-    LOG_INFO("thread exit");
     m_boIsClosing = TRUE;
     m_boIsStarted = FALSE;
-    pthread_exit(NULL);
+    m_pReadSocketThread->Stop();
+    return NULL;
+}
+
+/**
+ * @func   TransportProcessProc
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_p Transport::ProcessProc(void_p) {
+    if (m_pSMQTTRecvFunctor != NULL) {
+        (*m_pSMQTTRecvFunctor)();
+    }
+    m_boIsProcessing = FALSE;
+    m_pProcessThread->Stop();
+    return NULL;
 }
 
 /**
@@ -497,11 +516,14 @@ Transport::DiSend(
     u8_p pbyBuffer,
     u32_t idwLen
 ) {
-    m_pTransportLocker->Lock();
-    int idwRet = send(m_idwSockfd, pbyBuffer, idwLen, 0);
-    m_pTransportLocker->UnLock();
-    return idwRet;
-//    return PushBuffer(pbyBuffer, idwLen);
+    if (IsConnected() && IsWritable(0)) {
+        m_pTransportLocker->Lock();
+        int idwRet = send(m_idwSockfd, pbyBuffer, idwLen, 0);
+        m_pTransportLocker->UnLock();
+        return idwRet;
+//        return PushBuffer(pbyBuffer, idwLen);
+    }
+    else return 0;
 }
 
 /**
@@ -515,9 +537,12 @@ Transport::DiGet(
     u8_p pbyBuffer,
     u32_t idwLen
 ) {
-    m_pTransportLocker->Lock();
-    int idwRet = recv(m_idwSockfd, pbyBuffer, idwLen, 0);
-    m_pTransportLocker->UnLock();
-    return idwRet;
-//    return GetBuffer(pbyBuffer, idwLen);
+    if (m_boIsConnected) {
+        m_pTransportLocker->Lock();
+        int idwRet = recv(m_idwSockfd, pbyBuffer, idwLen, 0);
+        m_pTransportLocker->UnLock();
+        return idwRet;
+//        return GetBuffer(pbyBuffer, idwLen);
+    }
+    else return 0;
 }

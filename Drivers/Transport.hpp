@@ -44,14 +44,15 @@ private:
     sockaddr_in6 m_SockAddr6;
     sa_family_t m_family;
 
-    int_t m_boIsConnected;
-    int_t m_boIsClosing;
+    bool_t m_boIsConnected;
+    bool_t m_boIsClosing;
     bool_t m_boIsStarted;
-    int_t m_boIsBlocked;
+    bool_t m_boIsBlocked;
 
     u8_p m_pbyBuffer;
     u32_t m_idwBufferReadPos;
     u32_t m_idwBufferWritePos;
+    bool_t m_boIsProcessing;
 
     SMQTTFunctor_p m_pSMQTTRecvFunctor;
 
@@ -59,11 +60,18 @@ private:
 
     Queue<Packet_p> m_queTransportPacket;
 
-    threadFunctor_t m_TransportThreadFunctor;
-    LThread_p m_pTransportThread;
+    threadFunctor_t m_SendSocketThreadFunctor;
+    LThread_p m_pSendSocketThread;
 
-    threadFunctor_t m_TransportReadSocketThreadFunctor;
-    LThread_p m_pTransportReadSocketThread;
+    threadFunctor_t m_ReadSocketThreadFunctor;
+    LThread_p m_pReadSocketThread;
+
+    threadFunctor_t m_ProcessThreadFunctor;
+    LThread_p m_pProcessThread;
+
+    void_p SendSocketThreadProc(void_p);
+    void_p ReadSocketThreadProc(void_p);
+    void_p ProcessProc(void_p);
 
     bool_t IsWritable(u32_t);
     bool_t IsReadable(u32_t);
@@ -76,9 +84,6 @@ public:
 
     static Transport* getInstant(const_char_p, int_t);
     virtual ~Transport();
-
-    void_p TransportThreadProc(void_p);
-    void_p TransportReadSocketThreadProc(void_p);
 
     bool_t RecvFunctor(SMQTTFunctor_p);
 

@@ -565,7 +565,7 @@ ZbDriver::HandleRequest(
                     tmp.Modify()->PreAlive = TRUE;
                 }
                 tmp.Modify()->IsAlive = FALSE;
-            } else if (m_idwCheckTime ==  0) {
+            } else if ((m_idwCheckTime ==  0) && (tmp.Modify()->RealType != LUMI_DEVICE_ILLUMINANCE)) {
                 //other device
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE)) {
                     SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
