@@ -141,7 +141,7 @@ void_p
 Phone::DoWorkFunc(
     void_p pbyBuffer
 ) {
-    while (1) {
+    while (TRUE) {
         m_pLocker->Lock();
         PhoneWork_p pPhoneWork = NULL;
         if (!m_quePhoneWork.empty()) {

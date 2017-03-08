@@ -112,6 +112,7 @@ FileManager::FileManagerThreadProc(
 			}
 			delete pJsonCommand;
         }
+        usleep(50000);
     }
 
     pthread_exit(NULL);

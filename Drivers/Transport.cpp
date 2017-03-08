@@ -414,6 +414,7 @@ Transport::ReadSocketThreadProc(
                 m_pProcessThread->Start();
             }
         }
+        usleep(50000);
     }
     m_boIsClosing = TRUE;
     m_boIsStarted = FALSE;

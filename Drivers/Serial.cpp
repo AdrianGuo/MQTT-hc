@@ -122,7 +122,7 @@ Serial::SerialReadThread(
             }
             m_pSerialLocker->UnLock();
         }
-//        usleep(50000);
+        usleep(50000);
     }
     m_pSerialLocker->UnLock();
 

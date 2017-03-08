@@ -192,6 +192,7 @@ ZbCtrller::ZbCtrlllerThreadProc(
             m_pZbDriver->ProcSerRecvMsg(pJsonCommand);
             delete pJsonCommand;
         }
+        usleep(50000);
     }
 
     pthread_exit(NULL);

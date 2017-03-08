@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
 
     while(1) {
         pTimer->Process();
+        usleep(50000);
     }
     return 0;
 }

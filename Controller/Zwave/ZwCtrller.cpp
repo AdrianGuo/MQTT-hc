@@ -398,7 +398,7 @@ ZwCtrller::ZwCtrlllerThreadProc(
         }
         m_pZwCtrllerLocker->UnLock();
         ProcessProc(pZwMessage);
-        usleep(5000);
+        usleep(50000);
     }
 
     pthread_exit(NULL);
