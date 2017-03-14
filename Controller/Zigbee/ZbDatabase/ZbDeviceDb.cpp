@@ -41,6 +41,7 @@ ZbDeviceDb::ZbDeviceDb() :
     Name        = "Unknown";
     IsAlive     = TRUE;
     PreAlive    = 2;    //Init value by 2 -> not TRUE not FALSE -> when first time hc turn on -> INPUT device will Publish real state
+    idwNumTimesNotReply = 0;
     m_pLocker   =   new Locker();
 
     SyncDeviceAction(DI_Model,           ZCL_CLUSTER_ID_GEN_BASIC, ATTRID_BASIC_MODEL_ID);
@@ -139,7 +140,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for(u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
-                    IsAlive = TRUE;
+                    idwNumTimesNotReply = 0;
                     m_pLocker->UnLock();
                 } else {
                     Backup(vDP[i].DP_DIName);
@@ -158,7 +159,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for(u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
-                    IsAlive = TRUE;
+                    idwNumTimesNotReply = 0;
                     m_pLocker->UnLock();
                 } else {
                     Backup(vDP[i].DP_DIName);
@@ -193,7 +194,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for(u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
-                    IsAlive = TRUE;
+                    idwNumTimesNotReply = 0;
                     m_pLocker->UnLock();
                 } else {
                     Backup(vDP[i].DP_DIName);
@@ -228,7 +229,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for(u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
-                    IsAlive = TRUE;
+                    idwNumTimesNotReply = 0;
                     m_pLocker->UnLock();
                 } else {
                     Backup(vDP[i].DP_DIName);
@@ -251,7 +252,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for (u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
-                    IsAlive = TRUE;
+                    idwNumTimesNotReply = 0;
                     m_pLocker->UnLock();
                 } else {
                     Backup(vDP[i].DP_DIName);
@@ -277,7 +278,7 @@ ZbDeviceDb::ReceiveInforFromDevice(
             for(u8_t i = 0; i < byLimit; i++) {
                 if(vDP[i].DP_DIName == DI_ZCLVersion) {
                     m_pLocker->Lock();
-                    IsAlive = TRUE;
+                    idwNumTimesNotReply = 0;
                     m_pLocker->UnLock();
                 } else {
                     Backup(vDP[i].DP_DIName);

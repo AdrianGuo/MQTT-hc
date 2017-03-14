@@ -121,11 +121,15 @@ ZbZclGlobalCmd::ReadAttributeRequest(
                 pZbPacket->Push(device.Modify()->Action[(it->second)[j]].DP_AttributeID >> 8);
 
                 Request   tmpReq;
-                tmpReq.ReqFrom  = device.Modify()->OwnersReq.front();
-                tmpReq.ReqType  = READ_REQ;
-                device.Modify()->PendingReqs((it->second)[j]).push(tmpReq);
+                if (device.Modify()->OwnersReq.size() > 0) {
+                    tmpReq.ReqFrom  = device.Modify()->OwnersReq.front();
+                    tmpReq.ReqType  = READ_REQ;
+                    device.Modify()->PendingReqs((it->second)[j]).push(tmpReq);
+                }
             }
-            device.Modify()->OwnersReq.pop();
+            if (device.Modify()->OwnersReq.size() > 0) {
+                device.Modify()->OwnersReq.pop();
+            }
             ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
             delete pZbPacket;
         }
@@ -284,7 +288,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     	        if (vResponseDP[i].DP_AttributeID == ATTRID_BASIC_ZCL_VERSION) {
     	            for (Devices_t::iterator it = devices.begin();
     	                    it != devices.end(); it++) {
-    	                    (*it).Modify()->IsAlive = TRUE;
+    	                    (*it).Modify()->idwNumTimesNotReply = 0;
     	            }
     	        }
     	    }

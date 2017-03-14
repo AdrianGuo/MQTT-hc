@@ -62,7 +62,10 @@ int main(int argc, char* argv[]) {
     pZbController->Init();
 
     sleep(1);
-    ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t)0x00);
+//    LOG_WARN("Allow to join network!");
+//    ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0xFF);
+    LOG_WARN("Disallow to join network!");
+    ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
 
     IO_Init();
 

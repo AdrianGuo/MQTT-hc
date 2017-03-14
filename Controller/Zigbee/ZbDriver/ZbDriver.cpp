@@ -554,7 +554,14 @@ ZbDriver::HandleRequest(
     for(it = devices.begin(); it != devices.end(); it++) {
         Device_t& tmp = (*it);
         if(tmp.Modify()->RealType > 0) {
+            tmp.Modify()->idwNumTimesNotReply += 1;
+            if (tmp.Modify()->idwNumTimesNotReply == 5) {
+                tmp.Modify()->IsAlive = FALSE;
+            } else if (tmp.Modify()->idwNumTimesNotReply == 1) {
+                tmp.Modify()->IsAlive = TRUE;
+            }
             if (tmp.Modify()->RealType == LUMI_DEVICE_INPUT) {
+                //device input
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE) && (tmp.Modify()->Endpoint.GetValue() == 1)) {
                     SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
                     LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
@@ -564,7 +571,6 @@ ZbDriver::HandleRequest(
                     LOG_INFO("device %s  reply", tmp.Modify()->Name.c_str());
                     tmp.Modify()->PreAlive = TRUE;
                 }
-                tmp.Modify()->IsAlive = FALSE;
             } else if ((m_idwCheckTime ==  0) && (tmp.Modify()->RealType != LUMI_DEVICE_ILLUMINANCE)) {
                 //other device
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE)) {
@@ -575,7 +581,6 @@ ZbDriver::HandleRequest(
                     LOG_INFO("device %s  reply", tmp.Modify()->Name.c_str());
                     tmp.Modify()->PreAlive = TRUE;
                 }
-                tmp.Modify()->IsAlive = FALSE;
             }
         }
     }
