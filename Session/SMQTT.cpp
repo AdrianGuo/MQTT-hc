@@ -265,7 +265,7 @@ SMQTT::Publish(
 	mqtt_publish(&m_MqttBroker, m_strOutboundTopic.c_str(), (const char*)m_pbyBuffer, idwPayloadLen, 0);
 
     //when device left network -> delete device from map
-    if (idwValue == -10) {
+    if (IsBackup == FALSE) {
         Map<String, int_t>::iterator it = m_mapBackupValue.find(strDevName);
         if (it != m_mapBackupValue.end()) {
             LOG_WARN("m_mapBackupValue remove %s", it->first.c_str());

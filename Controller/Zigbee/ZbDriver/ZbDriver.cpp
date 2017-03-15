@@ -31,7 +31,7 @@
 #include "SMQTT.hpp"
 
 #define REQUEST_INTERVAL_INPUT      (5)
-#define REQUEST_INTERVAL            (6*60)
+#define REQUEST_INTERVAL            (30*60)
 
 ZbDriver* ZbDriver::s_pInstance = NULL;
 ZbModelDb_p ZbDriver::s_pZbModel = NULL;
@@ -563,7 +563,7 @@ ZbDriver::HandleRequest(
             if (tmp.Modify()->RealType == LUMI_DEVICE_INPUT) {
                 //device input
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE) && (tmp.Modify()->Endpoint.GetValue() == 1)) {
-                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, 0);
                     LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
                     tmp.Modify()->PreAlive = FALSE;
                 } else if ((tmp.Modify()->IsAlive == TRUE) && (tmp.Modify()->PreAlive != TRUE) && (tmp.Modify()->Endpoint.GetValue() == 1)){
@@ -574,7 +574,7 @@ ZbDriver::HandleRequest(
             } else if ((m_idwCheckTime ==  0) && (tmp.Modify()->RealType != LUMI_DEVICE_ILLUMINANCE)) {
                 //other device
                 if ((tmp.Modify()->IsAlive == FALSE) && (tmp.Modify()->PreAlive != FALSE)) {
-                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, -1);
+                    SMQTT::s_pInstance->Publish(tmp.Modify()->Name, 0);
                     LOG_WARN("device %s  not reply", tmp.Modify()->Name.c_str());
                     tmp.Modify()->PreAlive = FALSE;
                 } else if ((tmp.Modify()->IsAlive == TRUE) && (tmp.Modify()->PreAlive != TRUE)) {

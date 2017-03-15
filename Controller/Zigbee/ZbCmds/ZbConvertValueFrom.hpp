@@ -42,6 +42,7 @@ ForwardStateToOutside(
 //    }
 //    ZbSocketCmd::GetInstance()->SendZbStt(DbPtr<ZbDeviceDb>(device), val);
     SMQTT::s_pInstance->Publish(device->Name, device->Action[DI_State].DP_AttributeData);
+    device->idwNumTimesNotReply = 0;
 }
 
 /**
