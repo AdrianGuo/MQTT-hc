@@ -13,6 +13,9 @@ extern "C" {
 #include "custom.pb.h"
 #include "pb_decode.h"
 }
+#ifndef MT7688
+#include "ZbDriver.hpp"
+#endif //MT7688
 #include "SMQTT.hpp"
 
 #define BUFFER_SOCKET_SIZE	(2000)
@@ -146,13 +149,14 @@ SMQTT::Connect() {
  * @retval None
  */
 bool_t
-SMQTT::Close() {
-    mqtt_disconnect(&m_MqttBroker);
+SMQTT::Close(
+    bool_t boSendBroker
+) {
+    if (boSendBroker) {
+        mqtt_disconnect(&m_MqttBroker);
+    }
 
-	if(m_spTransport->IsConnected() == TRUE) {
-	    return m_spTransport->Close();
-	}
-	return TRUE;
+    return m_spTransport->Close();
 }
 
 /**
@@ -545,6 +549,25 @@ SMQTT::CallCommand(
 	LOG_INFO("Message's content: %s", call.phone_number);
 	String m_strPhoneWork = String("Call_") + String(call.phone_number);
 
+#ifndef MT7688
+	//Run debug on computer
+	//Use web command - not use IO button
+	String strPhoneNum = String(call.phone_number);
+	if (strPhoneNum.find("a") != String::npos) {
+	    LOG_WARN("Allow to join network!");
+	    ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0xFF);
+	    return;
+	} else if (strPhoneNum.find("n") != String::npos) {
+        LOG_WARN("Disallow to join network!");
+        ZbBasicCmd::GetInstance()->JoinNwkAllow((u8_t) 0x00);
+        return;
+	} else if (strPhoneNum.find("r") != String::npos) {
+        LOG_WARN("Remove all device !!!");
+        ZbDriver::GetInstance()->ProcCmdReset();
+        return;
+	}
+#endif //MT7688
+
     Phone::getInstant()->AddWork(m_strPhoneWork);
 }
 
@@ -600,10 +623,9 @@ SMQTT::HandleKeepAlive(
 //    LOG_INFO("Handling KeepAlive...");
 	if ((m_spTransport->IsConnected() == FALSE) || !m_boIsEstablished || !m_boIsSubscribed) {
 		LOG_INFO("Trying to reconnect !!!");
-		Close();
+		Close(FALSE);
 		if(Connect() == FALSE) {
 			LOG_INFO("Wait for next try!!!");
-			Close();
 			return;
 		} else {
 		    Start();
@@ -618,7 +640,6 @@ SMQTT::HandleKeepAlive(
 			}
 		}
 	} else {
-//	    AckKnowLedgeCommand(std::string("Keep alive"), NULL);
 	    mqtt_ping(&m_MqttBroker);
 	}
 }

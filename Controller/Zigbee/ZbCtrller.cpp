@@ -6,6 +6,9 @@
  */
 
 #include <stddef.h>
+#ifndef MT7688
+#include <unistd.h>
+#endif //MT7688
 #include "LogPlus.hpp"
 #include "LogCommand.hpp"
 #include "LThread.hpp"
@@ -192,9 +195,7 @@ ZbCtrller::ZbCtrlllerThreadProc(
             m_pZbDriver->ProcSerRecvMsg(pJsonCommand);
             delete pJsonCommand;
         }
-#ifdef MT7688
         usleep(50000);
-#endif //MT7688
     }
 
     pthread_exit(NULL);

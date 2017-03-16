@@ -66,7 +66,7 @@ public:
 
 	bool_t Connect();
     bool_t Start();
-    bool_t Close();
+    bool_t Close(bool_t boSendBroker = TRUE);
     bool_t Establish();
     bool_t Subscribe();
 

@@ -393,7 +393,7 @@ Transport::ReadSocketThreadProc(
             m_idwBufferWritePos += idwResult;
         } else if (idwResult == 0) {
             //if recv return 0 meaning that serrver disconnect
-            LOG_DEBUG("receive data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, idwResult);
+            LOG_WARN("receive data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, idwResult);
             m_boIsConnected = FALSE;
             break;
         }
