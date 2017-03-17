@@ -38,6 +38,7 @@
 /******************************************************************************/
 int main(int argc, char* argv[]) {
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
+    Log::Start();
     LOG_DEBUG("start log");
 
     if (argc < 6) {

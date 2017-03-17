@@ -13,11 +13,19 @@
  *
  ******************************************************************************/
 #include <stdarg.h>
+#include <sys/stat.h>
 #include "LogImpl.hpp"
 #include "Log.hpp"
 
+#define TIMER_INTERVAL      (10)
+#define LOGFILE_MAXSIZE     (1000000)
+
 Log_p Log::m_pInstance = NULL;
 LogImpl_p Log::m_pLogImpl = NULL;
+
+RTimer_p Log::m_pTimer = NULL;
+int_t Log::m_iCheckFileSize = -1;
+TimerFunctor_t Log::m_CheckFileSizeFunctor = NULL;
 
 const_char_p LogLevelString[] = {
     "[CRIT]",
@@ -80,6 +88,10 @@ Log::Create(
         Log::Release();
         m_pInstance = new Log(strFileName, boAppend, boConsole, levellogFile, levellogQueue);
     }
+
+    m_pTimer = RTimer::getTimerInstance();
+    m_CheckFileSizeFunctor = makeFunctor((TimerFunctor_p) NULL, Log::CheckFileSize);
+    m_iCheckFileSize = -1;
 
     return m_pInstance;
 }
@@ -148,5 +160,39 @@ Log::PushQueue() {
         m_pInstance->m_pLocker->Lock();
         m_pLogImpl->PushQueue();
         m_pInstance->m_pLocker->UnLock();
+    }
+}
+
+/**
+ * @func   CheckFileSize
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+Log::CheckFileSize(
+    void_p pbyBuffer
+) {
+    struct stat filestatus;
+    stat( "log.txt", &filestatus );
+    Log::Write(Log::Level::eInfo, ".");
+    if (filestatus.st_size > LOGFILE_MAXSIZE) {
+        printf("log.txt size %ld bytes => reset log\n", filestatus.st_size);
+        Log::Release();
+        system("rm -f log.txt");
+        Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
+    }
+}
+
+/**
+ * @func   Start
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+Log::Start() {
+    if(m_iCheckFileSize == -1) {
+        m_iCheckFileSize = m_pTimer->StartTimer(RTimer::Repeat::Forever, TIMER_INTERVAL, &m_CheckFileSizeFunctor, NULL);
     }
 }

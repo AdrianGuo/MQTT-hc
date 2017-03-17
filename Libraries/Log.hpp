@@ -19,6 +19,8 @@
 #include "String.hpp"
 #include "List.hpp"
 #include "Locker.hpp"
+#include "RTimer.hpp"
+#include "Functor.hpp"
 
 class LogImpl;
 
@@ -45,6 +47,9 @@ public:
     static void_t Release();
     static void_t Queue(String strOut);
     static void_t PushQueue();
+
+
+    static void_t Start();
 private:
     Locker_p m_pLocker;
     static Log*     m_pInstance;
@@ -56,6 +61,11 @@ private:
         const Level   logFile,
         const Level   logQueue);
     ~Log();
+
+    static RTimer_p m_pTimer;
+    static int_t m_iCheckFileSize;
+    static TimerFunctor_t m_CheckFileSizeFunctor;
+    static void_t CheckFileSize(void_p);
 };
 
 typedef Log  Log_t;

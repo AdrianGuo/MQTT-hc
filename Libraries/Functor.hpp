@@ -147,7 +147,7 @@ public:
 template<typename P1, typename Func>
 class CBFunctionTranslator1 : public CBFunctor1<P1> {
 public:
-    CBFunctionTranslator1(Func f) : CBFunctor1<P1>(thunk, NULL, f, 0) { }
+    CBFunctionTranslator1(Func f) : CBFunctor1<P1>(thunk, NULL, (void*)f, 0) { }
     static void thunk(const CBFunctorBase &ftor, P1 p1) {
         (Func(ftor.func))(p1);
     }
