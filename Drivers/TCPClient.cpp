@@ -493,6 +493,8 @@ TCPClient::ClientSockThreadProc(
                     if (iLength < 0) {
                         LOG_DEBUG("send data error [%d]", errno);
                     }
+                    delete pPacket;
+                    pPacket = NULL;
                 }
             }
             m_pClientSockLocker->UnLock();

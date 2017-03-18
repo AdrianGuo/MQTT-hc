@@ -358,6 +358,8 @@ Transport::SendSocketThreadProc(
                     }
 //                    else
 //                        LOG_DEBUG("send data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, pPacket->Length());
+                    delete pPacket;
+                    pPacket = NULL;
                 }
             }
             m_pTransportLocker->UnLock();
