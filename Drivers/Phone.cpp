@@ -75,7 +75,7 @@ Phone::SendSms(
     String strPhoneNumber,
     String strText
 ) {
-    String strGammuCmd = String("gammu sendsms TEXT ") + strPhoneNumber + String(" -text ") + strText;
+    String strGammuCmd = String("gammu sendsms TEXT ") + strPhoneNumber + String(" -text \"") + strText + String("\"");
     LOG_INFO("Send gammu command: %s", strGammuCmd.c_str());
     system(strGammuCmd.c_str());
 
@@ -86,7 +86,7 @@ bool_t
 Phone::MakeCall(
     String strPhoneNumber
 ) {
-    String strGammuCmd = String("gammu dialvoice ") + strPhoneNumber;
+    String strGammuCmd = String("gammu dialvoice \"") + strPhoneNumber  + String("\"");
     LOG_INFO("Send gammu command: %s", strGammuCmd.c_str());
     system(strGammuCmd.c_str());
     sleep(30);
