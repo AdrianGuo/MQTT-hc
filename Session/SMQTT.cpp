@@ -155,7 +155,9 @@ SMQTT::~SMQTT() {
  */
 bool_t
 SMQTT::Start() {
-    return m_spTransport->Start();
+    if (!m_spTransport->IsStarted())
+        return m_spTransport->Start();
+    return TRUE;
 }
 
 /**
@@ -177,7 +179,7 @@ SMQTT::Connect() {
     }
 
     // MQTT stuffs
-    mqtt_set_alive(&m_MqttBroker, m_idwKeepAliveInterval);
+    mqtt_set_alive(&m_MqttBroker, KEEPALIVE_INTERVAL);
     m_MqttBroker.socket_info = (void*)&m_spTransport->m_idwSockfd;
 
     if(Establish() == TRUE)
@@ -663,8 +665,8 @@ void_t
 SMQTT::HandleKeepAlive(
 	void_p pbyBuffer
 ) {
-//    LOG_INFO("Handling KeepAlive...");
-	if ((m_spTransport->IsConnected() == FALSE) || !m_boIsEstablished || !m_boIsSubscribed) {
+    LOG_INFO("Handling KeepAlive...");
+	if ((m_spTransport->IsConnected() == FALSE) || (m_spTransport->IsStarted() == FALSE) || !m_boIsEstablished || !m_boIsSubscribed) {
 		LOG_INFO("Trying to reconnect !!!");
 		Close(FALSE);
 		if(Connect() == FALSE) {
@@ -683,6 +685,13 @@ SMQTT::HandleKeepAlive(
 			}
 		}
 	} else {
+	    //Keep alive broker
 	    mqtt_ping(&m_MqttBroker);
+	    //Keep alive platform
+	    char_t pCHWID[100];
+	    strcpy(pCHWID, m_strHWID.c_str());
+
+	    int_t idwLength = iot_acknowledge(pCHWID, "", m_pbyBuffer, BUFFER_SOCKET_SIZE, NULL);
+	    mqtt_publish(&m_MqttBroker, m_strOutboundTopic.c_str(), (const char*)m_pbyBuffer, idwLength, 0);
 	}
 }

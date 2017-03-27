@@ -102,6 +102,7 @@ public:
 
     int_t DiSend(u8_p, u32_t);
     int_t DiGet(u8_p, u32_t);
+    bool_t IsStarted() const;
 };
 
 typedef Transport Transport_t;

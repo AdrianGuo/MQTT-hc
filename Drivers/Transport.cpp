@@ -228,18 +228,20 @@ bool_t Transport::Start() {
     m_pTransportLocker->Lock();
     LOG_INFO("start thread Transport");
     if (!m_boIsStarted) {
+        boRetVal = TRUE;
         if (m_pSendSocketThread->Start()) {
-            m_boIsStarted = TRUE;
-            boRetVal = TRUE;
+            LOG_INFO("Transport start thread Send success");
         } else {
-            LOG_ERROR("thread Transport fail");
+            boRetVal = FALSE;
+            LOG_ERROR("thread Transport fail - %d - %s", errno, strerror(errno));
         }
         if (m_pReadSocketThread->Start()) {
-            m_boIsStarted = TRUE;
-            boRetVal = TRUE;
+            LOG_INFO("Transport start thread Recv success");
         } else {
-            LOG_ERROR("thread Transport read fail");
+            boRetVal = FALSE;
+            LOG_ERROR("thread Transport read fail - %d - %s", errno, strerror(errno));
         }
+        m_boIsStarted = boRetVal;
     }
     m_pTransportLocker->UnLock();
 
@@ -339,9 +341,9 @@ Transport::SendSocketThreadProc(
 ) {
     while (TRUE) {
         m_pTransportLocker->Lock();
-        if (m_boIsClosing) {
+        if (m_boIsClosing || m_boIsConnected) {
             m_pTransportLocker->UnLock();
-            break;
+            continue;
         }
         m_pTransportLocker->UnLock();
 
@@ -387,17 +389,17 @@ Transport::ReadSocketThreadProc(
     void_p pBuffer
 ) {
     int_t idwResult;
-    while (m_boIsConnected) {
+    while (TRUE) {
         //Read socket data -> push to m_pbyBuffer
         idwResult = recv(m_idwSockfd, m_pbyBuffer + m_idwBufferWritePos, BUFFER_SOCKET_SIZE - m_idwBufferWritePos, 0);
         if (idwResult > 0) {
-            LOG_DEBUG("receive data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, idwResult);
+            LOG_INFO("receive data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, idwResult);
             m_idwBufferWritePos += idwResult;
         } else if (idwResult == 0) {
             //if recv return 0 meaning that serrver disconnect
             LOG_WARN("receive data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, idwResult);
             m_boIsConnected = FALSE;
-            break;
+            continue;
         }
 
         //if m_idwBufferWritePos == BUFFER_SOCKET_SIZE mean read full buff -> cycle m_idwBufferWritePos to start of m_pbyBuffer
@@ -411,9 +413,15 @@ Transport::ReadSocketThreadProc(
         if (m_idwBufferWritePos != m_idwBufferReadPos) {
 //            LOG_DEBUG("m_idwBufferWritePos = %d", m_idwBufferWritePos);
 //            LOG_DEBUG("m_idwBufferReadPos = %d", m_idwBufferReadPos);
-            if (!m_boIsProcessing) {
-                m_boIsProcessing = TRUE;
-                m_pProcessThread->Start();
+//            if (!m_boIsProcessing) {
+//                if (m_pProcessThread->Start()) {
+//                    m_boIsProcessing = TRUE;
+//                } else {
+//                    LOG_ERROR("thread Transport m_pProcessThread fail - %d - %s", errno, strerror(errno));
+//                }
+//            }
+            if (m_pSMQTTRecvFunctor != NULL) {
+                (*m_pSMQTTRecvFunctor)();
             }
         }
         usleep(50000);
@@ -548,4 +556,8 @@ Transport::DiGet(
 //        return GetBuffer(pbyBuffer, idwLen);
     }
     else return 0;
+}
+
+bool_t Transport::IsStarted() const {
+    return m_boIsStarted;
 }
