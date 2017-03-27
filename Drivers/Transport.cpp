@@ -341,7 +341,7 @@ Transport::SendSocketThreadProc(
 ) {
     while (TRUE) {
         m_pTransportLocker->Lock();
-        if (m_boIsClosing || m_boIsConnected) {
+        if (m_boIsClosing || !m_boIsConnected) {
             m_pTransportLocker->UnLock();
             continue;
         }
@@ -390,6 +390,10 @@ Transport::ReadSocketThreadProc(
 ) {
     int_t idwResult;
     while (TRUE) {
+        if (m_boIsClosing || !m_boIsConnected) {
+            continue;
+        }
+
         //Read socket data -> push to m_pbyBuffer
         idwResult = recv(m_idwSockfd, m_pbyBuffer + m_idwBufferWritePos, BUFFER_SOCKET_SIZE - m_idwBufferWritePos, 0);
         if (idwResult > 0) {

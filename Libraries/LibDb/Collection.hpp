@@ -159,7 +159,7 @@ inline Collection<C>::Collection(
         m_pSqlCountStatement->get(0, &iSize);
         m_iSize = iSize;
     } catch (std::exception &ex) {
-        LOG_ERROR(ex.what());
+//        LOG_ERROR(ex.what());
     }
 }
 
