@@ -13,7 +13,7 @@
  *
  ******************************************************************************/
 
-#include "Libraries/LibDb/DbAction.hpp"
+#include "DbAction.hpp"
 
 /**
  * @func   DbInit
@@ -24,8 +24,19 @@
 DbInit::DbInit(
     DbContext& dbContext,
     IMapTable& mapTable
-) : m_dbContext (dbContext  ),
-    m_mapTable  (mapTable   ) {
+) : m_dwIndex   (0),
+    m_dbContext (dbContext),
+    m_mapTable  ( mapTable) {
+}
+
+/**
+ * @func   ~DbInit
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbInit::~DbInit() {
+
 }
 
 /**
@@ -53,7 +64,7 @@ DbDrop::DbDrop(
     DbContext& dbContext,
     IMapTable& mapTable
 ) : m_dbContext (dbContext),
-    m_mapTable  (mapTable ) {
+    m_mapTable  ( mapTable) {
 }
 
 /**
@@ -94,6 +105,14 @@ DbAction::DbAction(
 }
 
 /**
+ * @func   DbAction
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbAction::~DbAction() {}
+
+/**
  * @func   GetMapTable
  * @brief  None
  * @param  None
@@ -117,7 +136,7 @@ DbSaveAction::DbSaveAction(
     u32_t                   dwColumn
 ) : DbAction     (dbPtrBase, mapTable),
     m_pStatement (pStatement),
-    m_dwColumn   (dwColumn  ) {
+    m_dwColumn   (  dwColumn) {
 }
 
 /**
@@ -140,8 +159,37 @@ DbLoadAction::DbLoadAction(
     IMapTable&              mapTable,
     SmartPtr<SqlStatement>  pStatement,
     u32_t                   dwColumn
-) : DbAction     (dbPtrBase, mapTable),
-    m_pStatement (pStatement         ),
-    m_dwColumn   (dwColumn           ) {
+) : DbAction (dbPtrBase, mapTable),
+    m_pStatement (     pStatement),
+    m_dwColumn   (       dwColumn) {
+
+}
+
+/**
+ * @func   ~DbLoadAction
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbLoadAction::~DbLoadAction() {
+}
+
+/**
+ * @func   DbFind
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbFind::DbFind() {
+
+}
+
+/**
+ * @func   DbFind
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+DbFind::~DbFind() {
 
 }

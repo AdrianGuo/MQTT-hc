@@ -8,7 +8,7 @@
 #ifndef ZBSOCKETCMD_HPP_
 #define ZBSOCKETCMD_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <Vector.hpp>
 #include <IZbDriver.hpp>
 #include <ZbDriver.hpp>

@@ -19,7 +19,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <type_traits>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "JsonMessagePtr.hpp"
 

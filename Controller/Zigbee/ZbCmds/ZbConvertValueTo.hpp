@@ -8,7 +8,7 @@
 #ifndef CONTROLLER_ZIGBEE_ZBCMDS_ZBCONVERTVALUETO_HPP_
 #define CONTROLLER_ZIGBEE_ZBCMDS_ZBCONVERTVALUETO_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <debug.hpp>
 #include <JsonCommand.hpp>
 #include <ZbModelDb.hpp>

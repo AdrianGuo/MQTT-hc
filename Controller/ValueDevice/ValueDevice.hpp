@@ -15,7 +15,7 @@
 #ifndef VALUE_DEVICE_HPP_
 #define VALUE_DEVICE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "json.h"
 

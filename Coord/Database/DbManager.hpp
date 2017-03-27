@@ -1,7 +1,7 @@
 #ifndef DBMANAGER_HPP_
 #define DBMANAGER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "Map.hpp"
 #include "Functor.hpp"

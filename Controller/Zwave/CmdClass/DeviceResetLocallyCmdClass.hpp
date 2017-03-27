@@ -15,7 +15,7 @@
 #ifndef DEVICERESET_LOCALLY_CMDCLASS_HPP_
 #define DEVICERESET_LOCALLY_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "ZwDbModel.hpp"
 #include "ZwDefs.hpp"

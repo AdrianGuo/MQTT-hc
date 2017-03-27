@@ -2,7 +2,7 @@
 #define VALUE_INTEGER_HPP
 
 #include "Value.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class ValueInt : public Value {
 private:

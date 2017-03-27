@@ -1,7 +1,7 @@
 #ifndef PACKET_HPP_
 #define PACKET_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 
 class Packet {
 private:

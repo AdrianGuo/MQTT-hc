@@ -16,7 +16,7 @@
 #ifndef JSON_FLOOR_SYNC_HPP_
 #define JSON_FLOOR_SYNC_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Vector.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"

@@ -2,7 +2,7 @@
 #define SCLIENT_HPP
 
 #include <TCPClient.hpp>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Vector.hpp"
 #include "Vector.hpp"
 #include "String.hpp"

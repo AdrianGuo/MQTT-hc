@@ -8,7 +8,7 @@
 #ifndef DEVICEINFO_HPP_
 #define DEVICEINFO_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <Queue.hpp>
 #include <LogPlus.hpp>
 #define READ_REQ            (0)

@@ -16,8 +16,8 @@
 #ifndef VALUE_STRDB_HPP_
 #define VALUE_STRDB_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/ValueDb.hpp"
+#include "../Typedefs.h"
+#include "ValueDb.hpp"
 
 class ValueStrDb : public ValueDb {
 private:
@@ -37,6 +37,8 @@ public:
     String GetValue() const;
     void_t SetValue(String strValue);
 
+    bool_t Compare(String strValue, ValueDb::Compare typeCompare);
+
     ValueStrDb& operator= (const ValueStrDb& copied);
     ValueStrDb& operator= (const String strValue);
     ValueStrDb& operator= (const_char_p rhs);
@@ -55,8 +57,8 @@ public:
     bool_t operator<  (const String strValue) const;
     bool_t operator<= (const String strValue) const;
 
-    operator String() const { return m_strValue; }
-    operator String*() { return &m_strValue; }
+    operator String() const;
+    operator String*();
 };
 
 typedef ValueStrDb  ValueStrDb_t;

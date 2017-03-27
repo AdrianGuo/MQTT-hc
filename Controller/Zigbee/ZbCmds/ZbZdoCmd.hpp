@@ -8,7 +8,7 @@
 #ifndef ZBZDOCMD_HPP_
 #define ZBZDOCMD_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <Map.hpp>
 #include <string>
 #include <RTimer.hpp>

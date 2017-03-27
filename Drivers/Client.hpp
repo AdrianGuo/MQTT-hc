@@ -4,7 +4,7 @@
  *  Created on: Oct 20, 2016
  *      Author: taho
  */
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "Locker.hpp"
 #include "Packet.hpp"

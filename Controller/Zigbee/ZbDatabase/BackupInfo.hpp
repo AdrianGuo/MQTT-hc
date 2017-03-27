@@ -8,7 +8,7 @@
 #ifndef CONTROLLER_ZIGBEE_ZBDATABASE_BACKUPINFO_HPP_
 #define CONTROLLER_ZIGBEE_ZBDATABASE_BACKUPINFO_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "ValueIntDb.hpp"
 #include "ValueStrDb.hpp"

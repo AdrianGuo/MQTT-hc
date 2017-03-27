@@ -4,7 +4,7 @@
 #include <semaphore.h>
 #include "Locker.hpp"
 #include "Functor.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 typedef Functor1Ret_t(void_p, void_p) threadFunctor_t;
 typedef threadFunctor_t* threadFunctor_p;

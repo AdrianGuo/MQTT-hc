@@ -3,7 +3,7 @@
 
 #include <signal.h>
 #include <time.h>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "Functor.hpp"
 

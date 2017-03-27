@@ -16,7 +16,7 @@
 #ifndef JSON_ROOM_ADDRES_HPP_
 #define JSON_ROOM_ADDRES_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"

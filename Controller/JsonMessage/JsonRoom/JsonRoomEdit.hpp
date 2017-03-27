@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include <string>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Vector.hpp"
 #include "String.hpp"
 #include "json.h"

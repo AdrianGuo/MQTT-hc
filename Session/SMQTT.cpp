@@ -665,7 +665,7 @@ void_t
 SMQTT::HandleKeepAlive(
 	void_p pbyBuffer
 ) {
-    LOG_INFO("Handling KeepAlive...");
+    LOG_DEBUG("Handling KeepAlive...");
 	if ((m_spTransport->IsConnected() == FALSE) || (m_spTransport->IsStarted() == FALSE) || !m_boIsEstablished || !m_boIsSubscribed) {
 		LOG_INFO("Trying to reconnect !!!");
 		Close(FALSE);

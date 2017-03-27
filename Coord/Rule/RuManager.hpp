@@ -8,7 +8,7 @@
 #ifndef RUMANAGER_HPP_
 #define RUMANAGER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Functor.hpp"
 #include "ICtrller.hpp"
 #include "JsonCommand.hpp"

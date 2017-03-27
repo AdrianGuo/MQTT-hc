@@ -15,7 +15,7 @@
 #ifndef SMART_PTR_HPP_
 #define SMART_PTR_HPP_
 
-#include "Libraries/typedefs.h"
+#include "Libraries/Typedefs.h"
 #include "Libraries/Exception.hpp"
 #include "Libraries/PtrCore.hpp"
 

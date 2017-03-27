@@ -1,7 +1,7 @@
 #ifndef ZWCMDCLASSMAN_HPP_
 #define ZWCMDCLASSMAN_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ZwCmdClass.hpp"
 
 typedef ZwCmdClass_p (*pFunctionCreateCmdClass) (u32_t, u8_t);

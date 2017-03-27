@@ -15,7 +15,7 @@
 #ifndef LOGIMPL_HPP_
 #define LOGIMPL_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "List.hpp"
 #include "Log.hpp"

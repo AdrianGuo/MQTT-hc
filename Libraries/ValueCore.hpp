@@ -16,7 +16,7 @@
 #define VALUE_CORE_HPP_
 
 #include <pthread.h>
-#include "Libraries/typedefs.h"
+#include "Libraries/Typedefs.h"
 
 class ValueCore {
 private:

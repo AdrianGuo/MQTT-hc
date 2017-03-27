@@ -15,7 +15,7 @@
 #ifndef UDP_CLIENT_HPP_
 #define UDP_CLIENT_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class UDPClient {
 

@@ -11,7 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Functor.hpp"
 #include "Queue.hpp"
 #include "LThread.hpp"

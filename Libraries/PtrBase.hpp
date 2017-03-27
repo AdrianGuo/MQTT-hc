@@ -16,7 +16,7 @@
 #ifndef PTR_BASE_HPP_
 #define PTR_BASE_HPP_
 
-#include "Libraries/typedefs.h"
+#include "Libraries/Typedefs.h"
 #include "Libraries/ValueCore.hpp"
 
 class PtrBase : public ValueCore {

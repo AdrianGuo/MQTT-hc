@@ -13,8 +13,8 @@
  *
  ******************************************************************************/
 
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/ValueDbCore.hpp"
+#include "../LogPlus.hpp"
+#include "ValueDbCore.hpp"
 
 /**
  * @func   ValueDbCore
@@ -79,4 +79,38 @@ ValueDbCore::Swap(
 ) {
     Value::Swap(other);
     std::swap(m_boChanged, other.m_boChanged);
+}
+
+/**
+ * @func   Swap
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueDbCore::SetChange() {
+    m_boChanged = TRUE;
+}
+
+/**
+ * @func   ResetChange
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueDbCore::ResetChange() {
+    m_boChanged = FALSE;
+}
+
+/**
+ * @func   IsChanged
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueDbCore::IsChanged(
+) const {
+    return m_boChanged;
 }

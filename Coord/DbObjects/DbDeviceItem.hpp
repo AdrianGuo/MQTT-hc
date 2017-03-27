@@ -8,7 +8,7 @@
 #ifndef DBDEVICEITEM_HPP_
 #define DBDEVICEITEM_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "ValueIntDb.hpp"
 #include "DbRoomItem.hpp"

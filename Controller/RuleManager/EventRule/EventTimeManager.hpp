@@ -13,7 +13,7 @@
 #include "ItemRule/Rule.hpp"
 #include "ItemRule/RuleTimeSchedule.hpp"
 #include <stddef.h>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <iterator>
 #include <vector>
 

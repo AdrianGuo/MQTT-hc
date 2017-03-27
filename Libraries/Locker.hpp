@@ -2,7 +2,7 @@
 #define LOCKER_HPP_
 
 #include <pthread.h>
-#include "typedefs.h"
+#include "Typedefs.h"
 
 typedef pthread_mutex_t locker_t;
 typedef locker_t*       locker_p;

@@ -11,7 +11,7 @@
 #include "EventRule/EventDev.hpp"
 #include "ItemRule/Rule.hpp"
 #include "json.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <vector>
 
 class EventDevManager {

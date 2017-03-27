@@ -15,12 +15,12 @@
 #ifndef DBPTR_HPP_
 #define DBPTR_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/SmartPtr.hpp"
-#include "Libraries/PtrBase.hpp"
-#include "Libraries/LibDb/Config.hpp"
-#include "Libraries/LibDb/ConfigImpl.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
+#include "../Typedefs.h"
+#include "../SmartPtr.hpp"
+#include "../PtrBase.hpp"
+#include "Config.hpp"
+#include "ConfigImpl.hpp"
+#include "DbContext.hpp"
 
 class DbContext;
 

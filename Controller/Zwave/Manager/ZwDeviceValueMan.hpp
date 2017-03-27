@@ -15,7 +15,7 @@
 #ifndef ZW_DEVICEVALUE_MAN_HPP_
 #define ZW_DEVICEVALUE_MAN_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "json.h"
 #include "ValueDevice.hpp"

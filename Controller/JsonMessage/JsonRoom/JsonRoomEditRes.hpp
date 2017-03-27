@@ -16,7 +16,7 @@
 #ifndef JSON_ROOM_EDITRES_HPP_
 #define JSON_ROOM_EDITRES_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "Vector.hpp"
 #include "json.h"

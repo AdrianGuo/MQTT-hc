@@ -1,7 +1,7 @@
 #ifndef IZWDRIVER_HPP_
 #define IZWDRIVER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Functor.hpp"
 
 #include "Value.hpp"

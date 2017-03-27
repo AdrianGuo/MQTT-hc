@@ -13,11 +13,11 @@
  *
  ******************************************************************************/
 
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/ValueIntDb.hpp"
+#include "../LogPlus.hpp"
+#include "ValueIntDb.hpp"
 
 /**
- * @func
+ * @func   ValueIntDb
  * @brief  None
  * @param  None
  * @retval None
@@ -25,8 +25,8 @@
 ValueIntDb::ValueIntDb(
     int_t  iValue,
     String strColumnName
-) : ValueDb     (strColumnName, Value::Type_t::type_interger, __FUNCTION__),
-    m_iValue    (iValue ) {
+) : ValueDb  (strColumnName, Value::Type_t::type_interger, __FUNCTION__),
+    m_iValue (iValue ) {
 
 }
 
@@ -38,13 +38,13 @@ ValueIntDb::ValueIntDb(
  */
 ValueIntDb:: ValueIntDb(
     const ValueIntDb& copied
-) :  ValueDb (copied),
+) :  ValueDb  (copied),
      m_iValue (copied.m_iValue) {
 
 }
 
 /**
- * @func
+ * @func   ~ValueIntDb
  * @brief  None
  * @param  None
  * @retval None
@@ -54,7 +54,7 @@ ValueIntDb::~ValueIntDb() {
 }
 
 /**
- * @func
+ * @func   GetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -66,7 +66,7 @@ ValueIntDb::GetValue(
 }
 
 /**
- * @func
+ * @func   SetValue
  * @brief  None
  * @param  None
  * @retval None
@@ -80,7 +80,42 @@ ValueIntDb::SetValue(
 }
 
 /**
- * @func
+ * @func   Compare
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueIntDb::Compare(
+    int_t iValue,
+    ValueDb::Compare typeCompare
+) {
+    bool_t boRet = FALSE;
+    switch (typeCompare) {
+    case ValueDb::Compare::Equal:
+        boRet = (*this == iValue);
+        break;
+    case ValueDb::Compare::NotEqual:
+        boRet = (*this != iValue);
+        break;
+    case ValueDb::Compare::Greater:
+        boRet = (*this > iValue);
+        break;
+    case ValueDb::Compare::Less:
+        boRet = (*this < iValue);
+        break;
+    case ValueDb::Compare::GreaterAndEqual:
+        boRet = (*this >= iValue);
+        break;
+    case ValueDb::Compare::LessAndEqual:
+        boRet = (*this <= iValue);
+        break;
+    }
+    return boRet;
+}
+
+/**
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -96,7 +131,7 @@ ValueIntDb::operator= (
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -111,7 +146,7 @@ ValueIntDb::operator= (
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -126,7 +161,7 @@ ValueIntDb::operator= (
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -141,7 +176,7 @@ ValueIntDb::operator= (
 }
 
 /**
- * @func
+ * @func   operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -156,7 +191,7 @@ ValueIntDb::operator= (
 }
 
 /**
- * @func
+ * @func   operator==
  * @brief  None
  * @param  None
  * @retval None
@@ -165,11 +200,11 @@ bool_t
 ValueIntDb::operator== (
     const ValueIntDb& rhs
 ) const {
-    return (m_iValue             == rhs.m_iValue            ) &&
-           (m_strColumnName      == rhs.m_strColumnName     ) &&
-           (m_strForeignKeyName  == rhs.m_strForeignKeyName ) &&
-           (m_strForeignKeyTable == rhs.m_strForeignKeyTable) &&
-           (m_dwFlags            == rhs.m_dwFlags           );
+    return ((m_iValue             == rhs.m_iValue            ) &&
+            (m_strColumnName      == rhs.m_strColumnName     ) &&
+            (m_strForeignKeyName  == rhs.m_strForeignKeyName ) &&
+            (m_strForeignKeyTable == rhs.m_strForeignKeyTable) &&
+            (m_dwFlags            == rhs.m_dwFlags           ));
 }
 
 /**
@@ -362,4 +397,25 @@ ValueIntDb::Swap(
 void_t
 ValueIntDb::SetValueDefault() {
     m_iValue = -1;
+}
+
+/**
+ * @func   operator int_t()
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueIntDb::operator int_t(
+) const {
+    return m_iValue;
+}
+
+/**
+ * @func   operator int_p()
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueIntDb::operator int_p() {
+    return &m_iValue;
 }

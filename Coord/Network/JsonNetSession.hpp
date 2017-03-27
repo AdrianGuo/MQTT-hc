@@ -16,7 +16,7 @@
 #define JSON_NETSESSION_HPP_
 
 #include <JsonMsgSession.hpp>
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class JsonNetSession : public JsonMsgSession {
 private:

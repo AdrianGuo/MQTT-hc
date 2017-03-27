@@ -1,7 +1,7 @@
 #ifndef VALUE_EVENT_HPP_
 #define VALUE_EVENT_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Event.hpp"
 #include "Value.hpp"
 

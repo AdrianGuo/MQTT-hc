@@ -8,7 +8,7 @@
 #ifndef ZBHELPER_HPP_
 #define ZBHELPER_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <String.hpp>
 
 String HexToString(const u8_p pbyHex, int_t iLength);

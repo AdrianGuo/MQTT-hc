@@ -1,7 +1,7 @@
 #ifndef MULTICHANNEL_CMDCLASS_HPP_
 #define MULTICHANNEL_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "ZwDefs.hpp"
 #include "ZwNode.hpp"

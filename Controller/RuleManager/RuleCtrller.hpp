@@ -17,7 +17,7 @@
 #include <Queue.hpp>
 #include <RuleManager.hpp>
 #include <String.hpp>
-#include <typedefs.h>
+#include <Typedefs.h>
 
 typedef Functor1_t(JsonCommand_p)HandlerRuleCmdFunctor_t;
 typedef HandlerRuleCmdFunctor_t* HandlerRuleRuleFunctor_p;

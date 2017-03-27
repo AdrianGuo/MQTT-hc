@@ -15,7 +15,8 @@
 #ifndef EXCEPTION_HPP_
 #define EXCEPTION_HPP_
 
-#include "Libraries/typedefs.h"
+#include "stdarg.h"
+#include "Libraries/Typedefs.h"
 
 /******************************************************************************/
 /*                           CLASS : EXCEPTION                                */

@@ -1,7 +1,7 @@
 #ifndef DBMODELDB_HPP_
 #define DBMODELDB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbConfigModel.hpp"
 #include "DbRoomItem.hpp"
 #include "DbFloorItem.hpp"

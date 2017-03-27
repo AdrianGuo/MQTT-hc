@@ -16,7 +16,7 @@
 #ifndef SETINFO_HPP_
 #define SETINFO_HPP_
 
-#include "Libraries/typedefs.h"
+#include "../Typedefs.h"
 
 struct SetInfo {
     String TableName;
@@ -25,13 +25,9 @@ struct SetInfo {
 
     SetInfo(const String strTableName      = String(),
             const String strForeignKeyName = String(),
-            const String strJoinName       = String()
-    ) : TableName      (     strTableName),
-        ForeignKeyName (strForeignKeyName),
-        JoinName       (      strJoinName) {
-    }
+            const String strJoinName       = String());
 
-    ~SetInfo() {}
+    ~SetInfo();
 };
 
 typedef struct SetInfo  SetInfo_t;

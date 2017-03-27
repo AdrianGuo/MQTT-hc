@@ -15,7 +15,7 @@
 #ifndef ZWDB_INFO_HPP_
 #define ZWDB_INFO_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #define ZWDEVICE        (String("DEVICE"))
 #define ZWCTRLLER       (String("CTRLLER"))

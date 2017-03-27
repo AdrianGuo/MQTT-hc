@@ -15,7 +15,7 @@
 #ifndef JSON_MESSAGE_MAP_HPP_
 #define JSON_MESSAGE_MAP_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "JsonMessage.hpp"
 

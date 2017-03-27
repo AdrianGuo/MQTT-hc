@@ -15,7 +15,7 @@
 #ifndef HEXFILE_HELPER_HPP_
 #define HEXFILE_HELPER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class HexFileHelper {
 public:

@@ -16,8 +16,8 @@
 #ifndef DATABASE_HPP_
 #define DATABASE_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/sqlite3.h"
+#include "../Typedefs.h"
+#include "sqlite3.h"
 
 struct sqlite3;
 
@@ -31,6 +31,8 @@ private:
     String      m_strPath;
 public:
     Database(const String& strConnectionString = "");
+    Database(const Database& copied);
+
     virtual ~Database();
 
     sqlite3* Connection() const;

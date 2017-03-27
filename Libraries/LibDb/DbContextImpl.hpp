@@ -19,14 +19,15 @@
 #include <iostream>
 #include <type_traits>
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/DbPtr.hpp"
-#include "Libraries/LibDb/Query.hpp"
-#include "Libraries/LibDb/DbAction.hpp"
-#include "Libraries/LibDb/ConfigImpl.hpp"
-#include "Libraries/LibDb/DbPtrImpl.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
-
+#include "../Typedefs.h"
+#include "DbPtr.hpp"
+#include "Cache.hpp"
+#include "NCache.hpp"
+#include "Query.hpp"
+#include "DbAction.hpp"
+#include "ConfigImpl.hpp"
+#include "DbPtrImpl.hpp"
+#include "DbContext.hpp"
 
 /**
  * @func   MapTable<C>::MapTable
@@ -51,13 +52,11 @@ template<class C>
 inline
 DbContext::MapTable<C>::~MapTable() {
     try {
-//        LOG_DEBUG("delete core");
         for (typename Registry_t::iterator it =  Registry.begin();
                 it != Registry.end(); ++it) {
             delete it->second;
             it->second = NULL;
         }
-//        LOG_DEBUG("delete core done");
     } catch (std::exception &ex) {
         LOG_ERROR(ex.what());
     }
@@ -74,12 +73,16 @@ inline void_t
 DbContext::MapTable<C>::InitMapTable(
     DbContext& dbContext
 ) {
-    typedef typename std::remove_const<C>::type C_t;
-    if (!Initialized) {
-        Initialized = TRUE;
-        C_t tmpC;
-        DbInit dbAction(dbContext, *this);
-        dbAction.Config(tmpC);
+    try {
+        typedef typename std::remove_const<C>::type C_t;
+        if (!Initialized) {
+            Initialized = TRUE;
+            C_t tmpC;
+            DbInit dbAction(dbContext, *this);
+            dbAction.Config(tmpC);
+        }
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
     }
 }
 
@@ -94,10 +97,14 @@ inline void_t
 DbContext::MapTable<C>::DropTable(
     DbContext& dbContext
 ) {
-    typedef typename std::remove_const<C>::type C_t;
-    C_t tmpC;
-    DbDrop dbAction(dbContext, *this);
-    dbAction.Config(tmpC);
+    try {
+        typedef typename std::remove_const<C>::type C_t;
+        C_t tmpC;
+        DbDrop dbAction(dbContext, *this);
+        dbAction.Config(tmpC);
+    } catch (std::exception &ex) {
+        LOG_ERROR(ex.what());
+    }
 }
 
 /**
@@ -220,10 +227,14 @@ DbContext::Delete(
             pStatement->reset();
             pStatement->bind(0, dbPtr.GetId());
             int_t iRet = pStatement->execute();
-            UNUSED(iRet);
-//            if ((iRet == SQLITE_DONE) || (iRet == SQLITE_OK)) {
-//                pMapping->Registry.erase(dbPtr.GetId());
-//            }
+            if ((iRet == SQLITE_DONE) || (iRet == SQLITE_OK)) {
+                typename MapTable<C>::Registry_t::iterator it =
+                pMapping->Registry.find(dbPtr.GetId());
+                if (it != pMapping->Registry.end()) {
+                    delete it->second;
+                    pMapping->Registry.erase(dbPtr.GetId());
+                }
+            }
         }
     } catch (std::exception &ex) {
         LOG_ERROR(ex.what());
@@ -267,6 +278,7 @@ DbContext::Load(
         return DbPtr<C>(pPtrCore);
     } else {
         LOG_DEBUG("can't load");
+
         return DbPtr<C>();
     }
 }
@@ -387,6 +399,32 @@ DbContext::Find(
 }
 
 /**
+ * @func   Look
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline Cache<C>
+DbContext::Look(
+    const String& strWhere
+) {
+    return Cache<C>(this, TableName<C>(), strWhere);
+}
+
+/**
+ * @func   FindIf
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline NCache<C>
+DbContext::FindIf() {
+    return NCache<C>(this, TableName<C>());
+}
+
+/**
  * @func   Command
  * @brief  None
  * @param  None
@@ -398,6 +436,41 @@ DbContext::Command(
     const String& strSql
 ) {
     return Query<R> (this, strSql);
+}
+
+/**
+ * @func   EarseCache
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline void_t
+DbContext::EarseCache() {
+    MapTable<C>* pMapping = GetMapping<C>();
+    typename MapTable<C>::Registry_t::const_iterator it = pMapping->Registry.begin();
+    while (it != pMapping->Registry.end()) {
+        if (it->second != NULL) {
+            delete it->second;
+            it->second = NULL;
+        }
+        it = pMapping->Registry.erase(it);
+    }
+}
+
+/**
+ * @func   ReLoadCache
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline void_t
+DbContext::ReLoadCache() {
+    Collection<DbPtr<C>> loaddb = Find<C>();
+    for (typename Collection<DbPtr<C>>::const_iterator it = loaddb.begin();
+        it != loaddb.end(); it++) {
+    }
 }
 
 #endif /* !DB_CONTEXT_IMPL_HPP_ */

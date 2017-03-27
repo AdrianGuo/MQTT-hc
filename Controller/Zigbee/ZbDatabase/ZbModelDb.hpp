@@ -8,7 +8,7 @@
 #ifndef ZBMODELDB_HPP_
 #define ZBMODELDB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ZbControllerDb.hpp"
 #include "ZbDeviceDb.hpp"
 #include "NetDeviceDb.hpp"

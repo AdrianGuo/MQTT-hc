@@ -16,9 +16,9 @@
 #ifndef DBPTRIMPL_HPP_
 #define DBPTRIMPL_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/Exception.hpp"
-#include "Libraries/LibDb/DbPtr.hpp"
+#include "../Typedefs.h"
+#include "../Exception.hpp"
+#include "DbPtr.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */

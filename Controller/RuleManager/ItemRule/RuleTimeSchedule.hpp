@@ -11,7 +11,7 @@
 #include "DateAndTime.hpp"
 #include "json.h"
 #include "LogPlus.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <cstdlib>
 
 class RuleTimeSchedule {

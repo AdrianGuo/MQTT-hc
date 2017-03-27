@@ -15,7 +15,7 @@
 #ifndef FIRMWARE_UPDATE_MD_CMDCLASS_HPP_
 #define FIRMWARE_UPDATE_MD_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "ZwDefs.hpp"
 #include "ZwCmdClass.hpp"

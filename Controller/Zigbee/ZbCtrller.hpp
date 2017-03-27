@@ -8,7 +8,7 @@
 #ifndef ZBCTRLLER_HPP_
 #define ZBCTRLLER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ICtrller.hpp"
 #include "LThread.hpp"
 #include "Locker.hpp"

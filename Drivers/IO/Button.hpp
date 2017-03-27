@@ -9,7 +9,7 @@
 #define DRIVERS_IO_BUTTON_HPP_
 
 #ifdef MT7688
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <mraa.hpp>
 #include <Functor.hpp>
 

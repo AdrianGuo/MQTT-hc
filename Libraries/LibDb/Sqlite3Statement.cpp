@@ -13,10 +13,10 @@
  *
  ******************************************************************************/
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/sqlite3.h"
-#include "Libraries/LibDb/Sqlite3Statement.hpp"
+#include "../Typedefs.h"
+#include "../LogPlus.hpp"
+#include "sqlite3.h"
+#include "Sqlite3Statement.hpp"
 
 /**
  * @func   Sqlite3Statement

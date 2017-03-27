@@ -16,9 +16,9 @@
 #ifndef CONFIG_IMPL_HPP_
 #define CONFIG_IMPL_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/Config.hpp"
-#include "Libraries/LibDb/ValueIntDb.hpp"
+#include "../Typedefs.h"
+#include "Config.hpp"
+#include "ValueIntDb.hpp"
 
 template<class C>
 struct ConfigTable : public ConfigDefault {

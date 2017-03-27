@@ -1,7 +1,7 @@
 #ifndef ZWCMD_BASIC_HPP_
 #define ZWCMD_BASIC_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ValueString.hpp"
 #include "HandlerRequest.hpp"
 #include "HandlerResponse.hpp"

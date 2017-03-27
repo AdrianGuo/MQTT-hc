@@ -10,7 +10,7 @@
 
 #include <sys/time.h>
 #include "String.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class RuleItemActive {
 public:

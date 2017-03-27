@@ -4,7 +4,7 @@
  * Lumi, JSC.
  * All Rights Reserved
  *
- * File Name:        typedefs.h
+ * File Name:        Typedefs.h
  *
  * Description:      Include file for application
  *
@@ -24,7 +24,6 @@
 
 #include <bits/wordsize.h>
 #include <stddef.h>
-#include <stdarg.h>
 #include <utility>
 #include <sys/time.h>
 #include <iostream>
@@ -37,7 +36,6 @@
 #include <vector>
 #include <string.h>
 
-
 #ifdef MT7688
 #include <string>
 #include <sstream>
@@ -46,11 +44,6 @@
 /******************************************************************************/
 /*                     EXPORTED TYPES and DEFINITIONS                         */
 /******************************************************************************/
-
-#ifndef __FILENAME__
-#define __FILENAME__  (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
-#endif /* __FILENAME__ */
-
 
 typedef unsigned char           byte_t;     // 1 byte
 typedef unsigned short          word_t;     // 2 byte
@@ -223,29 +216,9 @@ template<typename T> using Set = std::set<T>;
 template<typename K, typename T> using Map = std::map<K, T>;
 using String = std::string;
 
-static std::exception_ptr eptr = NULL;
-
-inline void_t
-Handle_Eptr(std::exception_ptr eptr) {
-    if (eptr != NULL) {
-        try {
-            std::rethrow_exception(eptr);
-        } catch (std::exception &ex) {
-            std::cout << "caught exception " << ex.what() << std::endl;
-        }
-    }
-}
-
-#define MACRO_DBUG(x, args ...) \
-    ST (\
-        struct timeval tv; \
-        gettimeofday(&tv, NULL); \
-        struct tm* now; \
-        now = localtime(&tv.tv_sec); \
-        printf("\x1b[36m[DBUG][%04d-%02d-%02d %02d:%02d:%02d.%03d][%010u][%18s:%4d] " x "\n\x1b[39m", \
-                now->tm_year + 1990, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec, \
-                (int_t) tv.tv_usec / 1000, (u32_t) pthread_self(), __FILENAME__, __LINE__, ##args); \
-    )
+#ifndef __FILENAME__
+#define __FILENAME__    (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+#endif /* __FILENAME__ */
 
 #ifdef MT7688
 namespace std {

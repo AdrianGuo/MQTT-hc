@@ -16,9 +16,9 @@
 #ifndef VALUE_DB_HPP_
 #define VALUE_DB_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/ValueDbCore.hpp"
+#include "../Typedefs.h"
+#include "../LogPlus.hpp"
+#include "ValueDbCore.hpp"
 
 /******************************************************************************/
 /*                                   CLASS                                    */
@@ -49,25 +49,34 @@ public:
         OnUpdateSetNull = 0x0800
     } Constraint;
 
+    typedef enum {
+        Equal = 0,
+        NotEqual = 1,
+        Less = 2,
+        Greater = 3,
+        LessAndEqual = 4,
+        GreaterAndEqual = 5
+    } Compare;
+
     ValueDb(const String strColumnName = String(),
             Value::Type_t valueType = Value::Type_t::type_none,
             const_char_p pName = "ValueDb",
             const String strForeignKeyTable = String(),
-            const String strForiegnKeyName  = String(),
+            const String strForeignKeyName  = String(),
             u32_t dwFlags = BindNull);
 
     ValueDb(const ValueDb& copied);
 
     virtual ~ValueDb();
-    virtual void_t SetValueDefault() {}
+    virtual void_t SetValueDefault();
 
     ValueDb& operator= (const ValueDb& copied);
 
     void_t SetFlag(u32_t dwFlags);
     void_t SetSqlType(String strSqlType);
-    void_t SetColumnName(const String strColumn);
+    void_t SetColumnName(const String strColumnName);
     void_t SetForeignKeyTable(const String strForeignKeyTable);
-    void_t SetForeignKeyName(const String strForeignKeyNam);
+    void_t SetForeignKeyName (const String strForeignKeyName);
 
     u32_t  GetFlag()            const;
     String GetSqlType()         const;

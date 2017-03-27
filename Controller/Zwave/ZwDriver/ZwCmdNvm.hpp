@@ -1,7 +1,7 @@
 #ifndef ZWCMD_NVM_HPP_
 #define ZWCMD_NVM_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ValueByte.hpp"
 #include "ValueDword.hpp"
 #include "HandlerRequest.hpp"

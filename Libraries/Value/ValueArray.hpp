@@ -1,7 +1,7 @@
 #ifndef VALUE_ARRAY_HPP_
 #define VALUE_ARRAY_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 
 class ValueArray : public Value {

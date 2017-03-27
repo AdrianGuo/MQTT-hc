@@ -17,12 +17,14 @@
 #define COLLECTION_HPP_
 
 #include <algorithm>
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/SmartPtr.hpp"
-#include "Libraries/LibDb/SqlValueImpl.hpp"
-#include "Libraries/LibDb/SqlStatement.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
+#include "../Typedefs.h"
+#include "../LogPlus.hpp"
+#include "../SmartPtr.hpp"
+#include "SqlValueImpl.hpp"
+#include "SqlStatement.hpp"
+#include "DbContext.hpp"
 
+// C: DbPtr<>
 template<class C>
 class Collection {
 private:
@@ -45,8 +47,8 @@ public:
                SmartPtr<SqlStatement>   pSqlStatement = NULL,
                SmartPtr<SqlStatement>   pSqlCountStatement = NULL);
 
-    Collection(const Collection<C>& other);
-    Collection& operator= (const Collection<C>& other);
+    Collection(const Collection<C>& copied);
+    Collection& operator= (const Collection<C>& copied);
 
     virtual ~Collection();
 
@@ -54,7 +56,7 @@ public:
     public:
         iterator();
         iterator(const Collection<C>& collection, SmartPtr<SqlStatement> pSqlStatement);
-        iterator(const iterator& other);
+        iterator(const iterator& copied);
 
         struct core_impl {
             const Collection<C>&    m_collection;
@@ -65,27 +67,16 @@ public:
 
             core_impl(
                 const Collection<C>&    collection,
-                SmartPtr<SqlStatement>  pSqlStatement
-            ) : m_collection    (collection),
-                m_pSqlStatement (pSqlStatement),
-                m_iCount    (0),
-                m_boIsLast (FALSE) {
-                m_pSqlStatement->reset();
-                SetCurrent();
-            }
+                SmartPtr<SqlStatement>  pSqlStatement);
+            ~core_impl();
 
-            ~core_impl() {
-//                LOG_DEBUG("delete core_impl");
-            }
-
-            value_type& Current() { return m_current; }
+            value_type& Current();
             void_t   SetCurrent();
         };
 
-
         ~iterator();
 
-        iterator& operator= (const iterator& other);
+        iterator& operator= (const iterator& copied);
 
         C& operator* ();
         C* operator->();
@@ -107,13 +98,13 @@ public:
         const_iterator();
         const_iterator(const Collection<C>&     collection,
                        SmartPtr<SqlStatement>   pSqlStatement);
-        const_iterator(const const_iterator& other);
-        const_iterator(const typename Collection<C>::iterator& other);
+        const_iterator(const const_iterator& copied);
+        const_iterator(const typename Collection<C>::iterator& copied);
 
-        ~const_iterator() {}
+        ~const_iterator();
 
-        const_iterator& operator= (const const_iterator& other);
-        const_iterator& operator= (const iterator& other);
+        const_iterator& operator= (const const_iterator& copied);
+        const_iterator& operator= (const iterator& copied);
 
         const C* operator->();
         C operator*();
@@ -127,6 +118,7 @@ public:
 
     void_t insert(C c);
     void_t erase(C c);
+
     bool_t empty() const;
     void_t clear();
 
@@ -159,7 +151,6 @@ inline Collection<C>::Collection(
     m_pSqlStatement      (pSqlStatement),
     m_pSqlCountStatement (pSqlCountStatement) {
     try {
-//        LOG_DEBUG("init collection");
         int_t iSize = 0;
         m_iSize = -1;
 
@@ -168,7 +159,7 @@ inline Collection<C>::Collection(
         m_pSqlCountStatement->get(0, &iSize);
         m_iSize = iSize;
     } catch (std::exception &ex) {
-//        LOG_ERROR(ex.what());
+        LOG_ERROR(ex.what());
     }
 }
 
@@ -181,12 +172,12 @@ inline Collection<C>::Collection(
 template<class C>
 inline
 Collection<C>::Collection(
-    const Collection<C>& other
-) : m_iSize         (other.m_iSize),
-    m_pDbPtrBase    (other.m_pDbPtrBase),
-    m_pDbContext    (other.m_pDbContext),
-    m_pSqlStatement (other.m_pSqlStatement),
-    m_pSqlCountStatement (other.m_pSqlCountStatement) {
+    const Collection<C>& copied
+) : m_iSize         (copied.m_iSize),
+    m_pDbPtrBase    (copied.m_pDbPtrBase),
+    m_pDbContext    (copied.m_pDbContext),
+    m_pSqlStatement (copied.m_pSqlStatement),
+    m_pSqlCountStatement (copied.m_pSqlCountStatement) {
 }
 
 /**
@@ -198,12 +189,12 @@ Collection<C>::Collection(
 template<class C>
 inline Collection<C>&
 Collection<C>::operator= (
-    const Collection<C>& other
+    const Collection<C>& copied
 ) {
-    m_iSize         = other.m_iSize;
-    m_pDbContext    = other.m_pDbContext;
-    m_pSqlStatement = other.m_pSqlStatement;
-    m_pSqlCountStatement = other.m_pSqlCountStatement;
+    m_iSize         = copied.m_iSize;
+    m_pDbContext    = copied.m_pDbContext;
+    m_pSqlStatement = copied.m_pSqlStatement;
+    m_pSqlCountStatement = copied.m_pSqlCountStatement;
 
     return *this;
 }
@@ -217,7 +208,6 @@ Collection<C>::operator= (
 template<class C>
 inline
 Collection<C>::~Collection() {
-//    LOG_DEBUG("release collection");
 }
 
 /**
@@ -423,6 +413,18 @@ Collection<C>::const_iterator::const_iterator(
 }
 
 /**
+ * @func   const_iterator::~const_iterator
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+Collection<C>::const_iterator::~const_iterator() {
+
+}
+
+/**
  * @func   const_iterator::const_iterator
  * @brief  None
  * @param  None
@@ -445,8 +447,8 @@ Collection<C>::const_iterator::const_iterator(
 template<class C>
 inline
 Collection<C>::const_iterator::const_iterator(
-    const const_iterator& other
-) : m_impl (other.m_impl) {
+    const const_iterator& copied
+) : m_impl (copied.m_impl) {
 }
 
 /**
@@ -458,13 +460,13 @@ Collection<C>::const_iterator::const_iterator(
 template<class C>
 inline
 Collection<C>::const_iterator::const_iterator(
-    const typename Collection<C>::iterator& other
-) : m_impl (other) {
+    const typename Collection<C>::iterator& copied
+) : m_impl (copied) {
 
 }
 
 /**
- * @func
+ * @func   const_iterator::operator=
  * @brief  None
  * @param  None
  * @retval None
@@ -472,9 +474,9 @@ Collection<C>::const_iterator::const_iterator(
 template<class C>
 inline typename Collection<C>::const_iterator&
 Collection<C>::const_iterator::operator= (
-    const const_iterator& other
+    const const_iterator& copied
 ) {
-    m_impl = other.m_impl;
+    m_impl = copied.m_impl;
 
     return *this;
 }
@@ -488,9 +490,9 @@ Collection<C>::const_iterator::operator= (
 template<class C>
 inline typename Collection<C>::const_iterator&
 Collection<C>::const_iterator::operator= (
-    const iterator& other
+    const iterator& copied
 ) {
-    m_impl = other;
+    m_impl = copied;
 
     return *this;
 }
@@ -612,8 +614,8 @@ Collection<C>::iterator::iterator(
 template<class C>
 inline
 Collection<C>::iterator::iterator(
-    const iterator& other
-) : m_pImpl (other.m_pImpl) {
+    const iterator& copied
+) : m_pImpl (copied.m_pImpl) {
 
 }
 
@@ -637,9 +639,9 @@ Collection<C>::iterator::~iterator() {
 template<class C>
 inline typename Collection<C>::iterator&
 Collection<C>::iterator::operator= (
-    const iterator& other
+    const iterator& copied
 ) {
-    m_pImpl = other.m_pImpl;
+    m_pImpl = copied.m_pImpl;
     return *this;
 }
 
@@ -736,6 +738,48 @@ Collection<C>::iterator::operator++ (int_t) {
     }
 
     return *this;
+}
+
+/**
+ * @func   iterator::core_impl::core_impl
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+Collection<C>::iterator::core_impl::core_impl(
+    const Collection<C>&    collection,
+    SmartPtr<SqlStatement>  pSqlStatement
+) : m_collection    (   collection),
+    m_pSqlStatement (pSqlStatement),
+    m_iCount   (0),
+    m_boIsLast (FALSE) {
+    m_pSqlStatement->reset();
+    SetCurrent();
+}
+
+/**
+ * @func   iterator::core_impl::~core_impl
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+Collection<C>::iterator::core_impl::~core_impl() {
+}
+
+/**
+ * @func   iterator::core_impl::Current
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline typename Collection<C>::value_type&
+Collection<C>::iterator::core_impl::Current() {
+    return m_current;
 }
 
 /**

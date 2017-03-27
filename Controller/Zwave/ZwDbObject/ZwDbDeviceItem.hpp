@@ -15,7 +15,7 @@
 #ifndef ZWDB_DEVICE_HPP_
 #define ZWDB_DEVICE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbItem.hpp"
 #include "ValueIntDb.hpp"
 #include "ValueStrDb.hpp"

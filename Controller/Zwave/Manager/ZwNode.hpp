@@ -1,7 +1,7 @@
 #ifndef NODE_HPP_
 #define NODE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "String.hpp"
 #include "Functor.hpp"

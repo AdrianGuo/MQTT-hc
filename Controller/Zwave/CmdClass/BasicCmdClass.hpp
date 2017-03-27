@@ -1,7 +1,7 @@
 #ifndef BASIC_CMDCLASS_HPP_
 #define BASIC_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "ZwDefs.hpp"
 #include "ZwCmdClass.hpp"

@@ -4,7 +4,7 @@
 #include "ZbControllerDb.hpp"
 #include "DeviceInfo.hpp"
 #include "ConfigModel.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbItem.hpp"
 #include "DbPtr.hpp"
 #include "Config.hpp"

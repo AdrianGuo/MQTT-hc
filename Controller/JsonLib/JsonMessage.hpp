@@ -16,7 +16,7 @@
 #ifndef JSON_MESSAGE_BASE_HPP_
 #define JSON_MESSAGE_BASE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonCommand.hpp"
 

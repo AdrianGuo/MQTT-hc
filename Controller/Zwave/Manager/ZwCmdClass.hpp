@@ -1,7 +1,7 @@
 #ifndef CMDCLASS_HPP_
 #define CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Functor.hpp"
 #include "ValueDevice.hpp"
 #include "ZwMessage.hpp"

@@ -8,7 +8,7 @@
 #ifndef DBROOMITEM_HPP_
 #define DBROOMITEM_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ValueIntDb.hpp"
 #include "ValueStrDb.hpp"
 #include "DbFloorItem.hpp"

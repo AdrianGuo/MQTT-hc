@@ -11,7 +11,7 @@
 #ifndef IZBDRIVER_HPP_
 #define IZBDRIVER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 
 #include "Functor.hpp"
 

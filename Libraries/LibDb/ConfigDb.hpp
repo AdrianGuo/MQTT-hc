@@ -25,7 +25,7 @@
 #endif /* PATH_FLASH */
 #else /* MT7688 */
 #ifndef PATH_RAM
-#define PATH_RAM        ("/home/osboxes/git/")
+#define PATH_RAM        ("/home/osboxes/git/newhc/")
 #endif /* PATH_RAM */
 
 #ifndef PATH_FLASH

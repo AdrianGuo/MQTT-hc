@@ -24,7 +24,7 @@
 #include <stddef.h>
 #include <iostream>
 #include <string>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "LogPlus.hpp"
 #include "LogCommand.hpp"
 #include "HelperHc.hpp"

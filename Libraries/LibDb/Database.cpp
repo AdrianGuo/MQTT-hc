@@ -13,8 +13,8 @@
  *
  ******************************************************************************/
 
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/Database.hpp"
+#include "../LogPlus.hpp"
+#include "Database.hpp"
 
 /**
  * @func   Database
@@ -30,9 +30,22 @@ Database::Database(
                SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
 
     if (rc != SQLITE_OK) {
-        LOG_ERROR("failed to connect database {%s}:{%s}",
+        LOG_ERROR("failed to connect database <<%s>>:<<%s>>",
         m_strPath.c_str(), sqlite3_errmsg(m_pDtbase));
     }
+}
+
+/**
+ * @func   Database
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+Database::Database(
+    const Database& copied
+) : m_pDtbase (copied.m_pDtbase),
+    m_strPath (copied.m_strPath) {
+
 }
 
 /**
@@ -78,9 +91,13 @@ Database::ConnectionString(
  */
 Database&
 Database::operator= (
-    const Database& other
+    const Database& copied
 ) {
-    m_pDtbase = other.Connection();
-    m_strPath = other.ConnectionString();
+    if (m_pDtbase != copied.m_pDtbase) {
+        sqlite3_close_v2(m_pDtbase);
+        m_pDtbase = copied.m_pDtbase;
+        m_strPath = copied.m_strPath;
+    }
+
     return *this;
 }

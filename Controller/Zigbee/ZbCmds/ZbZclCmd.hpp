@@ -8,7 +8,7 @@
 #ifndef ZBZCLCMD_HPP_
 #define ZBZCLCMD_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <ZbPacket.hpp>
 #include <DeviceInfo.hpp>
 

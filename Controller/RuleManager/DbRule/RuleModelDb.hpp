@@ -8,7 +8,7 @@
 #ifndef CONTROLLER_RULEMANAGER_DBRULE_RULEMODELDB_HPP_
 #define CONTROLLER_RULEMANAGER_DBRULE_RULEMODELDB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbRule/RuleDb.hpp"
 #include "DbContext.hpp"
 #include "Collection.hpp"

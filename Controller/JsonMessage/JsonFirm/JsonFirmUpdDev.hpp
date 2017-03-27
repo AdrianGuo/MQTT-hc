@@ -15,7 +15,7 @@
 #ifndef JSON_FIRM_UPDDEV_HPP_
 #define JSON_FIRM_UPDDEV_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

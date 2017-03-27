@@ -8,7 +8,7 @@
 #ifndef ZBZCLGLOBCMD_HPP_
 #define ZBZCLGLOBCMD_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <Map.hpp>
 #include <ZbDeviceDb.hpp>
 

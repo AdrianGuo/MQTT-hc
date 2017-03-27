@@ -8,7 +8,7 @@
 #ifndef SESSION_SZBSERIAL_HPP_
 #define SESSION_SZBSERIAL_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <Serial.hpp>
 #include <Functor.hpp>
 #include <ZbPacket.hpp>

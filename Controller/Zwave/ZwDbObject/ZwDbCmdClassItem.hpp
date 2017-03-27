@@ -15,7 +15,7 @@
 #ifndef ZWDB_CMDCLASS_HPP_
 #define ZWDB_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbItem.hpp"
 #include "ValueStrDb.hpp"
 #include "ValueIntDb.hpp"

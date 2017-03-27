@@ -1,7 +1,7 @@
 #ifndef VALUE_HPP_
 #define VALUE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ValueCore.hpp"
 
 class Value : public ValueCore {

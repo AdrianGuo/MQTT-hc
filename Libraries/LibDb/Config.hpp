@@ -16,9 +16,9 @@
 #ifndef CONFIG_HPP_
 #define CONFIG_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/Value/Value.hpp"
-#include "Libraries/LibDb/ValueIntDb.hpp"
+#include "../Typedefs.h"
+#include "../Value/Value.hpp"
+#include "ValueIntDb.hpp"
 
 struct ConfigDefault {
     typedef ValueIntDb IdType;

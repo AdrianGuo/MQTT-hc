@@ -10,7 +10,7 @@
 
 #include "ItemRule/Rule.hpp"
 #include "String.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <iterator>
 #include <vector>
 

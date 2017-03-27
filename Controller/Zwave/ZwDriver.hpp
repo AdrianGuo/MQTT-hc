@@ -1,7 +1,7 @@
 #ifndef ZWDRIVER_HPP_
 #define ZWDRIVER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 
 #include "SZwSerial.hpp"

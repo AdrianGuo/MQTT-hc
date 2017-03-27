@@ -17,7 +17,7 @@
 #define JSONDB_SESSION_HPP_
 
 #include <JsonMsgSession.hpp>
-#include "typedefs.h"
+#include "Typedefs.h"
 
 /******************************************************************************/
 /*                                   CLASS                                    */

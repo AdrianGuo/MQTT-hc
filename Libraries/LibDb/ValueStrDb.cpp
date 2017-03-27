@@ -13,8 +13,8 @@
  *
  ******************************************************************************/
 
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/ValueStrDb.hpp"
+#include "../LogPlus.hpp"
+#include "ValueStrDb.hpp"
 
 /**
  * @func
@@ -120,7 +120,41 @@ ValueStrDb::operator= (
     m_strValue = rhs;
     SetChange();
     return *this;
+}
 
+/**
+ * @func   Compare
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+bool_t
+ValueStrDb::Compare(
+    String strValue,
+    ValueDb::Compare typeCompare
+) {
+    bool_t boRet = FALSE;
+    switch (typeCompare) {
+    case ValueDb::Compare::Equal:
+        boRet = (*this == strValue);
+        break;
+    case ValueDb::Compare::NotEqual:
+        boRet = (*this != strValue);
+        break;
+    case ValueDb::Compare::Greater:
+        boRet = (*this > strValue);
+        break;
+    case ValueDb::Compare::Less:
+        boRet = (*this < strValue);
+        break;
+    case ValueDb::Compare::GreaterAndEqual:
+        boRet = (*this >= strValue);
+        break;
+    case ValueDb::Compare::LessAndEqual:
+        boRet = (*this <= strValue);
+        break;
+    }
+    return boRet;
 }
 
 /**
@@ -133,11 +167,11 @@ bool_t
 ValueStrDb::operator== (
     const ValueStrDb& rhs
 ) const {
-    return (m_strValue == rhs.m_strValue) &&
-           (GetColumnName() == rhs.GetColumnName()) &&
-           (GetForeignKeyName() == rhs.GetForeignKeyName()) &&
-           (GetForeignKeyTable() == rhs.GetForeignKeyTable()) &&
-           (GetFlag() == rhs.GetFlag());
+    return ((m_strValue           == rhs.m_strValue          ) &&
+            (m_strColumnName      == rhs.m_strColumnName     ) &&
+            (m_strForeignKeyName  == rhs.m_strForeignKeyName ) &&
+            (m_strForeignKeyTable == rhs.m_strForeignKeyTable) &&
+            (m_dwFlags            == rhs.m_dwFlags           ));
 }
 
 /**
@@ -306,4 +340,25 @@ ValueStrDb::Swap(
 void_t
 ValueStrDb::SetValueDefault() {
     m_strValue = String();
+}
+
+/**
+ * @func   operator String
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueStrDb::operator String(
+) const {
+    return m_strValue;
+}
+
+/**
+ * @func   operator String*
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+ValueStrDb::operator String*() {
+    return &m_strValue;
 }

@@ -10,7 +10,7 @@
 
 #include "ItemRule/Rule.hpp"
 #include "ItemRule/RuleTimeSchedule.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class EventTime {
 public:

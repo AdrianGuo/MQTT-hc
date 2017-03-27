@@ -16,7 +16,7 @@
 #ifndef HANDLE_RESPONSE_HPP_
 #define HANDLE_RESPONSE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "Functor.hpp"
 #include "ZwPacket.hpp"

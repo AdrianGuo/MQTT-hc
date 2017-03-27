@@ -16,9 +16,9 @@
 #ifndef DB_ITEM_HPP_
 #define DB_ITEM_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/ValueCore.hpp"
-#include "Libraries/LogPlus.hpp"
+#include "../Typedefs.h"
+#include "../ValueCore.hpp"
+#include "../LogPlus.hpp"
 
 class DbItem : public ValueCore {
 private:
@@ -27,8 +27,8 @@ private:
     DbItem& operator= (const DbItem& copied) = delete;
 public:
     DbItem(const String strName = String()
-            ) : ValueCore (__FUNCTION__ ),
-                m_strName (strName      ) {
+            ) : ValueCore (__FUNCTION__),
+                m_strName (     strName) {
         #ifdef DB_DBITEM
         LOG_DEBUG("object [%03d] created [TB:%15s]", Index(), m_strName.c_str());
         #endif /* DB_DBITEM */

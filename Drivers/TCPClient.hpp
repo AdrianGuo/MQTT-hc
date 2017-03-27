@@ -1,7 +1,7 @@
 #ifndef TCP_CLIENT_HPP_
 #define TCP_CLIENT_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Functor.hpp"
 #include "Queue.hpp"
 #include "LThread.hpp"

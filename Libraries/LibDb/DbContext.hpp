@@ -19,12 +19,12 @@
 #include <typeinfo>
 #include <type_traits>
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/SetInfo.hpp"
-#include "Libraries/LibDb/ValueDb.hpp"
-#include "Libraries/LibDb/Config.hpp"
-#include "Libraries/LibDb/Sqlite3Statement.hpp"
-#include "Libraries/LibDb/SqlStatement.hpp"
+#include "../Typedefs.h"
+#include "SetInfo.hpp"
+#include "ValueDb.hpp"
+#include "Config.hpp"
+#include "Sqlite3Statement.hpp"
+#include "SqlStatement.hpp"
 
 /******************************************************************************/
 /*                                 LIST CLASS                                 */
@@ -35,6 +35,8 @@ class DbPtrBase;
 template<class C> class DbPtr;
 template<class C> class DbPtrCore;
 template<class R> class Query;
+template<class R> class Cache;
+template<class R> class NCache;
 
 /******************************************************************************/
 /*                                   STRUCT                                   */
@@ -77,7 +79,7 @@ private:
         MapTable(String strTableName = String());
         virtual ~MapTable();
 
-        virtual void_t DropTable(DbContext& dbContext);
+        virtual void_t DropTable   (DbContext& dbContext);
         virtual void_t InitMapTable(DbContext& dbContext);
         virtual String PrimaryKeys() const;
     };
@@ -85,6 +87,7 @@ private:
     Database_p  m_pDatabase;
     String      m_strRamFileName;
     String      m_strFlashFileName;
+    String      m_strBackupFileName;
 
     typedef const std::type_info* const_type_info_ptr;
     typedef Map<String, IMapTable_p>                TableRegistry;
@@ -133,13 +136,19 @@ public:
 
     template<class C> DbPtrCore<C>* LoadId(const typename ConfigTable<C>::IdType& id);
     template<class C> DbPtrCore<C>* LoadId(SmartPtr<SqlStatement> pSqlStatement, int_t iColumn);
+
     template<class C> void_t Refresh(const typename ConfigTable<C>::IdType& id);
 
     template<class C> Query<DbPtr<C>> Find(const String& strWhere = String());
-    template<class R> Query<R> Command(const String& strSql);
+    template<class C> Cache <C> Look(const String& strWhere = String());
+    template<class C> NCache<C> FindIf();
+    template<class R> Query<R>  Command(const String& strSql);
 
-    void_t DropTables();
-    void_t CreateTables();
+    template<class C> void_t EarseCache();
+    template<class C> void_t ReLoadCache();
+
+    void_t DropTables   ();
+    void_t CreateTables ();
     void_t UpdateChanges();
 
     void_t ExecuteSql(const String& strSql);

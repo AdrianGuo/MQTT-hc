@@ -9,7 +9,7 @@
 #define CONTROLLER_FILE_JSONFILESESSION_HPP_
 
 #include <JsonMsgSession.hpp>
-#include "typedefs.h"
+#include "Typedefs.h"
 
 /******************************************************************************/
 /*                                   CLASS                                    */

@@ -8,7 +8,7 @@
 #ifndef CONTROLLER_ZIGBEE_ZBDATABASE_NETDEVICEDB_HPP_
 #define CONTROLLER_ZIGBEE_ZBDATABASE_NETDEVICEDB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbItem.hpp"
 #include "DbPtr.hpp"
 #include "Config.hpp"

@@ -10,7 +10,7 @@
 
 #include "json.h"
 #include "String.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <string>
 
 class RuleOutputDev {

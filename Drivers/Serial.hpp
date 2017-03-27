@@ -22,7 +22,7 @@
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Packet.hpp"
 #include "String.hpp"
 #include "Queue.hpp"

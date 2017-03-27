@@ -1,7 +1,7 @@
 #ifndef VALUE_BYTE_HPP
 #define VALUE_BYTE_HPP
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 
 class ValueByte : public Value {

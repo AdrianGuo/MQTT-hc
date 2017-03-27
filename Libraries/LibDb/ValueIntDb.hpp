@@ -15,8 +15,8 @@
 #ifndef VALUE_INTDB_HPP_
 #define VALUE_INTDB_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/ValueDb.hpp"
+#include "../Typedefs.h"
+#include "ValueDb.hpp"
 
 class ValueIntDb : public ValueDb {
 private:
@@ -34,10 +34,12 @@ public:
     int_t  GetValue() const;
     void_t SetValue(int_t iValue);
 
+    bool_t Compare(int_t  iValue, ValueDb::Compare typeCompare);
+
     ValueIntDb& operator= (const ValueIntDb& copied);
-    ValueIntDb& operator= (int_t iValue);
+    ValueIntDb& operator= (int_t  iValue);
     ValueIntDb& operator= (u8_t  byValue);
-    ValueIntDb& operator= (u16_t wValue);
+    ValueIntDb& operator= (u16_t  wValue);
     ValueIntDb& operator= (u32_t dwValue);
 
     bool_t operator== (const ValueIntDb& rhs) const;
@@ -57,8 +59,8 @@ public:
     ValueIntDb& operator++ ();
     ValueIntDb& operator++ (int_t);
 
-    operator int_t() const { return m_iValue; }
-    operator int_p() { return &m_iValue; }
+    operator int_t() const;
+    operator int_p();
 };
 
 

@@ -8,7 +8,7 @@
 #ifndef CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEPUT_HPP_
 #define CONTROLLER_JSONMESSAGE_JSONFILE_JSONFILEPUT_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

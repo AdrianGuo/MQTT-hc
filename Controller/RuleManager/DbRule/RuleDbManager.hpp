@@ -9,7 +9,7 @@
 #define RULEDBMANAGER_HPP_
 
 #include "String.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbRule/RuleModelDb.hpp"
 
 namespace Json {

@@ -16,9 +16,9 @@
 #ifndef SQLSTATEMENT_HPP_
 #define SQLSTATEMENT_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/ValueIntDb.hpp"
-#include "Libraries/LibDb/ValueStrDb.hpp"
+#include "../Typedefs.h"
+#include "ValueIntDb.hpp"
+#include "ValueStrDb.hpp"
 
 class SqlStatement {
 public:

@@ -16,11 +16,11 @@
 #ifndef SQL_VALUE_IMPL_HPP_
 #define SQL_VALUE_IMPL_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/SqlStatement.hpp"
-#include "Libraries/LibDb/SqlValue.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
-#include "Libraries/LibDb/DbContextImpl.hpp"
+#include "../Typedefs.h"
+#include "SqlStatement.hpp"
+#include "SqlValue.hpp"
+#include "DbContext.hpp"
+#include "DbContextImpl.hpp"
 
 template<typename C>
 struct SqlValue<DbPtr<C>> {

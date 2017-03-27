@@ -20,7 +20,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "String.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "LogImpl.hpp"
 #include "Log.hpp"
 

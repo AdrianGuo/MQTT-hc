@@ -8,7 +8,7 @@
 #ifndef ZBDEVICECONTROL_HPP_
 #define ZBDEVICECONTROL_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <debug.hpp>
 #include <LogPlus.hpp>
 #include <ZbSocketCmd.hpp>

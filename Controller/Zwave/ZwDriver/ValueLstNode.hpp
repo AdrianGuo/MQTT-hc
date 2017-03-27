@@ -15,7 +15,7 @@
 #ifndef VALUE_LSTNODE_HPP_
 #define VALUE_LSTNODE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ZwTransportAPI.hpp"
 #include "ZwNode.hpp"
 

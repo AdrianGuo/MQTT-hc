@@ -15,7 +15,7 @@
 #ifndef VALUE_RGB_HPP_
 #define VALUE_RGB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "HelperHc.hpp"
 #include "ValueDevice.hpp"
 

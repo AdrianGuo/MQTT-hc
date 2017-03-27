@@ -1,7 +1,7 @@
 #ifndef SZWSERIAL_HPP_
 #define SZWSERIAL_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "Serial.hpp"
 #include "Functor.hpp"

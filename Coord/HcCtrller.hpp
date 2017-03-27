@@ -26,7 +26,7 @@
 /******************************************************************************/
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Vector.hpp"
 #include "Queue.hpp"
 #include "Functor.hpp"

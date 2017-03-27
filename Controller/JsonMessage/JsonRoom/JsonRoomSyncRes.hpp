@@ -16,7 +16,7 @@
 #ifndef JSON_ROOM_SYNCRES_HPP_
 #define JSON_ROOM_SYNCRES_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

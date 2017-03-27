@@ -8,7 +8,7 @@
 #ifndef ZBCTROLLERDB_HPP_
 #define ZBCTROLLERDB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ValueIntDb.hpp"
 #include "ValueStrDb.hpp"
 #include "ConfigModel.hpp"

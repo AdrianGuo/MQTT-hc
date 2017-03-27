@@ -17,7 +17,7 @@
 #define VALUE_SHARE_HPP_
 
 #include <stddef.h>
-#include "typedefs.h"
+#include "Typedefs.h"
 
 /******************************************************************************/
 /*                                   CLASS                                    */

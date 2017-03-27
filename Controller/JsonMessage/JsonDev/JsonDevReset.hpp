@@ -16,7 +16,7 @@
 #ifndef JSON_DEV_RESET_HPP_
 #define JSON_DEV_RESET_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Vector.hpp"
 #include "json.h"
 #include "JsonMessage.hpp"

@@ -24,7 +24,7 @@
 /*                              INCLUDE FILES                                 */
 /******************************************************************************/
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "LThread.hpp"
 #include "Locker.hpp"
 #include "Vector.hpp"

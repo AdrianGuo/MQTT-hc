@@ -1,7 +1,7 @@
 #ifndef ZWPACKET_HPP_
 #define ZWPACKET_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "Packet.hpp"
 

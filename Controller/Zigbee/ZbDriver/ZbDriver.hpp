@@ -13,7 +13,7 @@
 #include <ZbSocketCmd.hpp>
 #include <IZbDriver.hpp>
 #include <SZbSerial.hpp>
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <Vector.hpp>
 #include <Event.hpp>
 #include <ZbModelDb.hpp>

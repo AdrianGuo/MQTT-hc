@@ -15,7 +15,7 @@
 #ifndef ZWDB_CTRLLER_HPP_
 #define ZWDB_CTRLLER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbItem.hpp"
 #include "ValueIntDb.hpp"
 #include "ValueStrDb.hpp"

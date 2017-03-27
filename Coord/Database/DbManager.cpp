@@ -17,7 +17,7 @@
  *
  *******************************************************************************/
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "String.hpp"
 

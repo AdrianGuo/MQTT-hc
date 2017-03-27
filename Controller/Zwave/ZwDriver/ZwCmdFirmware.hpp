@@ -1,7 +1,7 @@
 #ifndef ZWCMD_FIRMWARE_HPP_
 #define ZWCMD_FIRMWARE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "HandlerRequest.hpp"
 #include "HandlerResponse.hpp"
 #include "JsonZwaveSession.hpp"

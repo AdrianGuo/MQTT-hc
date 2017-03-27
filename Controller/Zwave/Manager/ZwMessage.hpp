@@ -1,7 +1,7 @@
 #ifndef ZWMESSAGE_HPP_
 #define ZWMESSAGE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "Map.hpp"
 #include "Functor.hpp"

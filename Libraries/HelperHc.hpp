@@ -31,7 +31,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "LogPlus.hpp"
 

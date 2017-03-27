@@ -16,7 +16,7 @@
 #ifndef JSON_RULE_ADD_HPP_
 #define JSON_RULE_ADD_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

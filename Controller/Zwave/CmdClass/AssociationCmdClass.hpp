@@ -1,7 +1,7 @@
 #ifndef ASSOCIATION_CMDCLASS_HPP_
 #define ASSOCIATION_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "Vector.hpp"
 #include "ZwDefs.hpp"

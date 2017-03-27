@@ -15,7 +15,7 @@
 #ifndef LOG_COMMAND_HPP_
 #define LOG_COMMAND_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "LogPlus.hpp"
 #include "JsonCommand.hpp"

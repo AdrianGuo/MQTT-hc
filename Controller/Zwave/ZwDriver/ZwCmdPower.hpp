@@ -1,7 +1,7 @@
 #ifndef ZWCMD_POWER_HPP_
 #define ZWCMD_POWER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "HandlerRequest.hpp"
 #include "HandlerResponse.hpp"
 #include "JsonZwaveSession.hpp"

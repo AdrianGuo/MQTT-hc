@@ -13,8 +13,8 @@
  *
  ******************************************************************************/
 
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/ValueDb.hpp"
+#include "../LogPlus.hpp"
+#include "ValueDb.hpp"
 
 /**
  * @func   ValueDb
@@ -29,11 +29,11 @@ ValueDb::ValueDb (
     const String    strForeignKeyTable,
     const String    strForeignKeyName,
     u32_t           dwFlags
-) : ValueDbCore         (valueType, pName   ),
-    m_dwFlags           (dwFlags            ),
-    m_strColumnName     (strColumnName      ),
-    m_strForeignKeyTable(strForeignKeyTable ),
-    m_strForeignKeyName (strForeignKeyName  ) {
+) : ValueDbCore     (valueType, pName),
+    m_dwFlags  (dwFlags),
+    m_strColumnName (strColumnName),
+    m_strForeignKeyTable (strForeignKeyTable),
+    m_strForeignKeyName  (strForeignKeyName ) {
     if (valueType == Value::Type_t::type_interger) {
         m_strSqlType = "INTEGER";
     } else if (valueType == Value::Type_t::type_string) {
@@ -77,6 +77,15 @@ ValueDb::~ValueDb() {
 }
 
 /**
+ * @func   SetValueDefault
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+void_t
+ValueDb::SetValueDefault() {}
+
+/**
  * @func   operator=
  * @brief  None
  * @param  None
@@ -102,11 +111,11 @@ ValueDb::Swap(
     ValueDb& other
 ) {
     ValueDbCore::Swap(other);
+    std::swap(m_strSqlType,         other.m_strSqlType          );
     std::swap(m_strColumnName,      other.m_strColumnName       );
     std::swap(m_strForeignKeyTable, other.m_strForeignKeyTable  );
     std::swap(m_strForeignKeyName,  other.m_strForeignKeyName   );
     std::swap(m_dwFlags,            other.m_dwFlags             );
-    std::swap(m_strSqlType,         other.m_strSqlType          );
 }
 
 /**
@@ -117,9 +126,9 @@ ValueDb::Swap(
  */
 void_t
 ValueDb::SetColumnName(
-    const String strColumn
+    const String strColumnName
 ) {
-    m_strColumnName = strColumn;
+    m_strColumnName = strColumnName;
 }
 
 /**

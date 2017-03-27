@@ -15,7 +15,7 @@
 #ifndef JSON_DEV_DEL_HPP_
 #define JSON_DEV_DEL_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

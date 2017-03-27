@@ -1,7 +1,7 @@
 #ifndef VALUE_BOOL_HPP_
 #define VALUE_BOOL_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 
 class ValueBool : public Value {

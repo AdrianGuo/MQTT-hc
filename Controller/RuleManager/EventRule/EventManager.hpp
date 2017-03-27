@@ -12,7 +12,7 @@
 #include "EventRule/EventTimeManager.hpp"
 #include "ItemRule/Rule.hpp"
 #include "json.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 
 class EventManager {
 public:

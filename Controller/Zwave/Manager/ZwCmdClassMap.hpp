@@ -15,7 +15,7 @@
 #ifndef ZW_CMDCLASS_MAP_HPP_
 #define ZW_CMDCLASS_MAP_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Map.hpp"
 #include "String.hpp"
 

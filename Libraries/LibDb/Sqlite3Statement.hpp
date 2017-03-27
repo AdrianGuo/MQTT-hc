@@ -16,9 +16,9 @@
 #ifndef SQLITE3_BACKEND_HPP_
 #define SQLITE3_BACKEND_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/LibDb/Database.hpp"
-#include "Libraries/LibDb/SqlStatement.hpp"
+#include "../Typedefs.h"
+#include "Database.hpp"
+#include "SqlStatement.hpp"
 
 struct sqlite3_stmt;
 

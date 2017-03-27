@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Log.hpp"
 
 #define __FILENAME__            (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

@@ -16,13 +16,11 @@
 #ifndef QUERY_HPP_
 #define QUERY_HPP_
 
-#include "Libraries/typedefs.h"
-// 17.02.2017 TrungTQ Add
-#include "Libraries/Exception.hpp"
-#include "Libraries/SmartPtr.hpp"
-// 17.02.2017 TrungTQ End
-#include "Libraries/LibDb/SqlStatement.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
+#include "../Typedefs.h"
+#include "../Exception.hpp"
+#include "../SmartPtr.hpp"
+#include "SqlStatement.hpp"
+#include "DbContext.hpp"
 
 /******************************************************************************/
 /*                                   STRUCT                                   */
@@ -100,9 +98,7 @@ CreateCountQuerySelect(
 ) {
     String result = "SELECT COUNT(1) FROM \"" + strFrom + "\" ";
 
-    if (!strWhere.empty()) {
-        result += "WHERE " + strWhere;
-    }
+    if (!strWhere.empty()) { result += "WHERE " + strWhere; }
 
     return result;
 }
@@ -112,7 +108,7 @@ CreateCountQuerySelect(
 /******************************************************************************/
 template<class C> class Collection;
 
-// R: Result
+// R: Result = DbPtr<C>
 template<class R>
 class Query {
 private:
@@ -156,11 +152,11 @@ public:
  */
 template<class R>
 inline Query<R>::Query(
-    DbContext_p pDbContext,
-    const String& strSql
-) : m_pDbContext        (pDbContext),
-    m_strSql            (strSql),
-    m_iColumn           (0),
+    DbContext_p     pDbContext,
+    const String&   strSql
+) : m_pDbContext (pDbContext),
+    m_strSql     (strSql),
+    m_iColumn    (0),
     m_boCompleteQuery   (TRUE) {
     size_t posFrom = m_strSql.find("FROM");
     m_strTable =

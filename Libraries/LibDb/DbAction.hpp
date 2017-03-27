@@ -15,19 +15,39 @@
 #ifndef DBACTION_HPP_
 #define DBACTION_HPP_
 
-#include "Libraries/typedefs.h"
-#include "Libraries/SmartPtr.hpp"
-#include "Libraries/LibDb/sqlite3.h"
-#include "Libraries/LibDb/ValueDb.hpp"
-#include "Libraries/LibDb/ValueIntDb.hpp"
-#include "Libraries/LibDb/SetInfo.hpp"
-#include "Libraries/LibDb/DbPtr.hpp"
-#include "Libraries/LibDb/Config.hpp"
-#include "Libraries/LibDb/ConfigImpl.hpp"
-#include "Libraries/LibDb/SqlStatement.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
+#include "../Typedefs.h"
+#include "../SmartPtr.hpp"
+#include "sqlite3.h"
+#include "ValueDb.hpp"
+#include "ValueIntDb.hpp"
+#include "SetInfo.hpp"
+#include "DbPtr.hpp"
+#include "DbChecker.hpp"
+#include "ConfigImpl.hpp"
+#include "SqlStatement.hpp"
+#include "DbContext.hpp"
+#include "Config.hpp"
 
 template<class C> class Collection;
+
+/**
+ * @func   Table
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<typename V, class C>
+bool_t
+Look(
+    C&      obj,
+    V       value,
+    u32_t   dwIndex
+) {
+//    return obj.Check(value, dwIndex);
+//    return Check<dwIndex, C, V>::Compare(obj, value);
+    return FALSE;
+}
+
 
 /**
  * @func   Table
@@ -139,11 +159,12 @@ HasMany(
 /******************************************************************************/
 class DbInit {
 private:
+    u32_t      m_dwIndex;
     DbContext& m_dbContext;
     IMapTable& m_mapTable;
 public:
     DbInit(DbContext& dbContext, IMapTable& mapTable);
-    virtual ~DbInit() {}
+    virtual ~DbInit();
 
     virtual void_t ActInitMapping(IMapTable_p pMapTable);
     template<class V> void_t ActId(V& value);
@@ -324,7 +345,7 @@ protected:
     u32_t       m_dwStatementIdx;
 public:
     DbAction(DbPtrBase& dbPtrBase, IMapTable& mapTable);
-    virtual ~DbAction() {}
+    virtual ~DbAction();
 
     IMapTable& GetMapTable();
     template<class C> void_t
@@ -344,8 +365,8 @@ typedef DbAction* DbAction_p;
 template<class C>
 inline void_t
 DbAction::ActCollection(
-    Collection<DbPtr<C>>& collection,
-    const String& strForeignName
+    Collection<DbPtr<C>>&   collection,
+    const String&           strForeignName
 ) {
     try {
 //        LOG_DEBUG("action collection");
@@ -595,7 +616,7 @@ public:
                  SmartPtr<SqlStatement> pStatement = NULL,
                  u32_t dwColumn = 0);
 
-    virtual ~DbLoadAction() {}
+    virtual ~DbLoadAction();
 
     template<class V> void_t ActColumn(V& value);
     template<class C> void_t
@@ -737,5 +758,72 @@ DbLoadObject<C>::ActId(
     Column(*this, value);
     m_dbPtrCore.SetId(value);
 }
+
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
+class DbFind {
+public:
+    DbFind();
+    virtual ~DbFind();
+};
+
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
+template<class C>
+class DbFindObj : public DbFind {
+public:
+    DbFindObj();
+    virtual ~DbFindObj();
+
+    template<typename V>
+    bool_t Find(DbPtrCore<C>* pDbPtrObj, V value, u32_t dwIndex);
+};
+
+/**
+ * @func   DbFindObj
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbFindObj<C>::DbFindObj(
+) {
+}
+
+/**
+ * @func   ~DbFindObj
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+inline
+DbFindObj<C>::~DbFindObj() {
+
+}
+
+/**
+ * @func   Config
+ * @brief  None
+ * @param  None
+ * @retval None
+ */
+template<class C>
+template<typename V>
+inline bool_t
+DbFindObj<C>::Find(
+    DbPtrCore<C>*   pDbPtrObj,
+    V               value,
+    u32_t           dwIndex
+) {
+    return Look(*pDbPtrObj->Obj(), value, dwIndex);
+}
+
+/******************************************************************************/
+/*                                   CLASS                                    */
+/******************************************************************************/
 
 #endif /* !DBACTION_HPP_ */

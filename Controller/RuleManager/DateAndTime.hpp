@@ -9,7 +9,7 @@
 #define DATEANDTIME_HPP_
 
 #include <time.h>
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <math.h>
 #include "LogPlus.hpp"
 

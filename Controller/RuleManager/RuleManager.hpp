@@ -14,7 +14,7 @@
 #include "ItemRule/Rule.hpp"
 #include "ItemRule/RuleItemActive.hpp"
 #include "json.h"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <vector>
 #include "JsonRuleDel.hpp"
 #include "JsonRuleActv.hpp"

@@ -15,7 +15,7 @@
 #ifndef VALUE_DBCORE_HPP_
 #define VALUE_DBCORE_HPP_
 
-#include "Libraries/Value/Value.hpp"
+#include "../Value/Value.hpp"
 
 class ValueDbCore : public Value {
 private:
@@ -31,9 +31,9 @@ public:
     virtual ~ValueDbCore();
     ValueDbCore& operator= (const ValueDbCore& copied);
 
-    virtual void_t   SetChange() { m_boChanged = TRUE;  }
-    virtual void_t ResetChange() { m_boChanged = FALSE; }
-    virtual bool_t IsChanged  () const { return m_boChanged; }
+    virtual void_t SetChange();
+    virtual void_t ResetChange();
+    virtual bool_t IsChanged() const;
 };
 
 typedef ValueDbCore  ValueDbCore_t;

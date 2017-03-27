@@ -12,11 +12,12 @@
  * Last Changed:     Date: 26 Dec 2016 22:00:35
  *
  ******************************************************************************/
-#include "Libraries/HelperHc.hpp"
-#include "Libraries/LogPlus.hpp"
-#include "Libraries/LibDb/ConfigDb.hpp"
-#include "Libraries/LibDb/DbPtr.hpp"
-#include "Libraries/LibDb/DbContext.hpp"
+#include "../Converter.hpp"
+#include "../FileOpt.hpp"
+#include "../LogPlus.hpp"
+#include "ConfigDb.hpp"
+#include "DbPtr.hpp"
+#include "DbContext.hpp"
 
 /**
  * @func   IMapTable
@@ -75,10 +76,17 @@ DbContext::DbContext(
 ) : m_pDatabase        (       NULL),
     m_strRamFileName   (   PATH_RAM),
     m_strFlashFileName ( PATH_FLASH),
+    m_strBackupFileName( PATH_FLASH),
     m_flushMode        (MODE_MANUAL) {
-    m_strRamFileName.append  (strDbName);
+    size_t dotPos = strDbName.find(".");
+    String strFileName = strDbName.substr(0, dotPos);
+    String strFileExt  = strDbName.substr(dotPos + 1, strDbName.length());
+    m_strBackupFileName.append(strFileName + "_bk." + strFileExt);
+
+    m_strRamFileName.append(strDbName);
     m_strFlashFileName.append(strDbName);
-    CopyFile(m_strFlashFileName.c_str(), strDbName.c_str());
+
+    FileOpt::GetInstance().CopyFile(m_strFlashFileName, m_strRamFileName);
     m_pDatabase = new Database(strDbName);
 }
 
@@ -175,11 +183,15 @@ DbContext::UpdateChanges() {
     List<DbPtrBase_p>::iterator it = m_lstObject.begin();
     while (it != m_lstObject.end()) {
         (*it)->UpdateChange();
-        m_lstObject.erase(it++);
+        it = m_lstObject.erase(it);
     }
 
-    remove(m_strFlashFileName.c_str());
-    CopyFile(m_strRamFileName.c_str(), m_strFlashFileName.c_str()); // need repair
+    #if USE_BACKUP_DATABASE
+    FileOpt::GetInstance().CopyFile(m_strFlashFileName, m_strBackupFileName);
+    #endif /* USE_BACKUP_DATABASE */
+
+    FileOpt::GetInstance().Remove(m_strFlashFileName);
+    FileOpt::GetInstance().CopyFile(m_strRamFileName, m_strFlashFileName);
 }
 
 /**
@@ -196,11 +208,7 @@ DbContext::ExecuteSql(
         SmartPtr<SqlStatement> pSqlStatement = GetStatement(strSql);
         pSqlStatement->execute();
     } catch (std::exception &ex) {
-        #ifdef USE_LOG
         LOG_ERROR(ex.what());
-        #else /* USE_LOG */
-        MACRO_DBUG("%s",ex.what());
-        #endif /* USE_LOG */
      }
 }
 
@@ -239,13 +247,10 @@ DbContext::GetColumns(
             result.push_back(value);
         }
 
-        result.insert(result.end(), pMapTable->Columns.begin(), pMapTable->Columns.end());
+        result.insert(result.end(),
+        pMapTable->Columns.begin(), pMapTable->Columns.end());
     } catch (std::exception &ex) {
-        #ifdef USE_LOG
         LOG_ERROR(ex.what());
-        #else /* USE_LOG */
-        MACRO_DBUG("%s",ex.what());
-        #endif /* USE_LOG */
     }
 }
 
@@ -271,11 +276,7 @@ DbContext::CreateTables() {
         }
         tablesCreated.clear();
     } catch (std::exception &ex) {
-        #ifdef USE_LOG
         LOG_ERROR(ex.what());
-        #else /* USE_LOG */
-        MACRO_DBUG("%s",ex.what());
-        #endif /* USE_LOG */
     }
 }
 
@@ -493,11 +494,7 @@ DbContext::InitStatements(
 
         strSql.clear();
     } catch (std::exception &ex) {
-        #ifdef USE_LOG
         LOG_ERROR(ex.what());
-        #else /* USE_LOG */
-        MACRO_DBUG("%s",ex.what());
-        #endif /* USE_LOG */
     }
 }
 
@@ -556,11 +553,7 @@ DbContext::CreateTable(
         strSql += "\n)";
 
         #ifdef DB_LIBDB
-        #ifdef USE_LOG
-        LOG_DEBUG(strSql.c_str());
-        #else /* USE_LOG */
-        MACRO_DBUG(strSql.c_str());
-        #endif /* USE_LOG */
+        LOG_DBUG(strSql.c_str());
         #endif /* DB_LIBDB */
 
         SmartPtr<SqlStatement> pSqlStatement = GetStatement(strSql);
@@ -570,11 +563,7 @@ DbContext::CreateTable(
         LOG_DEBUG("[TB:%15s] create table rs [%3d]",
         pMapTable->TableName.c_str(), rc);
     } catch (std::exception &ex) {
-        #ifdef USE_LOG
         LOG_ERROR(ex.what());
-        #else /* USE_LOG */
-        MACRO_DBUG("%s",ex.what());
-        #endif /* USE_LOG */
     }
 }
 

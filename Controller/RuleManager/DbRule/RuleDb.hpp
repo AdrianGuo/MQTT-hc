@@ -8,7 +8,7 @@
 #ifndef CONTROLLER_RULEMANAGER_DBRULE_RULEDB_HPP_
 #define CONTROLLER_RULEMANAGER_DBRULE_RULEDB_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "DbItem.hpp"
 #include "DbPtr.hpp"
 #include "Config.hpp"

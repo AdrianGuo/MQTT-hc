@@ -15,7 +15,7 @@
 #ifndef ZWAVEPLUSINFO_CMDCLASS_HPP_
 #define ZWAVEPLUSINFO_CMDCLASS_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 #include "ZwDefs.hpp"
 #include "ZwDbModel.hpp"

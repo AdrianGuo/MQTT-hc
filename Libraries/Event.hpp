@@ -1,7 +1,7 @@
 #ifndef EVENT_HPP_
 #define EVENT_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Locker.hpp"
 
 #define WAIT_INFINITE           (-1)

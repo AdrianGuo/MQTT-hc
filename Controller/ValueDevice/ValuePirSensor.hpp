@@ -15,7 +15,7 @@
 #ifndef VALUE_PIRSENSOR_HPP_
 #define VALUE_PIRSENSOR_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "ValueDevice.hpp"
 

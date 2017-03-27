@@ -16,7 +16,7 @@
 #ifndef JSON_AUTH_RES_HPP_
 #define JSON_AUTH_RES_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "String.hpp"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

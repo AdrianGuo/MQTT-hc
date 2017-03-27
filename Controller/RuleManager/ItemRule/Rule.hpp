@@ -13,7 +13,7 @@
 #include "ItemRule/RuleTimeSchedule.hpp"
 #include "json.h"
 #include "String.hpp"
-#include "typedefs.h"
+#include "Typedefs.h"
 #include <vector>
 
 class Rule {

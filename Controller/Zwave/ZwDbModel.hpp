@@ -15,7 +15,7 @@
 #ifndef ZWDB_MODEL_HPP_
 #define ZWDB_MODEL_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ZwDbCmdClassItem.hpp"
 #include "ZwDbConfigModel.hpp"
 #include "ZwDbCtrllerItem.hpp"

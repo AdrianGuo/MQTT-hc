@@ -1,7 +1,7 @@
 #ifndef ZWCMD_CTRLLER_HPP_
 #define ZWCMD_CTRLLER_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "HandlerRequest.hpp"
 #include "HandlerResponse.hpp"
 

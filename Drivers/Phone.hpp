@@ -8,7 +8,7 @@
 #ifndef DRIVERS_PHONE_HPP_
 #define DRIVERS_PHONE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Queue.hpp"
 #include "String.hpp"
 #include "Locker.hpp"

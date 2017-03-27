@@ -1,7 +1,7 @@
 #ifndef JSON_ROOM_LSTDEV_HPP_
 #define JSON_ROOM_LSTDEV_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json.h"
 #include "JsonMessage.hpp"
 #include "JsonCommand.hpp"

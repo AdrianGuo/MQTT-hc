@@ -1,7 +1,7 @@
 #ifndef VALUE_ZWNODE_HPP_
 #define VALUE_ZWNODE_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "ZwTransportAPI.hpp"
 #include "ZwNode.hpp"
 

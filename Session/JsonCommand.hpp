@@ -1,7 +1,7 @@
 #ifndef JSONCOMMAND_HPP_
 #define JSONCOMMAND_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "json-forwards.h"
 #include "json.h"
 #include "String.hpp"

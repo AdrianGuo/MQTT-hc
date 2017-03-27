@@ -8,7 +8,7 @@
 #ifndef ZBBASICCMD_HPP_
 #define ZBBASICCMD_HPP_
 
-#include <typedefs.h>
+#include <Typedefs.h>
 #include <zcl.hpp>
 #include <RTimer.hpp>
 #include <ZbPacket.hpp>

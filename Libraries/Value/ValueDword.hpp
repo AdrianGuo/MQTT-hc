@@ -1,7 +1,7 @@
 #ifndef VALUE_DWORD_HPP_
 #define VALUE_DWORD_HPP_
 
-#include "typedefs.h"
+#include "Typedefs.h"
 #include "Value.hpp"
 
 class ValueDword : public Value {
