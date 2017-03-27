@@ -115,15 +115,15 @@ Transport::Transport(
  */
 Transport::~Transport() {
     if (m_pSendSocketThread != NULL) {
-        delete(m_pSendSocketThread);
+        delete m_pSendSocketThread;
         m_pSendSocketThread = NULL;
     }
     if (m_pTransportLocker != NULL) {
-        delete(m_pTransportLocker);
+        delete m_pTransportLocker;
         m_pTransportLocker = NULL;
     }
     if (m_pbyBuffer != NULL) {
-        delete(m_pbyBuffer);
+        delete[] m_pbyBuffer;
         m_pbyBuffer = NULL;
     }
 }

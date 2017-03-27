@@ -68,10 +68,10 @@ Packet::Push(
         for (u32_t i = 0; i < m_dwCount; i++) {
             temp[i] = m_pbBuffer[i];
         }
-        delete m_pbBuffer;
+        delete[] m_pbBuffer;
         m_pbBuffer = temp;
         temp = NULL;
-        delete temp;
+        delete[] temp;
     }
     m_pbBuffer[m_dwCount++] = byData;
     return TRUE;
@@ -94,10 +94,10 @@ Packet::Push(
         for (u32_t i = 0; i < m_dwCount; i++) {
             temp[i] = m_pbBuffer[i];
         }
-        delete m_pbBuffer;
+        delete[] m_pbBuffer;
         m_pbBuffer = temp;
         temp = NULL;
-        delete temp;
+        delete[] temp;
     }
     for (u32_t i = 0; i < dwLength; i++) {
         m_pbBuffer[m_dwCount++] = pbBuffer[i];

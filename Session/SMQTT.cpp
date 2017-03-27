@@ -144,7 +144,7 @@ SMQTT* SMQTT::GetInstance(
 SMQTT::~SMQTT() {
 	delete m_pLock;
 	delete m_spTransport;
-	delete m_pbyBuffer;
+	delete[] m_pbyBuffer;
 }
 
 /**
