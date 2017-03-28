@@ -24,7 +24,9 @@ ZbModelDb::ZbModelDb(
     MapDbTable<BackupInfoDb>(BackupInfoDb::GetTableName());
     CreateTables();
     ZbControllers   = Find<ZbControllerDb>();
+    for (Controllers_t::const_iterator it = ZbControllers.begin(); it != ZbControllers.end(); it++) {}
     ZbDevices       = Find<ZbDeviceDb>();
+    for (Devices_t::const_iterator it = ZbDevices.begin(); it != ZbDevices.end(); it++) {}
     NetDevices      = Find<NetDeviceDb>();
     BackupDevs      = Find<BackupInfoDb>();
 }

@@ -170,7 +170,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     u16_t wClusterID        = LittleWord(&pbyBuffer);
     ++pbyBuffer; //CMD ID
 
-    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
+    Device_t device = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind((int_t)wNwk).Bind((int_t)byEndpoint);
 
     if(device.get() == NULL &&
             wClusterID == ZCL_CLUSTER_ID_GEN_BASIC &&
@@ -245,14 +245,14 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     }
 
     if(wClusterID == ZCL_CLUSTER_ID_GEN_BASIC) {
-        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+        ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
         if(devices.size() == 0) { return; }
     	if(ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo == FALSE ||
     			ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo == FALSE) {
             for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
                 if(vResponseDP[i].DP_AttributeID == ATTRID_BASIC_MANUFACTURER_NAME) {
                 	ZbZdoCmd::s_mapEPInfo[wNwk].HasManufInfo = TRUE;
-                    for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                    for (ADevices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                         Device_t tempDevice = (*it);
                         if(tempDevice.Modify()->IsInterested()) {
                             tempDevice.Modify()->Manufacturer = String((const char*) vpData[i]);
@@ -264,7 +264,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
             		ZbZdoCmd::s_mapEPInfo[wNwk].HasModelInfo = TRUE;
                     String ModelName = String((const char*) vpData[i]);
                     LOG_INFO("Device %s at %04X has joined.", ModelName.c_str(), wNwk);
-                    for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+                    for (ADevices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
                         Device_t tempDevice = (*it);
                         if(tempDevice.Modify()->IsInterested()) {
                             tempDevice.Modify()->Model = ModelName;
@@ -286,7 +286,7 @@ ZbZclGlobalCmd::ReadAttributeResponse(
     	    //Check device's connection
     	    for(u8_t i = 0; i < (u8_t) vResponseDP.size(); i++) {
     	        if (vResponseDP[i].DP_AttributeID == ATTRID_BASIC_ZCL_VERSION) {
-    	            for (Devices_t::iterator it = devices.begin();
+    	            for (ADevices_t::iterator it = devices.begin();
     	                    it != devices.end(); it++) {
     	                    (*it).Modify()->idwNumTimesNotReply = 0;
     	            }
@@ -490,7 +490,7 @@ void_t
 ZbZclGlobalCmd::SaveDevicesInfo(
     u16_t wNwk
 ) {
-    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Model!=?").Bind(wNwk).Bind(String(""));
+    Device_t device = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=? AND Model!=?").Bind(wNwk).Bind(String(""));
     BackupDev_t tmpBu = ZbDriver::s_pZbModel->Find<BackupInfoDb>().Where("MAC=?").Bind(ZbZdoCmd::s_mapEPInfo[wNwk].MAC);
     if(ZbZdoCmd::s_mapEPInfo[wNwk].IsDone != TRUE || device.get() == NULL || tmpBu.get() != NULL) return;
     BackupDev_t BuDev = ZbDriver::s_pZbModel->Add(new BackupInfoDb());
@@ -572,7 +572,7 @@ ZbZclGlobalCmd::ProcessException(
     if(strManufactuter == "") {
     	strManufactuter = "Lumi R&D";
     }
-    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    Device_t device = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
     if(device.get() != NULL) return;
 
     if(prefixModel == "LM-DOOR" || prefixModel == "LM-PIR") {
@@ -750,7 +750,7 @@ ZbZclGlobalCmd::ProcessException(
     }
     ZbDriver::s_pZbModel->UpdateChanges();
     ZbDriver::GetInstance()->Init(false);
-    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
 //    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
     SaveDevicesInfo(wNwk);
 }

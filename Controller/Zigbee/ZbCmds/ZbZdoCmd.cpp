@@ -194,14 +194,14 @@ ZbZdoCmd::ManualDeviceAnnounce(
 ) {
     //Not request ActiveEndpoint to device that has been rejoined.
      u8_t byCheck = 0;
-     Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=?").Bind(MAC);
-     Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND MAC=?").Bind(wNwk).Bind(MAC);
+     ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("MAC=?").Bind(MAC);
+     Device_t device = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=? AND MAC=?").Bind(wNwk).Bind(MAC);
      if(devices.size() > 0) {
          if(device.get() != NULL) {
              //request state
              return;
          }
-         for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+         for(ADevices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
              Device_t tempDevice = *it;
              byCheck++;
              if(byCheck == 1) {
@@ -229,7 +229,7 @@ ZbZdoCmd::ManualDeviceAnnounce(
              Map<u16_t,bool_t> mapCheck;
              if(ZbDeviceDb::IsInterested(it3->second)) {
                  if(mapCheck.find(it3->second) == mapCheck.end()) {
-                     Devices_t devices2 = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(it3->second);
+                     ADevices_t devices2 = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=? AND Type=?").Bind(wNwk).Bind(it3->second);
 //                     ZbSocketCmd::GetInstance()->SendLstAdd(devices2);
                      mapCheck[it3->second] = TRUE;
                  }
@@ -320,8 +320,8 @@ ZbZdoCmd::ActiveEndpointResponse(
     }
     switch (byStatus) {
     case ZDO_STATUS_SUCCESS: {
-        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-        Controller_t pController      = ZbDriver::s_pZbModel->Find<ZbControllerDb>();
+        ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+        Controller_t pController      = ZbDriver::s_pZbModel->Look<ZbControllerDb>();
         if (devices.size() == 0) {
             for (int j = 0; j < byEndpointNo; j++) {
                 ZbDeviceDb_p pZbDevice = new ZbDeviceDb();
@@ -339,7 +339,7 @@ ZbZdoCmd::ActiveEndpointResponse(
             }
         } else {
             for (u32_t j = 0; j < s_mapEPInfo[wNwk].vEPList.size(); j++) {
-                Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("MAC=? AND Endpoint=?").Bind(s_mapEPInfo[wNwk].MAC).Bind(s_mapEPInfo[wNwk].vEPList[j]);
+                Device_t device = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("MAC=? AND Endpoint=?").Bind(s_mapEPInfo[wNwk].MAC).Bind(s_mapEPInfo[wNwk].vEPList[j]);
                 if(device.get() != NULL) {
                     device.Modify()->DeviceID       = wNwk; //*1000 + byEndpointList[j];
                     device.Modify()->Network        = wNwk;
@@ -453,7 +453,7 @@ ZbZdoCmd::SimpleDescResponse(
         return;
     pbyBuffer += 2; //Application profile identifier
     u16_t wType = BigWord(&pbyBuffer); //Application device identifier
-    Device_t device = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
+    Device_t device = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=? AND Endpoint=?").Bind(wNwk).Bind(byEndpoint);
     if (device.get() == NULL) { return; }
     if (wType == 0) {
         SimpleDescRequest(device);
@@ -473,9 +473,9 @@ ZbZdoCmd::SimpleDescResponse(
     if (byEpNo == s_mapEPInfo[wNwk].byTotalEP) {
         s_mapEPInfo[wNwk].IsDone = TRUE;
         Device_t device;
-        Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+        ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
         u8_t byCheck = 0;
-        for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+        for (ADevices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
             if ((*it).Modify()->IsInterested()) {
                 device = *it;
                 byCheck++;
@@ -653,7 +653,7 @@ ZbZdoCmd::RestoreBuDevice(
      u16_t wNwk,
      BackupDev_t BuDev
 ) {
-    Controller_t controller = ZbDriver::s_pZbModel->Find<ZbControllerDb>();
+    Controller_t controller = ZbDriver::s_pZbModel->Look<ZbControllerDb>();
     if(BuDev->EndpointNo.GetValue() > 20) {
         BuDev.Remove();
         ZbDriver::s_pZbModel->UpdateChanges();
@@ -691,7 +691,7 @@ ZbZdoCmd::RestoreBuDevice(
     ZbDriver::s_pZbModel->UpdateChanges();
 
     LOG_INFO("Device %s at %04X has joined.", BuDev.Modify()->Model.GetValue().c_str(), wNwk);
-    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+    ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
 //    ZbSocketCmd::GetInstance()->SendLstAdd(devices);
     return TRUE;
 }

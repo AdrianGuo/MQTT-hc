@@ -69,6 +69,18 @@ public:
     static String GetTableName();
     template<class A> void_t Table(A& action);
 
+    template<ValueDb::Compare C = ValueDb::Compare::Equal>
+    bool_t Check(String& value, u32_t dwIndex);
+
+    template<ValueDb::Compare C = ValueDb::Compare::Equal>
+    bool_t Check(int_t& value, u32_t dwIndex);
+
+    template<ValueDb::Compare C = ValueDb::Compare::Equal>
+    bool_t Check(u8_t& value, u32_t dwIndex);
+
+    template<ValueDb::Compare C = ValueDb::Compare::Equal>
+    bool_t Check(u16_t& value, u32_t dwIndex);
+
 private:
     Locker_p m_pLocker;
 
@@ -76,6 +88,125 @@ private:
     void_t GenerateAttributeDataSize(DeviceInfo);
     void_t GenerateDeviceInfo(String);
 };
+
+// V: Value
+// C: Compare
+template<ValueDb::Compare C>
+inline bool_t
+ZbDeviceDb::Check(
+    int_t&  value,
+    u32_t dwIndex
+) {
+    bool_t boRet = FALSE;
+    switch (dwIndex) {
+    case 0:
+        boRet = DeviceID.Compare(value, C);
+        break;
+    case 1:
+        boRet = Network.Compare(value, C);
+        break;
+    case 5:
+        boRet = Endpoint.Compare(value, C);
+        break;
+    case 6:
+        boRet = Type.Compare(value, C);
+        break;
+    case 7:
+        boRet = ParentID.Compare(value, C);
+        break;
+    case 8:
+        boRet = ControllerID.Compare(value, C);
+        break;
+    }
+    return boRet;
+}
+
+// V: Value
+// C: Compare
+template<ValueDb::Compare C>
+inline bool_t
+ZbDeviceDb::Check(
+    u8_t&  value,
+    u32_t dwIndex
+) {
+    bool_t boRet = FALSE;
+    switch (dwIndex) {
+    case 0:
+        boRet = DeviceID.Compare(value, C);
+        break;
+    case 1:
+        boRet = Network.Compare(value, C);
+        break;
+    case 5:
+        boRet = Endpoint.Compare(value, C);
+        break;
+    case 6:
+        boRet = Type.Compare(value, C);
+        break;
+    case 7:
+        boRet = ParentID.Compare(value, C);
+        break;
+    case 8:
+        boRet = ControllerID.Compare(value, C);
+        break;
+    }
+    return boRet;
+}
+
+// V: Value
+// C: Compare
+template<ValueDb::Compare C>
+inline bool_t
+ZbDeviceDb::Check(
+    u16_t&  value,
+    u32_t dwIndex
+) {
+    bool_t boRet = FALSE;
+    switch (dwIndex) {
+    case 0:
+        boRet = DeviceID.Compare(value, C);
+        break;
+    case 1:
+        boRet = Network.Compare(value, C);
+        break;
+    case 5:
+        boRet = Endpoint.Compare(value, C);
+        break;
+    case 6:
+        boRet = Type.Compare(value, C);
+        break;
+    case 7:
+        boRet = ParentID.Compare(value, C);
+        break;
+    case 8:
+        boRet = ControllerID.Compare(value, C);
+        break;
+    }
+    return boRet;
+}
+
+// V: Value
+// C: Compare
+template<ValueDb::Compare C>
+inline bool_t
+ZbDeviceDb::Check(
+    String&     value,
+    u32_t dwIndex
+) {
+    bool_t boRet = FALSE;
+    switch (dwIndex) {
+    case 2:
+        boRet = MAC.Compare(value, C);
+        break;
+    case 3:
+        boRet = Model.Compare(value, C);
+        break;
+    case 4:
+        boRet = Manufacturer.Compare(value, C);
+        break;
+    }
+    return boRet;
+}
 
 template<class A>
 inline void_t

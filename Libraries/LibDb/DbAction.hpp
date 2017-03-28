@@ -43,9 +43,9 @@ Look(
     V       value,
     u32_t   dwIndex
 ) {
-//    return obj.Check(value, dwIndex);
+    return obj.Check(value, dwIndex);
 //    return Check<dwIndex, C, V>::Compare(obj, value);
-    return FALSE;
+//    return FALSE;
 }
 
 

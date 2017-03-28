@@ -211,7 +211,7 @@ Cache<C>::Bind(
 ) {
     if (m_vecColumn.size() > 0) {
         DbFindObj<C> dbFind;
-        for (typename VecCache::const_iterator it = m_vecCache.begin(); it != m_vecCache.end(); ) {
+        for (typename VecCache::iterator it = m_vecCache.begin(); it != m_vecCache.end(); ) {
             u32_t dwScandIndex = m_vecColumn.size() - m_dwIndex;
             if (!dbFind.Find(it->Obj(), value, m_vecColumn[dwScandIndex].Index)) {
                 it = m_vecCache.erase(it);

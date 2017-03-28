@@ -340,7 +340,7 @@ ZbDriver::ProcCmdSet(
 	if (!jsonDevSet->ParseJsonCommand(pJsonCommand)) return;
     Vector<JsonDevSet::Device_t> vecLstDev = jsonDevSet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
-        Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
+        Device_t device = s_pZbModel->Look<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
         if(device.get() == NULL) { continue; }
         device.Modify()->OwnersReq.push(pJsonCommand->GetClientId());
         switch (device->RealType) {
@@ -400,7 +400,7 @@ ZbDriver::ProcCmdGet(
 	if (!jsonDevGet->ParseJsonCommand(pJsonCommand)) return;
     Vector<JsonDevGet::Device_t> vecLstDev = jsonDevGet->LstDev();
     for(int_t i = 0; i < (int_t) vecLstDev.size(); i++) {
-        Device_t device = s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
+        Device_t device = s_pZbModel->Look<ZbDeviceDb>().Where("DeviceID=? AND Endpoint=?").Bind(vecLstDev[i].devid).Bind(vecLstDev[i].order);
         if(device.get() == NULL) { continue; }
         device.Modify()->OwnersReq.push(pJsonCommand->GetClientId());
         switch (device->RealType) {
@@ -477,8 +477,8 @@ ZbDriver::Init(
 //            sleep(1);
 //        }
     }
-    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-    for(Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+    ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>();
+    for(ADevices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
         Device_t temp = (*it);
         u16_t wNwk = temp->Network.GetValue();
         //Load endpoints map
@@ -518,7 +518,7 @@ ZbDriver::Init(
     }
 
     //check status
-    Devices_t::const_iterator it;
+    ADevices_t::const_iterator it;
     for(it = devices.begin(); it != devices.end(); it++) {
         try {
             const Device_t& tmp = (*it);
@@ -549,8 +549,8 @@ ZbDriver::HandleRequest(
         m_idwCheckTime = 0;
     LOG_DEBUG("Affirm alive state of devices: %d !", m_idwCheckTime);
 
-    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>();
-    Devices_t::iterator it;
+    ADevices_t devices = ZbDriver::s_pZbModel->Look<ZbDeviceDb>();
+    ADevices_t::iterator it;
     for(it = devices.begin(); it != devices.end(); it++) {
         Device_t& tmp = (*it);
         if(tmp.Modify()->RealType > 0) {

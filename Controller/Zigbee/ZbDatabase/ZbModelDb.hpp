@@ -24,6 +24,9 @@ typedef Collection<DbPtr<NetDeviceDb>>      NetDevices_t;
 typedef DbPtr<BackupInfoDb>                 BackupDev_t;
 typedef Collection<DbPtr<BackupInfoDb>>     BackupDevs_t;
 
+typedef Aggregation<DbPtr<ZbDeviceDb>>       ADevices_t;
+typedef Aggregation<DbPtr<ZbControllerDb>>   AControllers_t;
+
 class ZbModelDb : public DbContext {
 private:
     ZbModelDb(const_char_p cDbName);

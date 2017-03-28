@@ -228,11 +228,11 @@ ForwardIrState(
 
         case 0x03: {
             DEBUG2("Add new IrCmd %04X,", device->Action[DI_State].DP_ReserveData);
-            Device_t pdevice = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
+            Device_t pdevice = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("Network=? AND Endpoint=?").
                     Bind(device->Network.GetValue()).Bind(device->Endpoint.GetValue());
             if(pdevice.get() == NULL) { return; }
 
-            Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
+            Device_t ircmd = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
                     Bind(device->Action[DI_State].DP_ReserveData).Bind(device->Network.GetValue());
             if(ircmd.get() == NULL) {
                     ZbDeviceDb_p pZbDevice = new ZbDeviceDb();
@@ -263,7 +263,7 @@ ForwardIrState(
             jsonRetVal["state"] = std::to_string(0);
             jsonRetVal["irid"] = std::to_string(device->Action[DI_State].DP_ReserveData);
             if(device->State == 0x06) {
-                Device_t ircmd = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
+                Device_t ircmd = ZbDriver::s_pZbModel->Look<ZbDeviceDb>().Where("DeviceID=? AND Network=?").
                         Bind(device->Action[DI_State].DP_ReserveData).Bind(device->Network.GetValue());
                 if(ircmd.get() != NULL) {
                     ircmd.Remove();
