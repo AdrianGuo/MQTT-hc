@@ -54,6 +54,10 @@ private:
     LThread_p m_pDoWorkThread;
     threadFunctor_t m_DoWorkFunctor;
 
+    bool_t IsUpdatedConfig;
+    String ExecCommand(const char*);
+    void_t UpdateGammuConfig();
+
 public:
     static Phone* getInstant();
     virtual ~Phone();
