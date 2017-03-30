@@ -25,6 +25,7 @@
 #include <string.h>
 
 
+#include "Controller/File/Version.hpp"
 #include "ZbCtrller.hpp"
 #include "HcCtrller.hpp"
 #include "LogPlus.hpp"
@@ -40,6 +41,7 @@ int main(int argc, char* argv[]) {
     Log::Create("log.txt", TRUE, TRUE, Log::eInfo, Log::eAll);
     Log::Start();
     LOG_DEBUG("start log");
+    LOG_INFO("App version %s", VERSION.c_str());
 
     if (argc < 6) {
         LOG_ERROR("Usage %s <<number>>", argv[0]);

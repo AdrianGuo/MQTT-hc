@@ -522,14 +522,14 @@ ZbZdoCmd::LeaveRequest(
     pZbPacket->Push(byMAC, 8);
     pZbPacket->Push(0b00000011);
 
-    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
-    if(devices.size() > 0) {
-//        ZbSocketCmd::GetInstance()->SendLstDel(devices);
-        for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
-            (*it).Remove();
-        }
-        ZbDriver::s_pZbModel->UpdateChanges();
-    }
+//    Devices_t devices = ZbDriver::s_pZbModel->Find<ZbDeviceDb>().Where("Network=?").Bind(wNwk);
+//    if(devices.size() > 0) {
+////        ZbSocketCmd::GetInstance()->SendLstDel(devices);
+//        for (Devices_t::const_iterator it = devices.begin(); it != devices.end(); it++) {
+//            (*it).Remove();
+//        }
+//        ZbDriver::s_pZbModel->UpdateChanges();
+//    }
 
     ZbDriver::GetInstance()->SendZbPacket(pZbPacket);
     delete pZbPacket;

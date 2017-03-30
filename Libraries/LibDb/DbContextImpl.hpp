@@ -226,13 +226,14 @@ DbContext::Delete(
             GetStatement<C>(DbContext::DELETE);
             pStatement->reset();
             pStatement->bind(0, dbPtr.GetId());
+            typename ConfigTable<C>::IdType id = dbPtr.GetId();
             int_t iRet = pStatement->execute();
             if ((iRet == SQLITE_DONE) || (iRet == SQLITE_OK)) {
                 typename MapTable<C>::Registry_t::iterator it =
                 pMapping->Registry.find(dbPtr.GetId());
                 if (it != pMapping->Registry.end()) {
                     delete it->second;
-                    pMapping->Registry.erase(dbPtr.GetId());
+                    pMapping->Registry.erase(id);
                 }
             }
         }

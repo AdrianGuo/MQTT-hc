@@ -7,7 +7,8 @@
 
 #ifndef CONTROLLER_FILE_VERSION_HPP_
 #define CONTROLLER_FILE_VERSION_HPP_
+#include "String.hpp"
 
-static const String VERSION = String("1.0.0.1");
+static const String VERSION = String("1.0.3");
 
 #endif /* CONTROLLER_FILE_VERSION_HPP_ */

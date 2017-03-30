@@ -45,6 +45,7 @@ Serial::Serial(
     m_boIsClosing = FALSE;
     m_boIsConnected = FALSE;
     m_pSerialFunctor = NULL;
+    m_boIsStarted = FALSE;
 
     m_pByBuffer = new u8_t[BUFFER_SERIAL_SIZE];
     memset(m_pByBuffer, 0, BUFFER_SERIAL_SIZE);
