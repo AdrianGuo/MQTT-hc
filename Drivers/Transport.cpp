@@ -86,6 +86,7 @@ Transport::Transport(
     m_boIsClosing = FALSE;
     m_boIsStarted = FALSE;
     m_boIsBlocked = TRUE;
+    m_boIsMqttDoneSubcribe = FALSE;
 
     m_pbyBuffer = new u8_t[BUFFER_SOCKET_SIZE];
     m_idwBufferReadPos = 0;
@@ -214,6 +215,7 @@ Transport::Connect() {
     setsockopt(m_idwSockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
     m_boIsConnected = TRUE;
+    m_boIsClosing = FALSE;
     LOG_INFO("Transport connecting success - m_idwSockfd = %d", m_idwSockfd);
     return TRUE;
 }
@@ -279,6 +281,7 @@ Transport::Close() {
     m_pTransportLocker->Lock();
     m_boIsConnected = FALSE;
     m_boIsClosing = TRUE;
+    m_boIsMqttDoneSubcribe = FALSE;
     m_pTransportLocker->UnLock();
 
     return TRUE;
@@ -341,7 +344,7 @@ Transport::SendSocketThreadProc(
 ) {
     while (TRUE) {
         m_pTransportLocker->Lock();
-        if (m_boIsClosing || !m_boIsConnected) {
+        if (m_boIsClosing || !m_boIsConnected || !m_boIsMqttDoneSubcribe) {
             m_pTransportLocker->UnLock();
             continue;
         }
@@ -390,7 +393,7 @@ Transport::ReadSocketThreadProc(
 ) {
     int_t idwResult;
     while (TRUE) {
-        if (m_boIsClosing || !m_boIsConnected) {
+        if (m_boIsClosing || !m_boIsConnected || !m_boIsMqttDoneSubcribe) {
             continue;
         }
 
@@ -564,4 +567,9 @@ Transport::DiGet(
 
 bool_t Transport::IsStarted() const {
     return m_boIsStarted;
+}
+
+void_t
+Transport::setMqttDoneSubcribe() {
+    m_boIsMqttDoneSubcribe = TRUE;
 }

@@ -155,9 +155,11 @@ SMQTT::~SMQTT() {
  */
 bool_t
 SMQTT::Start() {
+    bool boRet = TRUE;
     if (!m_spTransport->IsStarted())
-        return m_spTransport->Start();
-    return TRUE;
+        boRet = m_spTransport->Start();
+    m_spTransport->setMqttDoneSubcribe();
+    return boRet;
 }
 
 /**

@@ -48,6 +48,7 @@ private:
     bool_t m_boIsClosing;
     bool_t m_boIsStarted;
     bool_t m_boIsBlocked;
+    bool_t m_boIsMqttDoneSubcribe;
 
     u8_p m_pbyBuffer;
     u32_t m_idwBufferReadPos;
@@ -103,6 +104,7 @@ public:
     int_t DiSend(u8_p, u32_t);
     int_t DiGet(u8_p, u32_t);
     bool_t IsStarted() const;
+    void_t setMqttDoneSubcribe();
 };
 
 typedef Transport Transport_t;

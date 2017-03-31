@@ -185,7 +185,9 @@ DbPtrCore<C>::DbPtrCore(
 template<class C>
 inline
 DbPtrCore<C>::~DbPtrCore() {
-    delete m_pObj;
+    if (m_pObj != NULL) {
+        delete m_pObj;
+    }
 }
 
 /**
