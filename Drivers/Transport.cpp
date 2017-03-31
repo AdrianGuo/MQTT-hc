@@ -214,8 +214,10 @@ Transport::Connect() {
     tv.tv_usec = 0;
     setsockopt(m_idwSockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
+    m_pTransportLocker->Lock();
     m_boIsConnected = TRUE;
     m_boIsClosing = FALSE;
+    m_pTransportLocker->UnLock();
     LOG_INFO("Transport connecting success - m_idwSockfd = %d", m_idwSockfd);
     return TRUE;
 }
@@ -344,7 +346,7 @@ Transport::SendSocketThreadProc(
 ) {
     while (TRUE) {
         m_pTransportLocker->Lock();
-        if (m_boIsClosing || !m_boIsConnected || !m_boIsMqttDoneSubcribe) {
+        if (!m_boIsConnected || !m_boIsMqttDoneSubcribe) {
             m_pTransportLocker->UnLock();
             continue;
         }
@@ -394,7 +396,7 @@ Transport::ReadSocketThreadProc(
     int_t idwResult;
     while (TRUE) {
         m_pTransportLocker->Lock();
-        if (m_boIsClosing || !m_boIsConnected || !m_boIsMqttDoneSubcribe) {
+        if (!m_boIsConnected || !m_boIsMqttDoneSubcribe) {
             m_pTransportLocker->UnLock();
             continue;
         }
