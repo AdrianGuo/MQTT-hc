@@ -393,7 +393,9 @@ Transport::ReadSocketThreadProc(
 ) {
     int_t idwResult;
     while (TRUE) {
+        m_pTransportLocker->Lock();
         if (m_boIsClosing || !m_boIsConnected || !m_boIsMqttDoneSubcribe) {
+            m_pTransportLocker->UnLock();
             continue;
         }
 
@@ -406,6 +408,7 @@ Transport::ReadSocketThreadProc(
             //if recv return 0 meaning that serrver disconnect
             LOG_WARN("receive data - m_idwSockfd = %d - [%d byte]", m_idwSockfd, idwResult);
             m_boIsConnected = FALSE;
+            m_pTransportLocker->UnLock();
             continue;
         }
 
@@ -414,8 +417,10 @@ Transport::ReadSocketThreadProc(
             m_idwBufferWritePos = 0;
             //If read to end of m_pbyBuffer, there are change has remaining data on socket
             // skip process data -> read one more time for remaining data
+            m_pTransportLocker->UnLock();
             continue;
         }
+        m_pTransportLocker->UnLock();
 
         if (m_idwBufferWritePos != m_idwBufferReadPos) {
 //            LOG_DEBUG("m_idwBufferWritePos = %d", m_idwBufferWritePos);
@@ -433,8 +438,12 @@ Transport::ReadSocketThreadProc(
         }
         usleep(50000);
     }
+    m_pTransportLocker->UnLock();
+
+    m_pTransportLocker->Lock();
     m_boIsClosing = TRUE;
     m_boIsStarted = FALSE;
+    m_pTransportLocker->UnLock();
     m_pReadSocketThread->Stop();
     return NULL;
 }
@@ -571,5 +580,7 @@ bool_t Transport::IsStarted() const {
 
 void_t
 Transport::setMqttDoneSubcribe() {
+    m_pTransportLocker->Lock();
     m_boIsMqttDoneSubcribe = TRUE;
+    m_pTransportLocker->UnLock();
 }
