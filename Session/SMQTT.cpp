@@ -484,7 +484,7 @@ SMQTT::GetMQTTPacket(
     while (idwTotalBytes < 2) // Reading fixed header
     {
         if (!boDirect) {
-            if ((idwBytesRcvd = m_spTransport->GetBuffer(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
+            if ((idwBytesRcvd = m_spTransport->GetBuffer(pbyBuffer + idwTotalBytes, 1)) <= 0)
                 return -1;
         } else {
             if ((idwBytesRcvd = m_spTransport->DiGet(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
@@ -498,7 +498,7 @@ SMQTT::GetMQTTPacket(
     while (idwTotalBytes < idwPacketLength) // Reading the packet
     {
         if (!boDirect) {
-            if ((idwBytesRcvd = m_spTransport->GetBuffer(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)
+            if ((idwBytesRcvd = m_spTransport->GetBuffer(pbyBuffer + idwTotalBytes, 1)) <= 0)
                 return -1;
         } else {
             if ((idwBytesRcvd = m_spTransport->DiGet(pbyBuffer + idwTotalBytes, (u32_t) BUFFER_SOCKET_SIZE)) <= 0)

@@ -9,6 +9,6 @@
 #define CONTROLLER_FILE_VERSION_HPP_
 #include "String.hpp"
 
-static const String VERSION = String("1.0.4");
+static const String VERSION = String("1.0.5");
 
 #endif /* CONTROLLER_FILE_VERSION_HPP_ */
